@@ -2421,6 +2421,7 @@ sub entry2ec {
   $self->query_id2ec($entry->{TARGET_QUERY_ID});
 }
 
+# Return the name of the equivalence class for the parent of this entry
 sub entry2parentec {
   my ($self, $entry) = @_;
   $self->query_id2ec($entry->{QUERY_ID});
@@ -2430,6 +2431,9 @@ sub entry2parentec {
 # &main::dump_structure($tree, 'Tree', [qw(LOGGER SCHEMA RELATION_PROVENANCE VALUE_PROVENANCE PROVENANCE ASSESSMENT_ID EC_TREE FILENAME LINE LINENUM PROVENANCE_ASSESSMENT DOCID START END WHERE LASTSLOT SLOT SLOTS QUERY_AND_SLOT_NAME RELATION_PROVENANCE_TRIPLES TARGET_UUID VALUE_PROVENANCE_TRIPLES YEAR CONFIDENCE QUERY_ID_BASE QUERY RUNID SLOT_NAME SLOT_TYPE TARGET_QUERY VALUE_ASSESSMENT SLOT_NAME)]);
 # exit 0;
 
+# Score a query by building the equivalence class tree for that query,
+# placing each submission at the correct point in the tree, scoring
+# each node of the tree, and collecting the resulting scores
 sub score_query {
   my ($self, $query, $discipline, $runid, $report_missing_assessments) = @_;
   my $query_id = $query->{QUERY_ID};
@@ -2534,6 +2538,13 @@ sub set_confidence {
 ##### Scorable
 #####################################################################################
 
+### Scorable is the base class for scoring. It defines get and set
+### operations that invoke a method or return a field, as
+### appropriate. It also calculates precision, recall, and F1, given
+### that an object of type Scorable has NUM_GROUND_TRUTH, NUM_CORRECT,
+### and NUM_INCORRECT values. Note that NUM_INCORRECT typically
+### comprises NUM_WRONG and NUM_REDUNDANT.
+
 package Scorable;
 
 # Return the field if it's defined. Otherwise, invoke the corresponding get method
@@ -2584,6 +2595,10 @@ sub get_F1 {
 
 package Score;
 
+### This package implements a single score, allows any field to be
+### incremented, and defines NUM_INCORRECT as the sum of NUM_WRONG and
+### NUM_REDUNDANT
+
 # Inherit from Scorable. Use -norequire because Scorable is defined in this file.
 use parent -norequire, 'Scorable';
 
@@ -2610,6 +2625,12 @@ sub get_NUM_INCORRECT {
 }
 
 package ScoreSet;
+
+### A ScoreSet is a set of scores that implements get for most numeric
+### fields as the sum of the value of that field across the component
+### scores. It allows new Scorables to be added as components of the
+### set, and provides methods getsum and getmean to access aggregate
+### statistics
 
 # Inherit from Scorable. Use -norequire because Scorable is defined in this file.
 use parent -norequire, 'Scorable';
