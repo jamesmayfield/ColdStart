@@ -112,6 +112,9 @@ END_PROBLEM_FORMATS
 
 package Logger;
 
+### A Logger keeps track of errors and warnings encountered,
+### aggregating them for later reporting
+
 # Create a new Logger object
 sub new {
   my ($class, $formats, $error_output) = @_;
@@ -303,6 +306,11 @@ our $comment_pattern = qr/
 #####################################################################################
 
 package Provenance;
+
+### The Provenance class captures the origins of a TAC relation in one
+### or more texts. A single Provenance consists of up to $max_triples
+### specifications, each of which comprises a document ID, a start
+### offset, and an end offset
 
 # Bounds from "Task Description for English Slot Filling at TAC-KBP 2014"
 my $max_chars_per_triple = 150;
@@ -499,6 +507,8 @@ sub get_num_entries {
 #####################################################################################
 
 package Query;
+
+### A Query object describes a single TAC Evaluation query
 
 # FIXME: We'd probably be better off using an existing SGML parser of some sort here
 # This table indicates how to parse XML queries
@@ -754,6 +764,8 @@ sub tostring {
 
 package QuerySet;
 
+### A QuerySet is a set of Query objects, indexed for ease of access
+
 # Create a new QuerySet object
 sub new {
   my ($class, $logger, @filenames) = @_;
@@ -977,6 +989,8 @@ my $predicate_aliases = <<'END_ALIASES';
 END_ALIASES
 
 package PredicateSet;
+
+### A PredicateSet is a set of TAC Slot Filling predicates
 
 # Populate the set of predicate aliases from $predicate_aliases (defined at the top of this file)
 my %predicate_aliases;
@@ -1229,18 +1243,18 @@ sub get_quantity {$_[0]->{QUANTITY}}
 
 package EquivalenceClassTree;
 
-# This class represents a ground truth tree, decorated with
-# submissions that are placed at the appropriate node in the
-# tree. Each node in the tree represents an equivalence class, and has
-# the following fields:
-#   ASSESSMENTS: Assessment entries for the equivalence class
-#   SUBMISSIONS: Submission entries representing the equivalence class
-#   BIN_IS_INCORRECT: Does this bin represent a set of incorrect values
-#                     (and thus this is not a true equivalence class).
-#                     Note that this value could be calculated by looking
-#                     for a zero in the equivalence class name
-#   QUANTITY: {single, list}
-#   ECS: The child nodes of this node, indexed by equivalence class name
+### This class represents a ground truth tree, decorated with
+### submissions that are placed at the appropriate node in the
+### tree. Each node in the tree represents an equivalence class, and has
+### the following fields:
+###   ASSESSMENTS: Assessment entries for the equivalence class
+###   SUBMISSIONS: Submission entries representing the equivalence class
+###   BIN_IS_INCORRECT: Does this bin represent a set of incorrect values
+###                     (and thus this is not a true equivalence class).
+###                     Note that this value could be calculated by looking
+###                     for a zero in the equivalence class name
+###   QUANTITY: {single, list}
+###   ECS: The child nodes of this node, indexed by equivalence class name
 
 
 # Create a new Equivalence Class tree
@@ -1422,9 +1436,9 @@ sub get_all_scores {
 ##### Evaluation Query Output
 #####################################################################################
 
-# This class is used to represent Slot Filling Variant output, the
-# result of applying evaluation queries to a knowledge base, and
-# assessment output from LDC
+### This class is used to represent Slot Filling Variant output, the
+### result of applying evaluation queries to a knowledge base, and
+### assessment output from LDC
 
 package EvaluationQueryOutput;
 

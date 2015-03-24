@@ -108,8 +108,6 @@ my @runfilenames = grep {!/\.xml$/} @filenames;
 my $queries = QuerySet->new($logger, @queryfilenames);
 my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, @runfilenames);
 
-#print "Scoring: ", join(", ", @query_ids_to_score), "\n";
-
 $logger->report_all_problems();
 
 # The NIST submission system wants an exit code of 255 if errors are encountered
@@ -120,8 +118,8 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package main;
 
 my @fields_to_print = (
-  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',    WIDTH => 12},
-  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',    WIDTH => 12},
+  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',    WIDTH => 16},
+  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',    WIDTH => 30},
   {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',    WIDTH => 4},
   {NAME => 'NUM_GROUND_TRUTH', HEADER => 'GT',       FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
   {NAME => 'NUM_CORRECT',      HEADER => 'Right',    FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
@@ -134,8 +132,8 @@ my @fields_to_print = (
 
 sub print_headers {
   my $header = "";
-  my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($field->{HEADER})) . ' ';
   foreach my $field (@fields_to_print) {
+    my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($field->{HEADER})) . ' ';
     $header .= "$field->{HEADER}$separator";
   }
   print $program_output "$header\n";
