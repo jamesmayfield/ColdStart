@@ -1344,7 +1344,7 @@ sub score_subtree {
   while (my ($child_name, $child_tree) = each %{$subtree->{ECS}}) {
     $self->score_subtree($child_name, $child_tree, $runid);
   }
-  # Build a score for this node
+  # Build a score for this node  
   my $score = Score->new();
   $score->put('EC', $name);
   $score->put('RUNID', $runid);
@@ -1357,16 +1357,29 @@ sub score_subtree {
   my $num_redundant = 0;
   # Look through the submissions for this node
   foreach my $ec (keys %{$subtree->{ECS}}) {
-    my $num_submissions = @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+	my $ec_num_wrong = 0;
+	my $ec_num_correct = 0;
+	my $ec_num_redundant = 0;
+	my $num_submissions = @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
     # If this bin represents incorrect entries, they're all incorrect
     if ($subtree->{ECS}{$ec}{BIN_IS_INCORRECT}) {
-      $num_wrong += $num_submissions;
+      $ec_num_wrong += $num_submissions;
     }
     # Otherwise the first submission is correct, and the rest are redundant
     elsif ($num_submissions) {
-      $num_correct++;
-      $num_redundant += $num_submissions - 1;
+    	foreach my $submission(@{$subtree->{ECS}{$ec}{SUBMISSIONS}}){
+    		if($submission->{ASSESSMENT}->{JUDGMENT} eq "CORRECT"){
+    			$ec_num_redundant++ if($ec_num_correct);
+    			$ec_num_correct++ if(!$ec_num_correct);
+    		}
+    		else{
+    			$ec_num_wrong++;
+    		}
+    	}
     }
+    $num_wrong += $ec_num_wrong;
+    $num_correct += $ec_num_correct;
+    $num_redundant += $ec_num_redundant;
   }
   # A correct answer from a different equivalence class still counts
   # as redundant if this query is single-valued
