@@ -70,7 +70,7 @@ $switches->put("discipline", 'ASSESSED');
 
 # Shahzad: Which of thes switches do we want to keep?
 # $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored");
-# $switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
+#$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # $switches->addConstantSwitch('components', 'true', "Show component scores for each query");
 # $switches->addVarSwitch("queries", "file or colon-separated list of queries to be scored " .
 # 			           "(if omitted, all query files in 'files' parameter will be scored)");
@@ -120,7 +120,7 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package main;
 
 my @fields_to_print = (
-  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',    WIDTH => 12},
+  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',    WIDTH => 20},
   {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',    WIDTH => 12},
   {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',    WIDTH => 4},
   {NAME => 'NUM_GROUND_TRUTH', HEADER => 'GT',       FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
@@ -134,8 +134,8 @@ my @fields_to_print = (
 
 sub print_headers {
   my $header = "";
-  my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($field->{HEADER})) . ' ';
   foreach my $field (@fields_to_print) {
+  	my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($field->{HEADER})) . ' ';
     $header .= "$field->{HEADER}$separator";
   }
   print $program_output "$header\n";
@@ -177,7 +177,9 @@ sub score_runid {
     my @scores = $submissions_and_assessments->score_query($query, $discipline, $runid);
     # # Ignore any queries that don't have at least one ground truth correct answer
     # next unless $scores->get('NUM_GROUND_TRUTH');
-    foreach my $scores (sort {$a->{EC} cmp $b->{EC}} @scores) {
+    foreach my $scores (sort {substr($a->{EC}, 0, index($a->{EC}, ":")) cmp substr($b->{EC}, 0, index($b->{EC}, ":")) ||
+    					substr($a->{EC},index($a->{EC}, ":")+1) <=> substr($b->{EC},index($b->{EC}, ":")+1)}
+    					@scores) {
       # Aggregate scores along various axes
       if ($query->{LEVEL} == 0) {
 	&aggregate_score($aggregates, $runid, $scores->{LEVEL}, $scores);
