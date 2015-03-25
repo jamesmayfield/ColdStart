@@ -70,7 +70,7 @@ $switches->put("discipline", 'ASSESSED');
 
 # Shahzad: Which of thes switches do we want to keep?
 # $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored");
-# $switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
+#$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # $switches->addConstantSwitch('components', 'true', "Show component scores for each query");
 # $switches->addVarSwitch("queries", "file or colon-separated list of queries to be scored " .
 # 			           "(if omitted, all query files in 'files' parameter will be scored)");
@@ -175,7 +175,9 @@ sub score_runid {
     my @scores = $submissions_and_assessments->score_query($query, $discipline, $runid);
     # # Ignore any queries that don't have at least one ground truth correct answer
     # next unless $scores->get('NUM_GROUND_TRUTH');
-    foreach my $scores (sort {$a->{EC} cmp $b->{EC}} @scores) {
+    foreach my $scores (sort {substr($a->{EC}, 0, index($a->{EC}, ":")) cmp substr($b->{EC}, 0, index($b->{EC}, ":")) ||
+    					substr($a->{EC},index($a->{EC}, ":")+1) <=> substr($b->{EC},index($b->{EC}, ":")+1)}
+    					@scores) {
       # Aggregate scores along various axes
       if ($query->{LEVEL} == 0) {
 	&aggregate_score($aggregates, $runid, $scores->{LEVEL}, $scores);

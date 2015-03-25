@@ -1279,7 +1279,9 @@ sub add_assessments {
     # Lookup (or create) the correct node
     my $node = $self->get($assessment->{VALUE_EC}, $assessment->{QUANTITY});
     # Add this assessment to that node
-    push(@{$node->{ASSESSMENTS}}, $assessment);
+    push(@{$node->{ASSESSMENTS}}, $assessment);    
+    ## Add the quantity
+    $node->{QUANTITY} = $assessment->{TARGET_QUERY}->{QUANTITY} unless $node->{QUANTITY};
     # Remember the appropriate tree node in the assessment
     $assessment->{EC_TREE} = $node;
   }
@@ -1340,8 +1342,7 @@ sub get {
     $name .= ":" . shift @ec_components;
     # Look up or create the tree node for this equivalence class
     my $nextlevel = $result->{ECS}{$name} ||
-      {BIN_IS_INCORRECT => $bin_is_incorrect,
-       QUANTITY => $quantity};
+      {BIN_IS_INCORRECT => $bin_is_incorrect};
     $result->{ECS}{$name} = $nextlevel;
     $result = $nextlevel;
   }
@@ -1358,33 +1359,46 @@ sub score_subtree {
   while (my ($child_name, $child_tree) = each %{$subtree->{ECS}}) {
     $self->score_subtree($child_name, $child_tree, $runid);
   }
-  # Build a score for this node
+  # Build a score for this node  
   my $score = Score->new();
   $score->put('EC', $name);
   $score->put('RUNID', $runid);
   $score->put('LEVEL', $level);
   # Ground truth is the number of distinct ECs, or one if this is a single-valued field
   my $num_ground_truth = scalar grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}} keys %{$subtree->{ECS}};
-  $num_ground_truth = 1 if $subtree->{QUANTITY} eq 'single' && $num_ground_truth > 1;
+  $num_ground_truth = 1 if defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_ground_truth > 1;
   my $num_wrong = 0;
   my $num_correct = 0;
   my $num_redundant = 0;
   # Look through the submissions for this node
   foreach my $ec (keys %{$subtree->{ECS}}) {
-    my $num_submissions = @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+	my $ec_num_wrong = 0;
+	my $ec_num_correct = 0;
+	my $ec_num_redundant = 0;
+	my $num_submissions = @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
     # If this bin represents incorrect entries, they're all incorrect
     if ($subtree->{ECS}{$ec}{BIN_IS_INCORRECT}) {
-      $num_wrong += $num_submissions;
+      $ec_num_wrong += $num_submissions;
     }
     # Otherwise the first submission is correct, and the rest are redundant
     elsif ($num_submissions) {
-      $num_correct++;
-      $num_redundant += $num_submissions - 1;
+    	foreach my $submission(@{$subtree->{ECS}{$ec}{SUBMISSIONS}}){
+    		if($submission->{ASSESSMENT}->{JUDGMENT} eq "CORRECT"){
+    			$ec_num_redundant++ if($ec_num_correct);
+    			$ec_num_correct++ if(!$ec_num_correct);
+    		}
+    		else{
+    			$ec_num_wrong++;
+    		}
+    	}
     }
+    $num_wrong += $ec_num_wrong;
+    $num_correct += $ec_num_correct;
+    $num_redundant += $ec_num_redundant;
   }
   # A correct answer from a different equivalence class still counts
   # as redundant if this query is single-valued
-  if ($subtree->{QUANTITY} eq 'single' && $num_correct) {
+  if (defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_correct) {
     $num_redundant += $num_correct - 1;
     $num_correct = 1;
   }
@@ -2335,6 +2349,10 @@ my %matchers = (
     DESCRIPTION => "No match unless this exact entry appears in the assessments",
     MATCHER => sub {
       my ($submission, $assessment) = @_;
+      ## FIXME: Need discussion with Jim - Shahzad
+      ## (1) In my opinion we must match the QUERY_IDs. Do you agree, Jim?
+      ## (2) Perhaps match the generated query for fuzzy matches (or nuggets-based matches) as well?
+      return unless $submission->{QUERY_ID} eq $assessment->{QUERY_ID};
       return unless $submission->{QUERY_ID_BASE} eq $assessment->{QUERY_ID_BASE};
       return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
       return unless $submission->{VALUE} eq $assessment->{VALUE};
