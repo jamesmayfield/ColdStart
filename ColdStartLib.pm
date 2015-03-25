@@ -2336,7 +2336,8 @@ my %matchers = (
     MATCHER => sub {
       my ($submission, $assessment) = @_;
       ## FIXME: Need discussion with Jim - Shahzad
-      ## Perhaps match the generated query for fuzzy matches (or nuggets-based matches) as well?
+      ## (1) In my opinion we must match the QUERY_IDs. Do you agree, Jim?
+      ## (2) Perhaps match the generated query for fuzzy matches (or nuggets-based matches) as well?
       return unless $submission->{QUERY_ID} eq $assessment->{QUERY_ID};
       return unless $submission->{QUERY_ID_BASE} eq $assessment->{QUERY_ID_BASE};
       return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
