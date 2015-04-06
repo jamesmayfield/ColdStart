@@ -2668,8 +2668,20 @@ sub get_NUM_COMPONENTS {
 }
 
 sub get {
-  my ($self, $field) = @_;
+  my ($self, $field, $average) = @_;
+  $average = 'ALL-micro' unless $average;
   return $self->{$field} if defined $self->{$field};
+  
+  if($field eq 'F1' && $average eq 'ALL-macro'){
+  	my $sum = 0;
+  	my $denum = 0;
+	foreach my $component (grep {$_->{EC}!~/:0$/} @{$self->{COMPONENTS}}) {
+   		$sum += $component->get($field);
+   		$denum++;
+	}
+	return $sum/$denum;
+  }
+  
   my $method = $self->can("get_$field");
   return $method->($self) if $method;
   my $sum = 0;

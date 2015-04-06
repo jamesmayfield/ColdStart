@@ -70,7 +70,7 @@ $switches->put("discipline", 'ASSESSED');
 
 # Shahzad: Which of thes switches do we want to keep?
 # $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored");
-#$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
+# $switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # $switches->addConstantSwitch('components', 'true', "Show component scores for each query");
 # $switches->addVarSwitch("queries", "file or colon-separated list of queries to be scored " .
 # 			           "(if omitted, all query files in 'files' parameter will be scored)");
@@ -120,16 +120,16 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package main;
 
 my @fields_to_print = (
-  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',    WIDTH => 20},
-  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',    WIDTH => 12},
-  {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',    WIDTH => 4},
+  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',    WIDTH => 20,	MACRO_AVG => 1},
+  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',    WIDTH => 12,	MACRO_AVG => 1},
+  {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',    WIDTH => 4,		MACRO_AVG => 1},
   {NAME => 'NUM_GROUND_TRUTH', HEADER => 'GT',       FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
   {NAME => 'NUM_CORRECT',      HEADER => 'Right',    FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
   {NAME => 'NUM_INCORRECT',    HEADER => 'Wrong',    FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
   {NAME => 'NUM_REDUNDANT',    HEADER => 'Dup',      FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
   {NAME => 'PRECISION',        HEADER => 'Prec',     FORMAT => '%6.4f', WIDTH => 7},
   {NAME => 'RECALL',           HEADER => 'Recall',   FORMAT => '%6.4f', WIDTH => 7},
-  {NAME => 'F1',               HEADER => 'F1',       FORMAT => '%6.4f', WIDTH => 7},
+  {NAME => 'F1',               HEADER => 'F1',       FORMAT => '%6.4f', WIDTH => 7, MACRO_AVG => 1},
 );
 
 sub print_headers {
@@ -156,11 +156,10 @@ sub aggregate_score {
 }
 
 sub print_scores_line {
-  my ($scores, $prefix) = @_;
-  $prefix = "" unless $prefix;
+  my ($scores) = @_;
   foreach my $field (@fields_to_print) {
     my $text = sprintf($field->{FORMAT}, $scores->get($field->{NAME}));
-    $text = "$prefix$text" if $field->{NAME} eq 'EC';
+    $text = "$text" if $field->{NAME} eq 'EC';
     my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($text)) . ' ';
     print $program_output "$text$separator";
   }
@@ -186,7 +185,8 @@ sub score_runid {
 	&aggregate_score($aggregates, $runid, 'ALL',            $scores);
       }
       # FIXME
-      &print_scores_line($scores, $query->{LEVEL} ? "  #" : "") if $query->{LEVEL} == 0 || $show_components;
+      #&print_scores_line($scores, $query->{LEVEL} ? "  #" : "") if $query->{LEVEL} == 0 || $show_components;
+      &print_scores_line($scores) if $query->{LEVEL} == 0 || $show_components;
     }
   }
 }
@@ -196,43 +196,25 @@ my $aggregates = {};
 
 my @runids = $submissions_and_assessments->get_all_runids();
 
+my @averages = qw(ALL-micro ALL-macro);
+
 foreach my $runid (@runids) {
   &score_runid($runid, $submissions_and_assessments, $aggregates, $queries);
-
-  # Only report on hops that are present in the run
-  foreach my $level (sort keys %{$aggregates->{$runid}}) {
-    # Print the micro-averaged scores
-    foreach my $field (@fields_to_print) {
-      my $value = $aggregates->{$runid}{$level}->get($field->{NAME});
-      $value = 'ALL-micro' if $value eq 'ALL' && $field->{NAME} eq 'EC';
-      my $text = sprintf($field->{FORMAT}, $value);
-      my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($text)) . ' ';
-      print $program_output "$text$separator";
-    }
-    print $program_output "\n";
+  foreach my $average( @averages ){
+	  foreach my $level (sort keys %{$aggregates->{$runid}}) {
+	    foreach my $field (@fields_to_print) {
+	      my $text = ' ';
+	      if (($average eq 'ALL-macro' && exists $field->{MACRO_AVG}) || $average eq 'ALL-micro'){
+		      my $value = $aggregates->{$runid}{$level}->get($field->{NAME}, $average);
+		      $value = $average if $value eq 'ALL' && $field->{NAME} eq 'EC';
+		      $text = sprintf($field->{FORMAT}, $value);
+	      }
+	      
+	      print $text, ' ' x ($field->{WIDTH} - length($text)), ' ';
+	    }
+	    print "\n";
+	  }
   }
-  # Shahzad: This is the macro averaging code that doesn't work anymore
-  # # Only report on hops that are present in the run
-  # foreach my $level (sort keys %{$aggregates->{$runid}}) {
-  #   # Print the macro-averaged scores
-  #   foreach my $field (@fields_to_print) {
-  #     my $value;
-  #     if ($field->{NAME} eq 'QUERY_ID' ||
-  # 	  $field->{NAME} eq 'EC' ||
-  # 	  $field->{NAME} eq 'RUNID' ||
-  # 	  $field->{NAME} eq 'LEVEL') {
-  # 	$value = $aggregates->{$runid}{$level}->get($field->{NAME});
-  #     }
-  #     else {
-  # 	$value = $aggregates->{$runid}{$level}->getmean($field->{NAME});
-  #     }
-  #     $value = 'ALL-macro' if $value eq 'ALL' && $field->{NAME} eq 'EC';
-  #     my $text = sprintf($field->{MEAN_FORMAT} || $field->{FORMAT}, $value);
-  #     $text = "" if 
-  # 	print $program_output $text, ' ' x ($field->{WIDTH} - length($text)), ' ';
-  #   }
-  #   print $program_output "\n";
-  # }
 }
 
 $logger->close_error_output();
