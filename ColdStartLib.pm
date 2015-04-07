@@ -1262,6 +1262,7 @@ sub add_assessments {
   foreach my $assessment (@assessments) {
     # Only look at correct assessments to build the ground truth tree
     next unless $assessment->{VALUE_EC};
+    #$assessment->{VALUE_EC} = $assessment->{QUERYID} if(!$assessment->{VALUE_EC}){
     # Lookup (or create) the correct node
     my $node = $self->get($assessment->{VALUE_EC}, $assessment->{QUANTITY});
     # Add this assessment to that node
@@ -1415,7 +1416,9 @@ sub get_all_subtree_scores {
   # Now add the score for this node
   # FIXME: Don't hard-code two levels. This is here because the lowest
   # level has empty scores associated with it
-  push(@result, $tree->{SCORE}) if $tree->{SCORE}{LEVEL} < 2;
+  # Jim: Please review this. I think this is what you want.
+  #push(@result, $tree->{SCORE}) if $tree->{SCORE}{LEVEL} < 2;
+  push(@result, $tree->{SCORE}) if scalar keys %{$tree->{ECS}};
   @result;
 }
 
