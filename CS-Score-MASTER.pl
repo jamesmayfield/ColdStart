@@ -3,6 +3,7 @@
 use warnings;
 use strict;
 use utf8;
+use Carp;
 
 binmode(STDOUT, ":utf8");
 binmode(STDERR, ":utf8");
@@ -31,7 +32,6 @@ my $version = "2.0";
 my $program_output;
 my $error_output;
 
-
 ### DO NOT INCLUDE
 ##################################################################################### 
 # Library inclusions
@@ -56,7 +56,7 @@ my $pattern = $main::comment_pattern;
 
 # Handle run-time switches
 my $switches = SwitchProcessor->new($0, "Score one or more TAC Cold Start runs",
-				   "Discipline is one of the following:\n" . EvaluationQueryOutput::get_all_disciplines());
+				    "Discipline is one of the following:\n" . EvaluationQueryOutput::get_all_disciplines());
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
 
@@ -67,13 +67,15 @@ $switches->put("error_file", "stdout");
 $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields instead of spaces");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
+$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 
+### DO NOT INCLUDE
 # Shahzad: Which of thes switches do we want to keep?
 # $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored");
-#$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # $switches->addConstantSwitch('components', 'true', "Show component scores for each query");
 # $switches->addVarSwitch("queries", "file or colon-separated list of queries to be scored " .
 # 			           "(if omitted, all query files in 'files' parameter will be scored)");
+### DO INCLUDE
 
 $switches->addParam("files", "required", "all others", "Query files, submission files and judgment files");
 
@@ -108,6 +110,8 @@ my @runfilenames = grep {!/\.xml$/} @filenames;
 my $queries = QuerySet->new($logger, @queryfilenames);
 my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, @runfilenames);
 
+#print "Scoring: ", join(", ", @query_ids_to_score), "\n";
+
 $logger->report_all_problems();
 
 # The NIST submission system wants an exit code of 255 if errors are encountered
@@ -115,29 +119,72 @@ my $num_errors = $logger->get_num_errors();
 $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encountered")
   if $num_errors;
 
-package main;
+package ScoresPrinter;
 
 my @fields_to_print = (
-  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',    WIDTH => 16},
-  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',    WIDTH => 30},
-  {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',    WIDTH => 4},
-  {NAME => 'NUM_GROUND_TRUTH', HEADER => 'GT',       FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
-  {NAME => 'NUM_CORRECT',      HEADER => 'Right',    FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
-  {NAME => 'NUM_INCORRECT',    HEADER => 'Wrong',    FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
-  {NAME => 'NUM_REDUNDANT',    HEADER => 'Dup',      FORMAT => '%4d',   WIDTH => 5,  MEAN_FORMAT => '%4.2f'},
-  {NAME => 'PRECISION',        HEADER => 'Prec',     FORMAT => '%6.4f', WIDTH => 7},
-  {NAME => 'RECALL',           HEADER => 'Recall',   FORMAT => '%6.4f', WIDTH => 7},
-  {NAME => 'F1',               HEADER => 'F1',       FORMAT => '%6.4f', WIDTH => 7},
+  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',     JUSTIFY => 'L'},
+  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',     JUSTIFY => 'L'},
+  {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',     JUSTIFY => 'L'},
+  {NAME => 'NUM_GROUND_TRUTH', HEADER => 'GT',       FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+  {NAME => 'NUM_CORRECT',      HEADER => 'Right',    FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+  {NAME => 'NUM_INCORRECT',    HEADER => 'Wrong',    FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+  {NAME => 'NUM_REDUNDANT',    HEADER => 'Dup',      FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+  {NAME => 'PRECISION',        HEADER => 'Prec',     FORMAT => '%6.4f',  JUSTIFY => 'L'},
+  {NAME => 'RECALL',           HEADER => 'Recall',   FORMAT => '%6.4f',  JUSTIFY => 'L'},
+  {NAME => 'F1',               HEADER => 'F1',       FORMAT => '%6.4f',  JUSTIFY => 'L'},
 );
 
-sub print_headers {
-  my $header = "";
-  foreach my $field (@fields_to_print) {
-    my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($field->{HEADER})) . ' ';
-    $header .= "$field->{HEADER}$separator";
-  }
-  print $program_output "$header\n";
+sub new {
+  my ($class, $separator) = @_;
+  my $self = {FIELDS_TO_PRINT => \@fields_to_print,
+	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @fields_to_print},
+	      HEADERS => [map {$_->{HEADER}} @fields_to_print],
+	      LINES => [],
+	     };
+  $self->{SEPARATOR} = $separator if defined $separator;
+  bless($self, $class);
+  $self;
 }
+
+sub add_score {
+  my ($self, $score) = @_;
+  my %elements_to_print;
+  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+    my $text = sprintf($field->{FORMAT}, $score->get($field->{NAME}));
+    $elements_to_print{$field->{NAME}} = $text;
+    $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
+  }
+  push(@{$self->{LINES}}, \%elements_to_print);
+}
+
+sub print_line {
+  my ($self, $line) = @_;
+  my $separator = "";
+  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+    my $value = (defined $line ? $line->{$field->{NAME}} : $field->{HEADER});
+    print $program_output $separator;
+    my $numspaces = defined $self->{SEPARATOR} ? 0 : $self->{WIDTHS}{$field->{NAME}} - length($value);
+    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'R' && !defined $self->{SEPARATOR};
+    print $program_output $value;
+    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'L' && !defined $self->{SEPARATOR};
+    $separator = defined $self->{SEPARATOR} ? $self->{SEPARATOR} : ' ';
+  }
+  print $program_output "\n";
+}
+  
+sub print_headers {
+  my ($self) = @_;
+  $self->print_line();
+}
+
+sub print_lines {
+  my ($self) = @_;
+  foreach my $line (@{$self->{LINES}}) {
+    $self->print_line($line);
+  }
+}
+
+package main;
 
 sub aggregate_score {
   my ($aggregates, $runid, $level, $scores) = @_;
@@ -145,7 +192,7 @@ sub aggregate_score {
   unless (defined $aggregates->{$runid}{$level}) {
     my $scoreset = ScoreSet->new();
     $scoreset->put('RUNID', $runid);
-    $scoreset->put('EC', 'ALL');
+    $scoreset->put('EC', 'ALL-Micro');
     $scoreset->put('LEVEL', $level);
     $aggregates->{$runid}{$level} = $scoreset;
   }
@@ -153,40 +200,43 @@ sub aggregate_score {
   $aggregates->{$runid}{$level}->add($scores);
 }
 
-sub print_scores_line {
-  my ($scores, $prefix) = @_;
-  $prefix = "" unless $prefix;
-  foreach my $field (@fields_to_print) {
-    my $text = sprintf($field->{FORMAT}, $scores->get($field->{NAME}));
-    $text = "$prefix$text" if $field->{NAME} eq 'EC';
-    my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($text)) . ' ';
-    print $program_output "$text$separator";
-  }
-  print $program_output "\n";
+# Compare two equivalence class names; comparison is alphabetic for
+# the first component, and numerical for all subsequent
+# components. This is broken out as a separate function to ensure that
+# queries with more than two hops are supported in some fantasized
+# future
+sub compare_ec_names {
+  my ($qa, @a) = split(/:/, $a->{EC});
+  my ($qb, @b) = split(/:/, $b->{EC});
+  $qa cmp $qb ||
+    eval(join(" || ", map {$a[$_] <=> $b[$_]} 0..&min($#a, $#b))) ||
+    scalar @a <=> scalar @b;
 }
 
 sub score_runid {
-  my ($runid, $submissions_and_assessments, $aggregates, $queries, $show_components) = @_;
-  &print_headers;
+  my ($runid, $submissions_and_assessments, $aggregates, $queries, $use_tabs) = @_;
+  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef);
   # Score each query, printing the query-by-query scores
   foreach my $query_id (sort $queries->get_all_top_level_query_ids()) {
     my $query = $queries->get($query_id);
     # Get the scores just for this query in this run
     my @scores = $submissions_and_assessments->score_query($query, $discipline, $runid);
+### DO NOT INCLUDE
     # # Ignore any queries that don't have at least one ground truth correct answer
     # next unless $scores->get('NUM_GROUND_TRUTH');
-    foreach my $scores (sort {substr($a->{EC}, 0, index($a->{EC}, ":")) cmp substr($b->{EC}, 0, index($b->{EC}, ":")) ||
-    					substr($a->{EC},index($a->{EC}, ":")+1) <=> substr($b->{EC},index($b->{EC}, ":")+1)}
-    					@scores) {
+### DO INCLUDE
+    foreach my $scores (sort compare_ec_names @scores) {
+      $scores_printer->add_score($scores);
       # Aggregate scores along various axes
       if ($query->{LEVEL} == 0) {
 	&aggregate_score($aggregates, $runid, $scores->{LEVEL}, $scores);
 	&aggregate_score($aggregates, $runid, 'ALL',            $scores);
       }
       # FIXME
-      &print_scores_line($scores, $query->{LEVEL} ? "  #" : "") if $query->{LEVEL} == 0 || $show_components;
+#      &print_scores_line($scores, $query->{LEVEL} ? "  #" : "") if $query->{LEVEL} == 0 || $show_components;
     }
   }
+  $scores_printer;
 }
 
 # Keep aggregate scores for regular slots
@@ -195,20 +245,18 @@ my $aggregates = {};
 my @runids = $submissions_and_assessments->get_all_runids();
 
 foreach my $runid (@runids) {
-  &score_runid($runid, $submissions_and_assessments, $aggregates, $queries);
+  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $aggregates, $queries, $use_tabs);
 
-  # Only report on hops that are present in the run
+  # # Only report on hops that are present in the run
   foreach my $level (sort keys %{$aggregates->{$runid}}) {
     # Print the micro-averaged scores
-    foreach my $field (@fields_to_print) {
-      my $value = $aggregates->{$runid}{$level}->get($field->{NAME});
-      $value = 'ALL-micro' if $value eq 'ALL' && $field->{NAME} eq 'EC';
-      my $text = sprintf($field->{FORMAT}, $value);
-      my $separator = $switches->get("tabs") ? "\t" : ' ' x ($field->{WIDTH} - length($text)) . ' ';
-      print $program_output "$text$separator";
-    }
-    print $program_output "\n";
+    $scores_printer->add_score($aggregates->{$runid}{$level});
   }
+
+  $scores_printer->print_headers();
+  $scores_printer->print_lines();
+  
+### DO NOT INCLUDE
   # Shahzad: This is the macro averaging code that doesn't work anymore
   # # Only report on hops that are present in the run
   # foreach my $level (sort keys %{$aggregates->{$runid}}) {
@@ -231,6 +279,7 @@ foreach my $runid (@runids) {
   #   }
   #   print $program_output "\n";
   # }
+### DO INCLUDE
 }
 
 $logger->close_error_output();

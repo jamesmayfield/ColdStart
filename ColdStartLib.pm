@@ -112,9 +112,6 @@ END_PROBLEM_FORMATS
 
 package Logger;
 
-### A Logger keeps track of errors and warnings encountered,
-### aggregating them for later reporting
-
 # Create a new Logger object
 sub new {
   my ($class, $formats, $error_output) = @_;
@@ -258,9 +255,16 @@ sub get_error_type {
 # NIST submission scripts demand an error code of 255 on failure
 my $NIST_error_code = 255;
 
+### DO NOT INCLUDE
+# FIXME: Inconsistency: sometimes NIST_die is called directly; other
+# times record_problem is called with a FATAL_ERROR
+### DO INCLUDE
 sub NIST_die {
   my ($self, @messages) = @_;
   my $outfile = $self->{ERROR_OUTPUT};
+  print $outfile "================================================================\n";
+  print $outfile Carp::longmess();
+  print $outfile "================================================================\n";
   print $outfile join("", @messages), " at (", join(":", caller), ")\n";
   exit $NIST_error_code;
 }
@@ -306,11 +310,6 @@ our $comment_pattern = qr/
 #####################################################################################
 
 package Provenance;
-
-### The Provenance class captures the origins of a TAC relation in one
-### or more texts. A single Provenance consists of up to $max_triples
-### specifications, each of which comprises a document ID, a start
-### offset, and an end offset
 
 # Bounds from "Task Description for English Slot Filling at TAC-KBP 2014"
 my $max_chars_per_triple = 150;
@@ -508,8 +507,6 @@ sub get_num_entries {
 
 package Query;
 
-### A Query object describes a single TAC Evaluation query
-
 # FIXME: We'd probably be better off using an existing SGML parser of some sort here
 # This table indicates how to parse XML queries
 # ORD       indicates the output ordering of query fields
@@ -522,14 +519,14 @@ my %tags = (
   ENTRYPOINTS => {ORD => 0, TYPE => 'single'},
   ENTTYPE =>     {ORD => 1, TYPE => 'single',   YEARS => '2014'},
   SLOT =>        {ORD => 2, TYPE => 'single',   YEARS => '2014'},
-  SLOT0 =>       {ORD => 3, TYPE => 'single',   REQUIRED => 'yes'},
+  SLOT0 =>       {ORD => 3, TYPE => 'single',                        REQUIRED => 'yes'},
   SLOT1 =>       {ORD => 4, TYPE => 'single',   },
   SLOT2 =>       {ORD => 5, TYPE => 'single',   YEARS => '2012'},
 
-  NAME =>        {ORD => 1, TYPE => 'multiple', REQUIRED => 'yes'},
-  DOCID =>       {ORD => 2, TYPE => 'multiple', REQUIRED => 'yes'},
-  BEG =>         {ORD => 3, TYPE => 'multiple', REQUIRED => 'yes', REWRITE => 'START'},
-  END =>         {ORD => 4, TYPE => 'multiple', REQUIRED => 'yes'},
+  NAME =>        {ORD => 1, TYPE => 'multiple',                      REQUIRED => 'yes'},
+  DOCID =>       {ORD => 2, TYPE => 'multiple',                      REQUIRED => 'yes'},
+  BEG =>         {ORD => 3, TYPE => 'multiple',                      REQUIRED => 'yes', REWRITE => 'START'},
+  END =>         {ORD => 4, TYPE => 'multiple',                      REQUIRED => 'yes'},
   OFFSET =>      {ORD => 5, TYPE => 'multiple', YEARS => '2012:2013'},
 );
 
@@ -764,8 +761,6 @@ sub tostring {
 
 package QuerySet;
 
-### A QuerySet is a set of Query objects, indexed for ease of access
-
 # Create a new QuerySet object
 sub new {
   my ($class, $logger, @filenames) = @_;
@@ -989,8 +984,6 @@ my $predicate_aliases = <<'END_ALIASES';
 END_ALIASES
 
 package PredicateSet;
-
-### A PredicateSet is a set of TAC Slot Filling predicates
 
 # Populate the set of predicate aliases from $predicate_aliases (defined at the top of this file)
 my %predicate_aliases;
@@ -1243,45 +1236,59 @@ sub get_quantity {$_[0]->{QUANTITY}}
 
 package EquivalenceClassTree;
 
-### This class represents a ground truth tree, decorated with
-### submissions that are placed at the appropriate node in the
-### tree. Each node in the tree represents an equivalence class, and has
-### the following fields:
-###   ASSESSMENTS: Assessment entries for the equivalence class
-###   SUBMISSIONS: Submission entries representing the equivalence class
-###   BIN_IS_INCORRECT: Does this bin represent a set of incorrect values
-###                     (and thus this is not a true equivalence class).
-###                     Note that this value could be calculated by looking
-###                     for a zero in the equivalence class name
-###   QUANTITY: {single, list}
-###   ECS: The child nodes of this node, indexed by equivalence class name
+# This class represents a ground truth tree, decorated with
+# submissions that are placed at the appropriate node in the
+# tree. Each node in the tree represents an equivalence class, and has
+# the following fields:
+#   ASSESSMENTS: Assessment entries for the equivalence class
+#   SUBMISSIONS: Submission entries representing the equivalence class
+#   BIN_IS_INCORRECT: Does this bin represent a set of incorrect values
+#                     (and thus this is not a true equivalence class).
+#                     Note that this value could be calculated by looking
+#                     for a zero in the equivalence class name
+#   NAME: The name of the equivalence class for this bin
+#   QUANTITY: {single, list}
+#   ECS: The child nodes of this node, indexed by equivalence class name
 
 
 # Create a new Equivalence Class tree
 sub new {
-  my ($class, @assessments) = @_;
+  my ($class, $logger, $assessments, @assessments) = @_;
   my $self = {
+    LOGGER => $logger,
     STATS => {},
     QUERIES => {},
   };
   bless($self, $class);
-  $self->add_assessments(@assessments) if @assessments;
+  $self->add_assessments($assessments, @assessments) if @assessments;
   $self;
+}
+
+sub get_node_for_assessment {
+  my ($self, $assessment, $assessments) = @_;
+  my $ec = $assessment->{VALUE_EC};
+  return $self->get($ec, $assessment->{QUANTITY}) unless $ec eq '0';
+  return $self->get("$assessment->{QUERY_ID}:0", $assessment->{QUANTITY}) if $assessment->{QUERY}{LEVEL} == 0;
+  my $parent_assessment = $assessments->get_parent_assessment($assessment->{QUERY_ID});
+  my $parent_node = $self->get_node_for_assessment($parent_assessment, $assessments);
+  $self->get("$parent_node->{NAME}:0", $assessment->{QUANTITY});
 }
 
 # This routine adds a list of assessments to the tree, building out
 # the tree as new nodes are required
 sub add_assessments {
-  my ($self, @assessments) = @_;
+  my ($self, $assessments, @assessments) = @_;
   foreach my $assessment (@assessments) {
-    # Only look at correct assessments to build the ground truth tree
-    next unless $assessment->{VALUE_EC};
+    $self->{LOGGER}->NIST_die("Submission given as argument to add_assessments") unless $assessment->{TYPE} eq 'ASSESSMENT';
+    # # Only look at correct assessments to build the ground truth tree
+    # next unless $assessment->{JUDGMENT} eq 'CORRECT';
+    ## next unless $assessment->{VALUE_EC};
     # Lookup (or create) the correct node
-    my $node = $self->get($assessment->{VALUE_EC}, $assessment->{QUANTITY});
+    my $node = $self->get_node_for_assessment($assessment, $assessments);
     # Add this assessment to that node
-    push(@{$node->{ASSESSMENTS}}, $assessment);    
-    ## Add the quantity
-    $node->{QUANTITY} = $assessment->{TARGET_QUERY}->{QUANTITY} unless $node->{QUANTITY};
+    push(@{$node->{ASSESSMENTS}}, $assessment);
+    # Add the quantity
+    $node->{QUANTITY} = $assessment->{TARGET_QUERY}{QUANTITY} unless $node->{QUANTITY};
     # Remember the appropriate tree node in the assessment
     $assessment->{EC_TREE} = $node;
   }
@@ -1292,7 +1299,9 @@ sub add_assessments {
 # assessment as input so that finding the appropriate assessment is
 # localized to EvaluationQueryOutput
 sub add_submission {
+  # FIXME: We should add a submission only if any lower-hop submissions that lead up to it are present
   my ($self, $submission, $ec, $assessment) = @_;
+  $self->{LOGGER}->NIST_die("Assessment given as argument to add_submission") unless $submission->{TYPE} eq 'SUBMISSION';
   if ($assessment) {
     $submission->{ASSESSMENT} = $assessment;
     my $ec_tree = $assessment->{EC_TREE};
@@ -1302,7 +1311,6 @@ sub add_submission {
     else {
       # An assessment with no associated ec_tree has no equivalence class, and is
       # therefore incorrect
-      # FIXME: Can this actually happen?
       my $node = $self->get($ec, $assessment->{QUANTITY});
       push(@{$node->{SUBMISSIONS}}, $submission);
     }
@@ -1321,6 +1329,8 @@ sub add_submission {
 # particular equivalence class
 sub get {
   my ($self, $ec, $quantity) = @_;
+  # Don't create a single top-level error class
+  # FIXME: Might want to report attempt to use old style assessment file here
   # The equivalence class name encodes the path to the correct node
   my @ec_components = split(/:/, $ec);
   my $query_id = shift @ec_components;
@@ -1342,7 +1352,7 @@ sub get {
     $name .= ":" . shift @ec_components;
     # Look up or create the tree node for this equivalence class
     my $nextlevel = $result->{ECS}{$name} ||
-      {BIN_IS_INCORRECT => $bin_is_incorrect};
+      {BIN_IS_INCORRECT => $bin_is_incorrect, NAME => $name};
     $result->{ECS}{$name} = $nextlevel;
     $result = $nextlevel;
   }
@@ -1365,39 +1375,42 @@ sub score_subtree {
   $score->put('RUNID', $runid);
   $score->put('LEVEL', $level);
   # Ground truth is the number of distinct ECs, or one if this is a single-valued field
-  my $num_ground_truth = scalar grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}} keys %{$subtree->{ECS}};
+  my $num_ground_truth = grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}} keys %{$subtree->{ECS}};
+  # FIXME: Why whouldn't QUANTITY be defined?
   $num_ground_truth = 1 if defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_ground_truth > 1;
   my $num_wrong = 0;
   my $num_correct = 0;
   my $num_redundant = 0;
   # Look through the submissions for this node
   foreach my $ec (keys %{$subtree->{ECS}}) {
-	my $ec_num_wrong = 0;
-	my $ec_num_correct = 0;
-	my $ec_num_redundant = 0;
-	my $num_submissions = @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+    # Gather stats for this EC independently in case we want to report stats by EC
+    my $ec_num_wrong = 0;
+    my $ec_num_correct = 0;
+    my $ec_num_redundant = 0;
+    my $num_submissions = @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
     # If this bin represents incorrect entries, they're all incorrect
     if ($subtree->{ECS}{$ec}{BIN_IS_INCORRECT}) {
       $ec_num_wrong += $num_submissions;
     }
     # Otherwise the first submission is correct, and the rest are redundant
     elsif ($num_submissions) {
-    	foreach my $submission(@{$subtree->{ECS}{$ec}{SUBMISSIONS}}){
-    		if($submission->{ASSESSMENT}->{JUDGMENT} eq "CORRECT"){
-    			$ec_num_redundant++ if($ec_num_correct);
-    			$ec_num_correct++ if(!$ec_num_correct);
-    		}
-    		else{
-    			$ec_num_wrong++;
-    		}
-    	}
+      # FIXME: Aren't these guaranteed to be correct if the bin is correct?
+      my $num_correct_submissions = grep {$_->{ASSESSMENT}{JUDGMENT} eq 'CORRECT'} @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+      $ec_num_wrong += $num_submissions - $num_correct_submissions;
+      if ($num_correct_submissions > 1) {
+	$ec_num_redundant += $num_correct_submissions - 1;
+	$num_correct_submissions = 1;
+      }
+      $ec_num_correct += $num_correct_submissions;
     }
     $num_wrong += $ec_num_wrong;
     $num_correct += $ec_num_correct;
     $num_redundant += $ec_num_redundant;
+#print STDERR "EC $ec: correct = $ec_num_correct; wrong = $ec_num_wrong; redundant = $ec_num_redundant\n";
   }
   # A correct answer from a different equivalence class still counts
   # as redundant if this query is single-valued
+  # FIXME: Why whouldn't QUANTITY be defined?
   if (defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_correct) {
     $num_redundant += $num_correct - 1;
     $num_correct = 1;
@@ -1427,9 +1440,8 @@ sub get_all_subtree_scores {
     push(@result, &get_all_subtree_scores($subtree));
   }
   # Now add the score for this node
-  # FIXME: Don't hard-code two levels. This is here because the lowest
-  # level has empty scores associated with it
-  push(@result, $tree->{SCORE}) if $tree->{SCORE}{LEVEL} < 2;
+  # FIXME: Need to know the hash actually exists
+  push(@result, $tree->{SCORE}) if scalar keys %{$tree->{ECS}};
   @result;
 }
 
@@ -1450,9 +1462,9 @@ sub get_all_scores {
 ##### Evaluation Query Output
 #####################################################################################
 
-### This class is used to represent Slot Filling Variant output, the
-### result of applying evaluation queries to a knowledge base, and
-### assessment output from LDC
+# This class is used to represent Slot Filling Variant output, the
+# result of applying evaluation queries to a knowledge base, and
+# assessment output from LDC
 
 package EvaluationQueryOutput;
 
@@ -1739,6 +1751,7 @@ my %columns = (
     PATTERN => $digits_pattern,
   },
 
+### DO NOT INCLUDE
   PARENT_EC => {
     DESCRIPTION => "The global equivalence class (e.g., Query42:0, Query42:1, or Query42:1:3) this entry fills",
     GENERATOR => sub {
@@ -1749,6 +1762,7 @@ my %columns = (
     REQUIRED => 'ASSESSMENT',
   },
 
+### DO INCLUDE
   PREDICATE_OFFSETS => {
     DESCRIPTION => "Additional provenance START and END",
     YEARS => [2013],
@@ -1822,7 +1836,7 @@ my %columns = (
       unless ($query) {
 	$logger->record_problem('UNLOADED_QUERY', $entry->{QUERY_ID}, $where);
 	# FIXME:
-	die "Query $entry->{QUERY_ID} not loaded";
+	$logger->NIST_die("Query $entry->{QUERY_ID} not loaded");
       }
       else {
 	$entry->{QUERY} = $query;
@@ -1938,7 +1952,9 @@ my %columns = (
 	$entry->{QUERY_ID} = $1;
 	$entry->{SLOT_NAME} = $2;
       }
-      else { confess("Can't create SLOT_NAME") }
+      else {
+	$logger->NIST_die("Can't create SLOT_NAME");
+      }
     },
     REQUIRED => 'ALL',
   },
@@ -1951,8 +1967,9 @@ my %columns = (
       if (defined $entry->{SLOT_NAME}) {
 	$entry->{SLOT_NAME} =~ /^(.*?):(.*)$/;
 	$entry->{SLOT_TYPE} = $1;
-      } else {
-	confess("Can't create SLOT_TYPE");
+      }
+      else {
+	$logger->NIST_die("Can't create SLOT_TYPE");
       }
     },
     REQUIRED => 'ALL',
@@ -2045,6 +2062,12 @@ my %columns = (
     PATTERN => $anything_pattern,
   },
 
+  # VALUE_EC_NORMALIZED => {
+  #   DESCRIPTION => "Equivalence class for this value/provenance pair, guaranteed to be of the form QID{:\d+}+",
+  #   YEARS => [2012, 2013, 2014],
+  #   REQUIRED => 'ASSESSMENT',
+  #   DEPENDENCIES => [qw(VALUE_EC 
+
   VALUE_PROVENANCE => {
     DESCRIPTION => "Where the VALUE was found in the document collection",
     GENERATOR => sub {
@@ -2056,12 +2079,14 @@ my %columns = (
 						     $entry->{DOCID},
 						     $entry->{OBJECT_OFFSET_START},
 						     $entry->{OBJECT_OFFSET_END});
-      } elsif (defined $entry->{DOCID} &&
+      }
+      elsif (defined $entry->{DOCID} &&
 	       defined $entry->{OBJECT_OFFSETS}) {
 	$entry->{VALUE_PROVENANCE} = Provenance->new($logger, $where, 'DOCID_OFFSETPAIRLIST',
 						     $entry->{DOCID},
 						     $entry->{OBJECT_OFFSETS});
-      } elsif (defined $entry->{VALUE_PROVENANCE_TRIPLES}) {
+      }
+      elsif (defined $entry->{VALUE_PROVENANCE_TRIPLES}) {
 	$entry->{VALUE_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
 						     $entry->{VALUE_PROVENANCE_TRIPLES});
       }
@@ -2309,6 +2334,7 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     $queries->add($new_query, $entry->{QUERY});
   }
   close $infile;
+#&main::dump_structure($self, 'gumplepoo', [qw(LOGGER)]);
 }
 
 sub get_parent_assessment {
@@ -2320,6 +2346,24 @@ sub get_parent_query_id {
   my ($self, $query_id) = @_;
   $self->{QUERYID2PARENTQUERYID}{$query_id};
 }
+
+sub query_id2normalized_ec {
+  my ($self, $query_id, $discipline) = @_;
+  $self->entry2normalized_ec($self->get_parent_assessment($query_id), $discipline);
+}
+
+# sub entry2normalized_ec {
+#   my ($self, $entry, $discipline) = @_;
+#   # Get the corresponding assessment if this is a submission
+#   my $assessment = $entry->{TYPE} eq 'ASSESSMENT' ? $entry : $self->get_ground_truth_for_submission($entry, $discipline);
+#   return $assessment->{VALUE_EC} unless $assessment->{VALUE_EC} =~ /^\d+$/;
+#   # Only INCORRECT entries should have numeric equivalence classes
+#   $self-{LOGGER}->NIST_die("Numeric equivalence class other than zero (probably loaded assessments without global ECs)")
+#     if $assessment->{VALUE_EC};
+#   my $parent_assessment = $assessments->get_parent_assessment($entry->{QUERY_ID});
+#   return "$entry->{QUERY_ID}:0" unless $parent_assessment;
+#   return $self->entry2normalized_ec($parent_assessment, $discipline) . ":0";
+# }
 
 sub get_all_runids {
   my ($self) = @_;
@@ -2349,12 +2393,8 @@ my %matchers = (
     DESCRIPTION => "No match unless this exact entry appears in the assessments",
     MATCHER => sub {
       my ($submission, $assessment) = @_;
-      ## FIXME: Need discussion with Jim - Shahzad
-      ## (1) In my opinion we must match the QUERY_IDs. Do you agree, Jim?
-      ## (2) Perhaps match the generated query for fuzzy matches (or nuggets-based matches) as well?
       return unless $submission->{QUERY_ID} eq $assessment->{QUERY_ID};
-      return unless $submission->{QUERY_ID_BASE} eq $assessment->{QUERY_ID_BASE};
-      return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
+#      return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
       return unless $submission->{VALUE} eq $assessment->{VALUE};
       return unless $submission->{RELATION_PROVENANCE}->tostring() eq $assessment->{RELATION_PROVENANCE}->tostring();
       return unless $submission->{VALUE_PROVENANCE}->tostring() eq $assessment->{VALUE_PROVENANCE}->tostring();
@@ -2364,6 +2404,7 @@ my %matchers = (
   STRING_EXACT => {
     DESCRIPTION => "Exact string match, but provenance need not match",
     MATCHER => sub {
+      # FIXME: ECs need to match too. Otherwise, if Bart attended Springfield Elementary but Lisa didn't, nonetheless Lisa would get credit for Springfield Elementary. Find out whether EC matches before this matcher is called.
       my ($submission, $assessment) = @_;
       return unless $submission->{QUERY_ID_BASE} eq $assessment->{QUERY_ID_BASE};
       return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
@@ -2373,6 +2414,7 @@ my %matchers = (
   STRING_CASE => {
     DESCRIPTION => "String matches modulo case differences; provenance need not match",
     MATCHER => sub {
+      # FIXME: Ditto STRING_EXACT FIXME
       my ($submission, $assessment) = @_;
       return unless $submission->{QUERY_ID_BASE} eq $assessment->{QUERY_ID_BASE};
       return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
@@ -2397,7 +2439,7 @@ sub get_ground_truth_for_submission {
   my $ec = $self->entry2parentec($submission);
   my $matcher = $matchers{$discipline};
   # FIXME -- use logger
-  die "No matcher called $discipline" unless $matcher;
+  $self->{LOGGER}->NIST_die("No matcher called $discipline") unless $matcher;
   my @choices;
   my @assessed_choices;
   # Always prefer assessed choices to matched choices
@@ -2433,16 +2475,19 @@ sub get_ground_truth_for_submission {
 sub query_id2ec {
   my ($self, $query_id) = @_;
   my $query = $self->{QUERIES}->get($query_id);
-if (defined $query->{LEVEL}) {
+  if (defined $query->{LEVEL}) {
+#print STDERR "-----> $query_id\n" if $query->{LEVEL} == 0;
   return $query_id if $query->{LEVEL} == 0;
 }
   my $parent_assessment = $self->get_parent_assessment($query_id);
   if ($parent_assessment) {
+#print STDERR ".----> $parent_assessment->{VALUE_EC}\n";
     return $parent_assessment->{VALUE_EC};
   }
   else {
     # Parent assessment is incorrect, so EC component is 0
     my $parent_query_id = $self->get_parent_query_id($query_id);
+#print STDERR "..---> ", $self->query_id2ec($parent_query_id), ":0\n";
     return $self->query_id2ec($parent_query_id) . ":0";
   }
 }
@@ -2459,9 +2504,11 @@ sub entry2parentec {
   $self->query_id2ec($entry->{QUERY_ID});
 }
 
+### DO NOT INCLUDE
 # For debugging: prints assessment tree and exits
 # &main::dump_structure($tree, 'Tree', [qw(LOGGER SCHEMA RELATION_PROVENANCE VALUE_PROVENANCE PROVENANCE ASSESSMENT_ID EC_TREE FILENAME LINE LINENUM PROVENANCE_ASSESSMENT DOCID START END WHERE LASTSLOT SLOT SLOTS QUERY_AND_SLOT_NAME RELATION_PROVENANCE_TRIPLES TARGET_UUID VALUE_PROVENANCE_TRIPLES YEAR CONFIDENCE QUERY_ID_BASE QUERY RUNID SLOT_NAME SLOT_TYPE TARGET_QUERY VALUE_ASSESSMENT SLOT_NAME)]);
 # exit 0;
+### DO INCLUDE
 
 # Score a query by building the equivalence class tree for that query,
 # placing each submission at the correct point in the tree, scoring
@@ -2470,7 +2517,7 @@ sub score_query {
   my ($self, $query, $discipline, $runid, $report_missing_assessments) = @_;
   my $query_id = $query->{QUERY_ID};
   my $query_id_base = &Query::get_query_id_base($query_id);
-  my $ectree = EquivalenceClassTree->new(@{$self->{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id_base}});
+  my $ectree = EquivalenceClassTree->new($self->{LOGGER}, $self, @{$self->{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id_base}});
   foreach my $submission (grep {$_->{RUNID} eq $runid}
 			  @{$self->{ENTRIES_BY_QUERY_ID_BASE}{SUBMISSION}{$query_id_base}}) {
     $ectree->add_submission($submission,
