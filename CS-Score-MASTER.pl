@@ -196,7 +196,9 @@ my $aggregates = {};
 
 my @runids = $submissions_and_assessments->get_all_runids();
 
-my @averages = qw(ALL-micro ALL-macro);
+#my @averages = qw(ALL-micro ALL-macro);
+my @averages = qw(ALL-micro);
+
 
 foreach my $runid (@runids) {
   &score_runid($runid, $submissions_and_assessments, $aggregates, $queries);
