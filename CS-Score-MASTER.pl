@@ -67,22 +67,19 @@ $switches->put("error_file", "stdout");
 $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields instead of spaces");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
-$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
-
 ### DO NOT INCLUDE
+$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # Shahzad: Which of thes switches do we want to keep?
 # $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored");
 # $switches->addConstantSwitch('components', 'true', "Show component scores for each query");
 # $switches->addVarSwitch("queries", "file or colon-separated list of queries to be scored " .
 # 			           "(if omitted, all query files in 'files' parameter will be scored)");
 ### DO INCLUDE
-
 $switches->addParam("files", "required", "all others", "Query files, submission files and judgment files");
 
 $switches->process(@ARGV);
 
 my $logger = Logger->new();
-
 $logger->ignore_warning('MULTIPLE_RUNIDS');
 
 # Allow redirection of stdout and stderr
@@ -109,8 +106,6 @@ my @queryfilenames = grep {/\.xml$/} @filenames;
 my @runfilenames = grep {!/\.xml$/} @filenames;
 my $queries = QuerySet->new($logger, @queryfilenames);
 my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, @runfilenames);
-
-#print "Scoring: ", join(", ", @query_ids_to_score), "\n";
 
 $logger->report_all_problems();
 
@@ -232,8 +227,10 @@ sub score_runid {
 	&aggregate_score($aggregates, $runid, $scores->{LEVEL}, $scores);
 	&aggregate_score($aggregates, $runid, 'ALL',            $scores);
       }
+### DO NOT INCLUDE
       # FIXME
 #      &print_scores_line($scores, $query->{LEVEL} ? "  #" : "") if $query->{LEVEL} == 0 || $show_components;
+### DO INCLUDE
     }
   }
   $scores_printer;
@@ -247,7 +244,7 @@ my @runids = $submissions_and_assessments->get_all_runids();
 foreach my $runid (@runids) {
   my $scores_printer = &score_runid($runid, $submissions_and_assessments, $aggregates, $queries, $use_tabs);
 
-  # # Only report on hops that are present in the run
+  # Only report on hops that are present in the run
   foreach my $level (sort keys %{$aggregates->{$runid}}) {
     # Print the micro-averaged scores
     $scores_printer->add_score($aggregates->{$runid}{$level});
@@ -255,8 +252,8 @@ foreach my $runid (@runids) {
 
   $scores_printer->print_headers();
   $scores_printer->print_lines();
-  
 ### DO NOT INCLUDE
+  
   # Shahzad: This is the macro averaging code that doesn't work anymore
   # # Only report on hops that are present in the run
   # foreach my $level (sort keys %{$aggregates->{$runid}}) {

@@ -1264,13 +1264,20 @@ sub new {
   $self;
 }
 
+# Retrieve or create the EquivalenceClassTree node corresponding to a particular assessment
 sub get_node_for_assessment {
   my ($self, $assessment, $assessments) = @_;
   my $ec = $assessment->{VALUE_EC};
+  # If the EC is not 0, then it contains all the information necessary to identify the correct node
   return $self->get($ec, $assessment->{QUANTITY}) unless $ec eq '0';
+  # A 0 at the top level is handled directly
   return $self->get("$assessment->{QUERY_ID}:0", $assessment->{QUANTITY}) if $assessment->{QUERY}{LEVEL} == 0;
+  # If this is not a top level 0, we need to recreate the entire path
+  # down to this zero. First, find the parent assessment
   my $parent_assessment = $assessments->get_parent_assessment($assessment->{QUERY_ID});
+  # Recursively identify the node corresponding to the parent assessment
   my $parent_node = $self->get_node_for_assessment($parent_assessment, $assessments);
+  # and glom a :0 onto the end
   $self->get("$parent_node->{NAME}:0", $assessment->{QUANTITY});
 }
 
@@ -1280,9 +1287,11 @@ sub add_assessments {
   my ($self, $assessments, @assessments) = @_;
   foreach my $assessment (@assessments) {
     $self->{LOGGER}->NIST_die("Submission given as argument to add_assessments") unless $assessment->{TYPE} eq 'ASSESSMENT';
+### DO NOT INCLUDE
     # # Only look at correct assessments to build the ground truth tree
     # next unless $assessment->{JUDGMENT} eq 'CORRECT';
     ## next unless $assessment->{VALUE_EC};
+### DO INCLUDE
     # Lookup (or create) the correct node
     my $node = $self->get_node_for_assessment($assessment, $assessments);
     # Add this assessment to that node
@@ -1299,7 +1308,9 @@ sub add_assessments {
 # assessment as input so that finding the appropriate assessment is
 # localized to EvaluationQueryOutput
 sub add_submission {
+### DO NOT INCLUDE
   # FIXME: We should add a submission only if any lower-hop submissions that lead up to it are present
+### DO INCLUDE
   my ($self, $submission, $ec, $assessment) = @_;
   $self->{LOGGER}->NIST_die("Assessment given as argument to add_submission") unless $submission->{TYPE} eq 'SUBMISSION';
   if ($assessment) {
@@ -1330,7 +1341,9 @@ sub add_submission {
 sub get {
   my ($self, $ec, $quantity) = @_;
   # Don't create a single top-level error class
+### DO NOT INCLUDE
   # FIXME: Might want to report attempt to use old style assessment file here
+### DO INCLUDE
   # The equivalence class name encodes the path to the correct node
   my @ec_components = split(/:/, $ec);
   my $query_id = shift @ec_components;
@@ -1406,11 +1419,15 @@ sub score_subtree {
     $num_wrong += $ec_num_wrong;
     $num_correct += $ec_num_correct;
     $num_redundant += $ec_num_redundant;
+### DO NOT INCLUDE
 #print STDERR "EC $ec: correct = $ec_num_correct; wrong = $ec_num_wrong; redundant = $ec_num_redundant\n";
+### DO INCLUDE
   }
   # A correct answer from a different equivalence class still counts
   # as redundant if this query is single-valued
+### DO NOT INCLUDE
   # FIXME: Why whouldn't QUANTITY be defined?
+### DO INCLUDE
   if (defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_correct) {
     $num_redundant += $num_correct - 1;
     $num_correct = 1;
@@ -1440,7 +1457,9 @@ sub get_all_subtree_scores {
     push(@result, &get_all_subtree_scores($subtree));
   }
   # Now add the score for this node
+### DO NOT INCLUDE
   # FIXME: Need to know the hash actually exists
+### DO INCLUDE
   push(@result, $tree->{SCORE}) if scalar keys %{$tree->{ECS}};
   @result;
 }
@@ -2274,7 +2293,9 @@ sub load {
     # Align the tab-separated elements on the line with the expected set of columns
     my @elements = split(/\t/);
     if (@elements != @{$columns}) {
+### DO NOT INCLUDE
 print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
+### DO INCLUDE
       $logger->record_problem('WRONG_NUM_ENTRIES', scalar @{$columns}, scalar @elements, $where);
       next;
     }
@@ -2334,7 +2355,6 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     $queries->add($new_query, $entry->{QUERY});
   }
   close $infile;
-#&main::dump_structure($self, 'gumplepoo', [qw(LOGGER)]);
 }
 
 sub get_parent_assessment {
@@ -2351,6 +2371,7 @@ sub query_id2normalized_ec {
   my ($self, $query_id, $discipline) = @_;
   $self->entry2normalized_ec($self->get_parent_assessment($query_id), $discipline);
 }
+### DO NOT INCLUDE
 
 # sub entry2normalized_ec {
 #   my ($self, $entry, $discipline) = @_;
@@ -2364,6 +2385,7 @@ sub query_id2normalized_ec {
 #   return "$entry->{QUERY_ID}:0" unless $parent_assessment;
 #   return $self->entry2normalized_ec($parent_assessment, $discipline) . ":0";
 # }
+### DO INCLUDE
 
 sub get_all_runids {
   my ($self) = @_;
@@ -2394,7 +2416,9 @@ my %matchers = (
     MATCHER => sub {
       my ($submission, $assessment) = @_;
       return unless $submission->{QUERY_ID} eq $assessment->{QUERY_ID};
+### DO NOT INCLUDE
 #      return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
+### DO INCLUDE
       return unless $submission->{VALUE} eq $assessment->{VALUE};
       return unless $submission->{RELATION_PROVENANCE}->tostring() eq $assessment->{RELATION_PROVENANCE}->tostring();
       return unless $submission->{VALUE_PROVENANCE}->tostring() eq $assessment->{VALUE_PROVENANCE}->tostring();
@@ -2404,7 +2428,9 @@ my %matchers = (
   STRING_EXACT => {
     DESCRIPTION => "Exact string match, but provenance need not match",
     MATCHER => sub {
+### DO NOT INCLUDE
       # FIXME: ECs need to match too. Otherwise, if Bart attended Springfield Elementary but Lisa didn't, nonetheless Lisa would get credit for Springfield Elementary. Find out whether EC matches before this matcher is called.
+### DO INCLUDE
       my ($submission, $assessment) = @_;
       return unless $submission->{QUERY_ID_BASE} eq $assessment->{QUERY_ID_BASE};
       return unless $submission->{QUERY}{LEVEL} == $assessment->{QUERY}{LEVEL};
@@ -2476,18 +2502,15 @@ sub query_id2ec {
   my ($self, $query_id) = @_;
   my $query = $self->{QUERIES}->get($query_id);
   if (defined $query->{LEVEL}) {
-#print STDERR "-----> $query_id\n" if $query->{LEVEL} == 0;
   return $query_id if $query->{LEVEL} == 0;
 }
   my $parent_assessment = $self->get_parent_assessment($query_id);
   if ($parent_assessment) {
-#print STDERR ".----> $parent_assessment->{VALUE_EC}\n";
     return $parent_assessment->{VALUE_EC};
   }
   else {
     # Parent assessment is incorrect, so EC component is 0
     my $parent_query_id = $self->get_parent_query_id($query_id);
-#print STDERR "..---> ", $self->query_id2ec($parent_query_id), ":0\n";
     return $self->query_id2ec($parent_query_id) . ":0";
   }
 }
@@ -2503,8 +2526,8 @@ sub entry2parentec {
   my ($self, $entry) = @_;
   $self->query_id2ec($entry->{QUERY_ID});
 }
-
 ### DO NOT INCLUDE
+
 # For debugging: prints assessment tree and exits
 # &main::dump_structure($tree, 'Tree', [qw(LOGGER SCHEMA RELATION_PROVENANCE VALUE_PROVENANCE PROVENANCE ASSESSMENT_ID EC_TREE FILENAME LINE LINENUM PROVENANCE_ASSESSMENT DOCID START END WHERE LASTSLOT SLOT SLOTS QUERY_AND_SLOT_NAME RELATION_PROVENANCE_TRIPLES TARGET_UUID VALUE_PROVENANCE_TRIPLES YEAR CONFIDENCE QUERY_ID_BASE QUERY RUNID SLOT_NAME SLOT_TYPE TARGET_QUERY VALUE_ASSESSMENT SLOT_NAME)]);
 # exit 0;
@@ -2726,6 +2749,7 @@ sub add {
   push(@{$self->{'COMPONENTS'}}, @components);
 }
 
+### DO NOT INCLUDE
 # FIXME: I added this in anticipation that it might be used to correct
 # the macro-averaging bug, but I didn't get much beyond that
 sub add_boson {
@@ -2733,6 +2757,7 @@ sub add_boson {
   $self->add($component);
   $self->{NUM_BOSONS}++;
 }
+### DO INCLUDE
 
 sub get_NUM_COMPONENTS {
   my ($self) = @_;
