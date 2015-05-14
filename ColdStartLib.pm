@@ -827,6 +827,7 @@ sub add {
 # Find the query with the provided query ID
 sub get {
   my ($self, $queryid) = @_;
+$self->{LOGGER}->NIST_die() unless defined $queryid;
   $self->{QUERIES}{$queryid};
 }
 
@@ -1502,103 +1503,104 @@ my %correctness_map = (
 # over the years. This table specifies each such format, and allows
 # code that calculates or normalizes fields
 my %schemas = (
-  '2012submissions' => {
-    YEAR => 2012,
-    TYPE => 'SUBMISSION',
-    SAMPLES => ["01284_78128269	CS_ENG_000_00	NIL	org:employees	PENN_SAS_ENG_24177	DEAN	203	206	259	403",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      PARENT_ID
-      SLOT_NAME
-      DOCID
-      VALUE
-      OBJECT_OFFSET_START
-      OBJECT_OFFSET_END
-      PREDICATE_OFFSET_START
-      PREDICATE_OFFSET_END
-    )],
-  },
+#   '2012submissions' => {
+#     YEAR => 2012,
+#     TYPE => 'SUBMISSION',
+#     SAMPLES => ["01284_78128269	CS_ENG_000_00	NIL	org:employees	PENN_SAS_ENG_24177	DEAN	203	206	259	403",
+# 	       ],
+#     COLUMNS => [qw(
+#       ID
+#       QUERY_AND_HOP
+#       PARENT_ID
+#       SLOT_NAME
+#       DOCID
+#       VALUE
+#       OBJECT_OFFSET_START
+#       OBJECT_OFFSET_END
+#       PREDICATE_OFFSET_START
+#       PREDICATE_OFFSET_END
+#     )],
+#   },
 
-  '2012assessments' => {
-    YEAR => 2012,
-    TYPE => 'ASSESSMENT',
-    SAMPLES => ["T03357	CS_ENG_000_01	T00784	per:title	PENN_SAS_ENG_07905	dean	1354	1357	1329	1626	1	3	CS_ENG_000_entity2",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      PARENT_ID
-      SLOT_NAME
-      DOCID
-      VALUE
-      OBJECT_OFFSET_START
-      OBJECT_OFFSET_END
-      PREDICATE_OFFSET_START
-      PREDICATE_OFFSET_END
-      VALUE_ASSESSMENT
-      RELATION_ASSESSMENT
-      VALUE_EC
-    )],
-    COLUMN_TO_JUDGE => 'OBJECT_ASSESSMENT',
-    ASSESSMENT_CODES => {
-      '-1' => 'WRONG',
-       '1' => 'CORRECT',
-       '3' => 'INEXACT',
-       '4' => 'NOT_ASSESSED',
-    },
-  },
+#   '2012assessments' => {
+#     YEAR => 2012,
+#     TYPE => 'ASSESSMENT',
+#     SAMPLES => ["T03357	CS_ENG_000_01	T00784	per:title	PENN_SAS_ENG_07905	dean	1354	1357	1329	1626	1	3	CS_ENG_000_entity2",
+# 	       ],
+#     COLUMNS => [qw(
+#       ID
+#       QUERY_AND_HOP
+#       PARENT_ID
+#       SLOT_NAME
+#       DOCID
+#       VALUE
+#       OBJECT_OFFSET_START
+#       OBJECT_OFFSET_END
+#       PREDICATE_OFFSET_START
+#       PREDICATE_OFFSET_END
+#       VALUE_ASSESSMENT
+#       RELATION_ASSESSMENT
+#       VALUE_EC
+#     )],
+#     COLUMN_TO_JUDGE => 'OBJECT_ASSESSMENT',
+#     ASSESSMENT_CODES => {
+#       '-1' => 'WRONG',
+#        '1' => 'CORRECT',
+#        '3' => 'INEXACT',
+#        '4' => 'NOT_ASSESSED',
+#     },
+#   },
 
-  '2013submissions' => {
-    YEAR => 2013,
-    TYPE => 'SUBMISSION',
-    SAMPLES => ["0000085	CS13_ENG_001_00	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	John Lofgren	223-234	223-234	223-336",
-		"0003967	CS13_ENG_001_PSEUDO_02	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	director	260-267	223-234	223-336",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      DOCID
-      PARENT_ID
-      VALUE
-      OBJECT_OFFSETS
-      SUBJECT_OFFSETS
-      PREDICATE_OFFSETS
-    )],
-  },
+#   '2013submissions' => {
+#     YEAR => 2013,
+#     TYPE => 'SUBMISSION',
+#     SAMPLES => ["0000085	CS13_ENG_001_00	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	John Lofgren	223-234	223-234	223-336",
+# 		"0003967	CS13_ENG_001_PSEUDO_02	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	director	260-267	223-234	223-336",
+# 	       ],
+#     COLUMNS => [qw(
+#       ID
+# ;Id8elvis
+# ;      QUERY_AND_HOP
+#       DOCID
+#       PARENT_ID
+#       VALUE
+#       OBJECT_OFFSETS
+#       SUBJECT_OFFSETS
+#       PREDICATE_OFFSETS
+#     )],
+#   },
 
-  '2013assessments' => {
-    YEAR => 2013,
-    TYPE => 'ASSESSMENT',
-    SAMPLES => ["0000085	CS13_ENG_001_00	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	John Lofgren	223-234	223-234	223-336	C	W	L	C	2",
-		"0003967	CS13_ENG_001_PSEUDO_02	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	director	260-267	223-234	223-336	C	C	C	C	2",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      DOCID
-      PARENT_ID
-      VALUE
-      OBJECT_OFFSETS
-      SUBJECT_OFFSETS
-      PREDICATE_OFFSETS
-      OBJECT_ASSESSMENT
-      SUBJECT_ASSESSMENT
-      RELATION_ASSESSMENT
-      VALUE_ASSESSMENT
-      VALUE_EC
-    )],
-    COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
-    ASSESSMENT_CODES => {
-      C => 'CORRECT',
-      W => 'WRONG',
-      X => 'INEXACT',
-      I => 'IGNORE',
-      S => 'INEXACT_SHORT',
-      L => 'INEXACT_LONG',
-    },
-  },
+#   '2013assessments' => {
+#     YEAR => 2013,
+#     TYPE => 'ASSESSMENT',
+#     SAMPLES => ["0000085	CS13_ENG_001_00	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	John Lofgren	223-234	223-234	223-336	C	W	L	C	2",
+# 		"0003967	CS13_ENG_001_PSEUDO_02	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	director	260-267	223-234	223-336	C	C	C	C	2",
+# 	       ],
+#     COLUMNS => [qw(
+#       ID
+#       QUERY_AND_HOP
+#       DOCID
+#       PARENT_ID
+#       VALUE
+#       OBJECT_OFFSETS
+#       SUBJECT_OFFSETS
+#       PREDICATE_OFFSETS
+#       OBJECT_ASSESSMENT
+#       SUBJECT_ASSESSMENT
+#       RELATION_ASSESSMENT
+#       VALUE_ASSESSMENT
+#       VALUE_EC
+#     )],
+#     COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
+#     ASSESSMENT_CODES => {
+#       C => 'CORRECT',
+#       W => 'WRONG',
+#       X => 'INEXACT',
+#       I => 'IGNORE',
+#       S => 'INEXACT_SHORT',
+#       L => 'INEXACT_LONG',
+#     },
+#   },
   '2014SFsubmissions' => {
     YEAR => 2014,
     TYPE => 'SUBMISSION',
@@ -2376,6 +2378,7 @@ sub query_id2normalized_ec {
 # sub entry2normalized_ec {
 #   my ($self, $entry, $discipline) = @_;
 #   # Get the corresponding assessment if this is a submission
+#   # FIXME: ggtfs returns two items
 #   my $assessment = $entry->{TYPE} eq 'ASSESSMENT' ? $entry : $self->get_ground_truth_for_submission($entry, $discipline);
 #   return $assessment->{VALUE_EC} unless $assessment->{VALUE_EC} =~ /^\d+$/;
 #   # Only INCORRECT entries should have numeric equivalence classes
@@ -2543,9 +2546,10 @@ sub score_query {
   my $ectree = EquivalenceClassTree->new($self->{LOGGER}, $self, @{$self->{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id_base}});
   foreach my $submission (grep {$_->{RUNID} eq $runid}
 			  @{$self->{ENTRIES_BY_QUERY_ID_BASE}{SUBMISSION}{$query_id_base}}) {
+    my ($ground_truth, $discipline_used) = $self->get_ground_truth_for_submission($submission, $discipline);
     $ectree->add_submission($submission,
 			    $self->entry2ec($submission),
-			    $self->get_ground_truth_for_submission($submission, $discipline));
+			    $ground_truth);
   }
   $ectree->score($runid);
   $ectree->get_all_scores();
