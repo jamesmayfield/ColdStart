@@ -1300,6 +1300,21 @@ sub add_assessments {
     $node->{QUANTITY} = $assessment->{TARGET_QUERY}{QUANTITY} unless $node->{QUANTITY};
     # Remember the appropriate tree node in the assessment
     $assessment->{EC_TREE} = $node;
+    # Check assessment file for entries that have equivalence class without correct parent entry
+    if($assessment->{JUDGMENT} eq "CORRECT"){
+    	my $ec = $node->{NAME};
+    	my @ec_components = split(/:/, $ec);
+		my $base_query_id = shift @ec_components;
+	
+		if(scalar(@ec_components)>1){
+			my $parent_ec = $base_query_id;
+			pop @ec_components;
+	    	$parent_ec .= ":". join( ":", @ec_components) if(@ec_components);
+	 		my $parent_ectree = $self->get($parent_ec);
+	    	$self->{LOGGER}->NIST_die("Equivalence class without correct parent entry:\n\t$assessment->{LINE}\n")
+	    		unless grep {$_->{JUDGMENT} eq "CORRECT"} @{$parent_ectree->{ASSESSMENTS}};
+		}
+    }
   }
 }
 
@@ -1408,7 +1423,10 @@ sub score_subtree {
     # Otherwise the first submission is correct, and the rest are redundant
     elsif ($num_submissions) {
       # FIXME: Aren't these guaranteed to be correct if the bin is correct?
-      my $num_correct_submissions = grep {$_->{ASSESSMENT}{JUDGMENT} eq 'CORRECT'} @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+      # Check for correctness of path in addition to simply checking corresponding assessment for correctness
+      #my $num_correct_submissions = grep {$_->{ASSESSMENT}{JUDGMENT} eq 'CORRECT'} @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+      my $num_correct_submissions = $self->get_correct_submissions($ec); 
+         
       $ec_num_wrong += $num_submissions - $num_correct_submissions;
       if ($num_correct_submissions > 1) {
 	$ec_num_redundant += $num_correct_submissions - 1;
@@ -1438,6 +1456,45 @@ sub score_subtree {
   $score->put('NUM_WRONG', $num_wrong);
   $score->put('NUM_REDUNDANT', $num_redundant);
   $subtree->{SCORE} = $score;
+}
+
+# To get the number of correct submission of the ec
+sub get_correct_submissions{
+	my ($self, $ec) = @_;
+	my $correct_submissions = 0;
+	my $subtree = $self->get($ec);
+	
+	foreach my $submission( @{$subtree->{SUBMISSIONS} || []} ){
+		$correct_submissions++ if( $submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+									$self->is_path_correct($ec, $submission->{QUERY_ID})  
+								);
+	}
+	$correct_submissions;
+}
+
+# To determine correctness of the path of a submission
+sub is_path_correct{
+	my ($self, $ec, $query_id) = @_;
+	my @ec_components = split(/:/, $ec);
+	my $base_query_id = shift @ec_components;
+	
+	# The path is correct if you hit the top node
+	return 1 if(scalar(@ec_components)==1);
+	
+	my $parent_ec = $base_query_id;
+	pop @ec_components;
+    $parent_ec .= ":". join( ":", @ec_components) if(@ec_components);
+ 	my $parent_ectree = $self->get($parent_ec);
+ 	foreach my $parent_submission( @{$parent_ectree->{SUBMISSIONS} || []} ){
+ 		# Parent submission must not only be correct but its path should also be correct
+ 		# Check this recursively
+ 		if($parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' && $parent_submission->{TARGET_QUERY_ID} eq $query_id ){
+ 			return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
+ 		}
+ 		elsif($parent_submission->{TARGET_QUERY_ID} eq $query_id){
+ 			return 0;
+ 		}
+ 	}
 }
 
 # To score a set of queries, score the subtree for each query
