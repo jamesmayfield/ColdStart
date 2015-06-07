@@ -11,12 +11,14 @@ binmode(STDOUT, ":utf8");
 # This library handles a variety of tasks needed to process TAC Cold Start
 # submissions.
 #
-# Authors: James Mayfield
+# Authors: James Mayfield, Shahzad Rajput
 # Please send questions or comments to jamesmayfield "at" gmail "dot" com
+### DO NOT INCLUDE
 # FIXME: Use github issue tracking or something else?
+### DO INCLUDE
 #####################################################################################
 
-my $version = "2.0";		# First Github release
+my $version = "2.1";		# Stable 2014 scoring release
 
 ### BEGIN INCLUDE Switches
 
@@ -1302,19 +1304,18 @@ sub add_assessments {
     # Remember the appropriate tree node in the assessment
     $assessment->{EC_TREE} = $node;
     # Check assessment file for entries that have equivalence class without correct parent entry
-    if($assessment->{JUDGMENT} eq "CORRECT"){
-    	my $ec = $node->{NAME};
-    	my @ec_components = split(/:/, $ec);
-		my $base_query_id = shift @ec_components;
-	
-		if(scalar(@ec_components)>1){
-			my $parent_ec = $base_query_id;
-			pop @ec_components;
-	    	$parent_ec .= ":". join( ":", @ec_components) if(@ec_components);
-	 		my $parent_ectree = $self->get($parent_ec);
-	    	$self->{LOGGER}->NIST_die("Equivalence class without correct parent entry:\n\t$assessment->{LINE}\n")
-	    		unless grep {$_->{JUDGMENT} eq "CORRECT"} @{$parent_ectree->{ASSESSMENTS}};
-		}
+    if ($assessment->{JUDGMENT} eq "CORRECT") {
+      my $ec = $node->{NAME};
+      my @ec_components = split(/:/, $ec);
+      my $base_query_id = shift @ec_components;
+      if (@ec_components > 1) {
+	my $parent_ec = $base_query_id;
+	pop @ec_components;
+	$parent_ec .= ":". join( ":", @ec_components) if @ec_components;
+	my $parent_ectree = $self->get($parent_ec);
+	$self->{LOGGER}->NIST_die("Equivalence class without correct parent entry:\n\t$assessment->{LINE}\n")
+	  unless grep {$_->{JUDGMENT} eq "CORRECT"} @{$parent_ectree->{ASSESSMENTS}};
+      }
     }
   }
 }
@@ -1405,7 +1406,9 @@ sub score_subtree {
   $score->put('LEVEL', $level);
   # Ground truth is the number of distinct ECs, or one if this is a single-valued field
   my $num_ground_truth = grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}} keys %{$subtree->{ECS}};
+### DO NOT INCLUDE
   # FIXME: Why whouldn't QUANTITY be defined?
+### DO INCLUDE
   $num_ground_truth = 1 if defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_ground_truth > 1;
   my $num_wrong = 0;
   my $num_correct = 0;
@@ -1423,9 +1426,14 @@ sub score_subtree {
     }
     # Otherwise the first submission is correct, and the rest are redundant
     elsif ($num_submissions) {
+### DO NOT INCLUDE
       # FIXME: Aren't these guaranteed to be correct if the bin is correct?
+### DO INCLUDE
       # Check for correctness of path in addition to simply checking corresponding assessment for correctness
-      #my $num_correct_submissions = grep {$_->{ASSESSMENT}{JUDGMENT} eq 'CORRECT'} @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+### DO NOT INCLUDE
+      # Count only those with correct chain all the way up, in case a submission is corrupted. Here is the old way:
+      # my $num_correct_submissions = grep {$_->{ASSESSMENT}{JUDGMENT} eq 'CORRECT'} @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+### DO INCLUDE
       my $num_correct_submissions = $self->get_correct_submissions($ec); 
          
       $ec_num_wrong += $num_submissions - $num_correct_submissions;
@@ -1460,42 +1468,39 @@ sub score_subtree {
 }
 
 # To get the number of correct submission of the ec
-sub get_correct_submissions{
-	my ($self, $ec) = @_;
-	my $correct_submissions = 0;
-	my $subtree = $self->get($ec);
-	
-	foreach my $submission( @{$subtree->{SUBMISSIONS} || []} ){
-		$correct_submissions++ if( $submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
-									$self->is_path_correct($ec, $submission->{QUERY_ID})  
-								);
-	}
-	$correct_submissions;
+sub get_correct_submissions {
+  my ($self, $ec) = @_;
+  my $correct_submissions = 0;
+  my $subtree = $self->get($ec);
+  foreach my $submission ( @{$subtree->{SUBMISSIONS} || []} ) {
+    $correct_submissions++ if $submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+                              $self->is_path_correct($ec, $submission->{QUERY_ID});
+  }
+  $correct_submissions;
 }
 
 # To determine correctness of the path of a submission
-sub is_path_correct{
-	my ($self, $ec, $query_id) = @_;
-	my @ec_components = split(/:/, $ec);
-	my $base_query_id = shift @ec_components;
-	
-	# The path is correct if you hit the top node
-	return 1 if(scalar(@ec_components)==1);
-	
-	my $parent_ec = $base_query_id;
-	pop @ec_components;
-    $parent_ec .= ":". join( ":", @ec_components) if(@ec_components);
- 	my $parent_ectree = $self->get($parent_ec);
- 	foreach my $parent_submission( @{$parent_ectree->{SUBMISSIONS} || []} ){
- 		# Parent submission must not only be correct but its path should also be correct
- 		# Check this recursively
- 		if($parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' && $parent_submission->{TARGET_QUERY_ID} eq $query_id ){
- 			return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
- 		}
- 		elsif($parent_submission->{TARGET_QUERY_ID} eq $query_id){
- 			return 0;
- 		}
- 	}
+sub is_path_correct {
+  my ($self, $ec, $query_id) = @_;
+  my @ec_components = split(/:/, $ec);
+  my $base_query_id = shift @ec_components;
+  # The path is correct if you hit the top node
+  return 'true' if @ec_components == 1;
+  my $parent_ec = $base_query_id;
+  pop @ec_components;
+  $parent_ec .= ":". join(":", @ec_components) if @ec_components;
+  my $parent_ectree = $self->get($parent_ec);
+  foreach my $parent_submission (@{$parent_ectree->{SUBMISSIONS} || []} ) {
+    # Parent submission must not only be correct but its path should also be correct
+    # Check this recursively
+    if ($parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+	$parent_submission->{TARGET_QUERY_ID} eq $query_id) {
+      return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
+    }
+    elsif ($parent_submission->{TARGET_QUERY_ID} eq $query_id) {
+      return 0;
+    }
+  }
 }
 
 # To score a set of queries, score the subtree for each query
@@ -1560,6 +1565,7 @@ my %correctness_map = (
 # over the years. This table specifies each such format, and allows
 # code that calculates or normalizes fields
 my %schemas = (
+### DO NOT INCLUDE
 #   '2012submissions' => {
 #     YEAR => 2012,
 #     TYPE => 'SUBMISSION',
@@ -1658,6 +1664,7 @@ my %schemas = (
 #       L => 'INEXACT_LONG',
 #     },
 #   },
+### DO INCLUDE
   '2014SFsubmissions' => {
     YEAR => 2014,
     TYPE => 'SUBMISSION',
@@ -2140,12 +2147,14 @@ my %columns = (
     PATTERN => $anything_pattern,
   },
 
+### DO NOT INCLUDE
   # VALUE_EC_NORMALIZED => {
   #   DESCRIPTION => "Equivalence class for this value/provenance pair, guaranteed to be of the form QID{:\d+}+",
   #   YEARS => [2012, 2013, 2014],
   #   REQUIRED => 'ASSESSMENT',
   #   DEPENDENCIES => [qw(VALUE_EC 
 
+### DO INCLUDE
   VALUE_PROVENANCE => {
     DESCRIPTION => "Where the VALUE was found in the document collection",
     GENERATOR => sub {
