@@ -21,7 +21,7 @@ binmode(STDOUT, ":utf8");
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "4.0";		# First version on Github
+my $version = "4.1";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -34,7 +34,16 @@ my %use_priority = (
   OBJECT  => 4,
 );  
 
+##################################################################################### 
+# Mapping from output type to export routine
+##################################################################################### 
 
+my %type2export = (
+  tac => \&export_tac,
+  edl => \&export_edl,
+);
+
+my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
 
 ##################################################################################### 
 # Default values
@@ -630,6 +639,8 @@ sub load_tac {
   }
   close $infile;
   $kb->check_integrity();
+#&main::dump_structure($kb, 'KB', [qw(LOGGER CONFIDENCE LABEL QUANTITY BESTDEF BESTUSE TYPEDEFS USES COMMENT INVERSE_NAME SOURCE WHERE DOMAIN RANGE)]);
+#exit 0;
   $kb;
 }
 
@@ -682,6 +693,53 @@ sub export_tac {
   }
 }
 
+# EDL format is a tab-separated file with the following columns:
+#  1. System run ID
+#  2. Mention ID
+#  3. Mention head string
+#  4. Provenance
+#  5. KBID or NIL
+#  6. Entity type (GPE, ORG, PER, LOC, FAC)
+#  7. Mention type (NAM, NOM)
+#  8. Confidence value
+
+sub export_edl {
+  my ($kb) = @_;
+  # Collect type information
+  my %entity2type;
+  my %entity2nilnum;
+  my $next_nilnum = "0001";
+  foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
+    next if $assertion->{OMIT_FROM_OUTPUT};
+    # Only output assertions that have fully resolved predicates
+    next unless ref $assertion->{PREDICATE};
+    my $predicate_string = $assertion->{PREDICATE}{NAME};
+    next unless $predicate_string eq 'type';
+    $entity2type{$assertion->{SUBJECT}} = $assertion->{OBJECT};
+    $entity2nilnum{$assertion->{SUBJECT}} = $next_nilnum++;
+  }
+  my $next_mentionid = "M00001";
+  foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
+    next if $assertion->{OMIT_FROM_OUTPUT};
+    # Only output assertions that have fully resolved predicates
+    next unless ref $assertion->{PREDICATE};
+    my $predicate_string = $assertion->{PREDICATE}{NAME};
+    my $domain_string = "";
+    next unless $predicate_string eq 'mention';
+    my $runid = $kb->{RUNID};
+    my $mention_id = $next_mentionid++;
+    my $mention_string = $assertion->{OBJECT};
+    my $provenance = $assertion->{PROVENANCE}->tooriginalstring();
+    my $kbid = "NIL_$entity2nilnum{$assertion->{SUBJECT}}";
+    my $entity_type = $entity2type{$assertion->{SUBJECT}};
+    my $mention_type = "NAM";
+    my $confidence = $assertion->{CONFIDENCE};
+    print $program_output join("\t", $runid, $mention_id, $mention_string,
+			             $provenance, $kbid, $entity_type,
+			             $mention_type, $confidence), "\n";
+  }
+}
+
 ##################################################################################### 
 # Runtime switches and main program
 ##################################################################################### 
@@ -691,8 +749,11 @@ my $switches = SwitchProcessor->new($0, "Validate a TAC Cold Start KB file, chec
 				    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
-$switches->addVarSwitch('output_file', "Specify a file to which output should be redirected; omit to perform error checking only");
-$switches->put('output_file', 'none');
+$switches->addVarSwitch('output_file', "Specify a file to which output should be redirected");
+$switches->put('output_file', 'STDOUT');
+$switches->addVarSwitch("output", "Specify the output format. Legal formats are $output_formats." .
+		                  " Use 'none' to perform error checking with no output.");
+$switches->put("output", 'none');
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch("predicates", "File containing specification of additional predicates to allow");
@@ -736,6 +797,10 @@ else {
 }
 
 my $logger = Logger->new(undef, $error_output);
+
+my $output_mode = lc $switches->get('output');
+$logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{$output_mode} || $output_mode eq 'none';
+my $output_fn = $type2export{$output_mode};
 
 my $predicates = PredicateSet->new($logger);
 
@@ -796,8 +861,8 @@ if ($num_errors) {
 else {
   print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
   # Output the KB if so desired
-  if ($program_output) {
-    &export_tac($kb, \%output_labels);
+  if ($output_fn) {
+    &{$output_fn}($kb, \%output_labels);
   }
 }
 
@@ -833,5 +898,6 @@ exit 0;
 # 3.2 - Ensured all program exits are NIST-compliant
 #
 # 4.0 - First version on GitHub
+# 4.1 - Added export in EDL format
 
 1;
