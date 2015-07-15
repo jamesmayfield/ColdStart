@@ -1297,8 +1297,7 @@ sub add_assessments {
     # Add this assessment to that node
     push(@{$node->{ASSESSMENTS}}, $assessment);
     # Add the quantity
-    #$node->{QUANTITY} = $assessment->{TARGET_QUERY}{QUANTITY} unless $node->{QUANTITY};
-    $node->{QUANTITY} = $assessment->{QUERY}{SLOT1_QUANTITY} unless $node->{QUANTITY};
+    $node->{QUANTITY} = $assessment->{TARGET_QUERY}{QUANTITY} unless $node->{QUANTITY};
     # Remember the appropriate tree node in the assessment
     $assessment->{EC_TREE} = $node;
     # Check assessment file for entries that have equivalence class without correct parent entry
@@ -2086,10 +2085,11 @@ my %columns = (
       unless ($query) {
 #	$logger->record_problem('UNLOADED_QUERY', $entry->{QUERY_ID}, $where);
 	# FIXME: die here?
+    	# Add the query corresponding to this entry to the set of queries
+    	$query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
+    	$queries->add($query, $entry->{QUERY});	
       }
-      else {
-	$entry->{TARGET_QUERY} = $query;
-      }
+	  $entry->{TARGET_QUERY} = $query;
     },
     DEPENDENCIES => [qw(TARGET_QUERY_ID)],
     REQUIRED => 'ALL',
@@ -2409,8 +2409,8 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     push(@{$self->{ALL_ENTRIES}}, $entry);
 
     # Add the query corresponding to this entry to the set of queries
-    my $new_query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
-    $queries->add($new_query, $entry->{QUERY});
+    #my $new_query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
+    #$queries->add($new_query, $entry->{QUERY});
   }
   close $infile;
 }
