@@ -1297,7 +1297,8 @@ sub add_assessments {
     # Add this assessment to that node
     push(@{$node->{ASSESSMENTS}}, $assessment);
     # Add the quantity
-    $node->{QUANTITY} = $assessment->{TARGET_QUERY}{QUANTITY} unless $node->{QUANTITY};
+    #$node->{QUANTITY} = $assessment->{TARGET_QUERY}{QUANTITY} unless $node->{QUANTITY};
+    $node->{QUANTITY} = $assessment->{QUERY}{SLOT1_QUANTITY} unless $node->{QUANTITY};
     # Remember the appropriate tree node in the assessment
     $assessment->{EC_TREE} = $node;
     # Check assessment file for entries that have equivalence class without correct parent entry
