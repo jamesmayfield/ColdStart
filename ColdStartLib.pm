@@ -18,7 +18,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2.1";		# Stable 2014 scoring release
+my $version = "2.2";		# Added LINK predicate
 
 ### BEGIN INCLUDE Switches
 
@@ -71,6 +71,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MISSING_TYPEDEF               WARNING  No type asserted for Entity %s
   MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
   MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
+  MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
   MULTITYPED_ENTITY             ERROR    Entity %s has more than one type: %s
   NO_MENTIONS                   WARNING  Entity %s has no mentions
   PREDICATE_ALIAS               WARNING  Use of %s predicate; %s replaced with %s
@@ -94,13 +95,13 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Submission File/Assessment File Errors
   MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
+  MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
-  UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR %s is not a known response file type
+  UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
   UNKNOWN_SLOT_NAME             ERROR    Unknown slot name: %s
   WRONG_SLOT_NAME               WARNING  Slot %s is not the requested slot for query %s (expected %s)
-  MULTIPLE_CORRECT_GROUND_TRUTH WARNING More than one correct choice for ground truth for query %s
 
 ########## Multi-Use Errors
   WRONG_NUM_ENTRIES             ERROR    Wrong number of entries on line (expected %d, got %d)
@@ -957,6 +958,7 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE    mention                          STRING       none
   PER,ORG,GPE    canonical_mention                STRING       none
   PER,ORG,GPE    type                             TYPE         none
+  PER,ORG,GPE    link                             STRING       none
 END_PREDICATES
 
 #####################################################################################
