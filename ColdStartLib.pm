@@ -2094,10 +2094,11 @@ my %columns = (
       unless ($query) {
 #	$logger->record_problem('UNLOADED_QUERY', $entry->{QUERY_ID}, $where);
 	# FIXME: die here?
+    	# Add the query corresponding to this entry to the set of queries
+    	$query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
+    	$queries->add($query, $entry->{QUERY});	
       }
-      else {
-	$entry->{TARGET_QUERY} = $query;
-      }
+	  $entry->{TARGET_QUERY} = $query;
     },
     DEPENDENCIES => [qw(TARGET_QUERY_ID)],
     REQUIRED => 'ALL',
@@ -2419,8 +2420,8 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     push(@{$self->{ALL_ENTRIES}}, $entry);
 
     # Add the query corresponding to this entry to the set of queries
-    my $new_query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
-    $queries->add($new_query, $entry->{QUERY});
+    #my $new_query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
+    #$queries->add($new_query, $entry->{QUERY});
   }
   close $infile;
 }
