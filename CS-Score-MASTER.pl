@@ -68,8 +68,8 @@ $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
 ### DO NOT INCLUDE
-$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # Shahzad: Which of thes switches do we want to keep?
+#$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored");
 # $switches->addConstantSwitch('components', 'true', "Show component scores for each query");
 # $switches->addVarSwitch("queries", "file or colon-separated list of queries to be scored " .

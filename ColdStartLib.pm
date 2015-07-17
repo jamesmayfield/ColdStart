@@ -1272,6 +1272,7 @@ sub new {
 # Retrieve or create the EquivalenceClassTree node corresponding to a particular assessment
 sub get_node_for_assessment {
   my ($self, $assessment, $assessments) = @_;
+print STDERR "GNFA({", join(",\n      ", map {"$_ => " . ($assessment->{$_} || 'UNDEF')} sort keys %{$assessment}), "}, ...)\n";
   my $ec = $assessment->{VALUE_EC};
   # If the EC is not 0, then it contains all the information necessary to identify the correct node
   return $self->get($ec, $assessment->{QUANTITY}) unless $ec eq '0';
@@ -1307,6 +1308,7 @@ sub add_assessments {
     $assessment->{EC_TREE} = $node;
     # Check assessment file for entries that have equivalence class without correct parent entry
     if ($assessment->{JUDGMENT} eq "CORRECT") {
+print STDERR "node = {", join(", ", map {"$_ => " . ($node->{$_} || 'UNDEF')} sort keys %{$node}), "}\n" unless defined $node->{NAME};
       my $ec = $node->{NAME};
       my @ec_components = split(/:/, $ec);
       my $base_query_id = shift @ec_components;
@@ -2260,6 +2262,7 @@ sub identify_file_type {
   $logger->NIST_die("Empty file: $filename");
 }
 
+### DO NOT INCLUDE
 #####################################################################
 # FIXME: The following patches are in place solely for the original #
 # release of the 2014 assessments. When updated assessments are     #
@@ -2277,50 +2280,51 @@ my %fix_utf8 = (
 
 # A few of the original assessment entries are inconsistent; this repairs them
 my %repairs = (
+### DO NOT INCLUDE
+#   # Don't conflate MP and representative
+#   #002066	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	XIN_ENG_20100822.0023:613-760	MP	XIN_ENG_20100822.0023:747-748	C	C	2
+#   '002067	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:420-569	representative	AFP_ENG_20100830.0294:488-501	C	C	2' =>
+#   '002067	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:420-569	representative	AFP_ENG_20100830.0294:488-501	C	C	3',
+#   '002068	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:421-568	representative	AFP_ENG_20100830.0294:488-501	C	C	2' =>
+#   '002068	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:421-568	representative	AFP_ENG_20100830.0294:488-501	C	C	3',
 
-  # Don't conflate MP and representative
-  #002066	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	XIN_ENG_20100822.0023:613-760	MP	XIN_ENG_20100822.0023:747-748	C	C	2
-  '002067	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:420-569	representative	AFP_ENG_20100830.0294:488-501	C	C	2' =>
-  '002067	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:420-569	representative	AFP_ENG_20100830.0294:488-501	C	C	3',
-  '002068	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:421-568	representative	AFP_ENG_20100830.0294:488-501	C	C	2' =>
-  '002068	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:421-568	representative	AFP_ENG_20100830.0294:488-501	C	C	3',
+#   # In other places, 'fellow' and 'research fellow' are not conflated
+#   #001631	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	XIN_ENG_20090929.0273:2794-2885	fellow	XIN_ENG_20090929.0273:2809-2814	C	C	1
+#   '001632	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	AFP_ENG_20100110.0351:3219-3319	research fellow	AFP_ENG_20100110.0351:3238-3252	C	C	1' =>
+#   '001632	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	AFP_ENG_20100110.0351:3219-3319	research fellow	AFP_ENG_20100110.0351:3238-3252	C	C	3',
 
-  # In other places, 'fellow' and 'research fellow' are not conflated
-  #001631	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	XIN_ENG_20090929.0273:2794-2885	fellow	XIN_ENG_20090929.0273:2809-2814	C	C	1
-  '001632	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	AFP_ENG_20100110.0351:3219-3319	research fellow	AFP_ENG_20100110.0351:3238-3252	C	C	1' =>
-  '001632	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	AFP_ENG_20100110.0351:3219-3319	research fellow	AFP_ENG_20100110.0351:3238-3252	C	C	3',
+#   # Ken Pollack and Kenneth Pollack should be conflated
+#   #002187	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-131701-8426151:2809-2862	Ken Pollack	eng-NG-31-131701-8426151:2809-2819	C	C	34
+#   '002191	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-126841-8221710:444-482,eng-NG-31-142265-10040928:1464-1507,eng-NG-31-142265-8693536:1463-1506,eng-NG-31-151724-8810400:1521-1564	Kenneth Pollack	eng-NG-31-151724-8810400:1521-1535	C	L	36' =>
+#   '002191	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-126841-8221710:444-482,eng-NG-31-142265-10040928:1464-1507,eng-NG-31-142265-8693536:1463-1506,eng-NG-31-151724-8810400:1521-1564	Kenneth Pollack	eng-NG-31-151724-8810400:1521-1535	C	L	34',
 
-  # Ken Pollack and Kenneth Pollack should be conflated
-  #002187	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-131701-8426151:2809-2862	Ken Pollack	eng-NG-31-131701-8426151:2809-2819	C	C	34
-  '002191	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-126841-8221710:444-482,eng-NG-31-142265-10040928:1464-1507,eng-NG-31-142265-8693536:1463-1506,eng-NG-31-151724-8810400:1521-1564	Kenneth Pollack	eng-NG-31-151724-8810400:1521-1535	C	L	36' =>
-  '002191	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-126841-8221710:444-482,eng-NG-31-142265-10040928:1464-1507,eng-NG-31-142265-8693536:1463-1506,eng-NG-31-151724-8810400:1521-1564	Kenneth Pollack	eng-NG-31-151724-8810400:1521-1535	C	L	34',
+#   # Conflate Billy and Billy A.
+#   #002226	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101116.0207:3602-3658,APW_ENG_20101116.0207:3624-3658,XIN_ENG_20100512.0269:3526-3620,XIN_ENG_20100611.0178:641-713	William A. Galston	APW_ENG_20101116.0207:3214-3231	C	L	58
+#   '002229	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20090928.0180:2837-2880,NYT_ENG_20100218.0167:4637-4680,WPB_ENG_20100922.0073:4776-4820,XIN_ENG_20101027.0256:4109-4152	William Galston	NYT_ENG_20090928.0180:2837-2851	C	L	61' =>
+#   '002229	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20090928.0180:2837-2880,NYT_ENG_20100218.0167:4637-4680,WPB_ENG_20100922.0073:4776-4820,XIN_ENG_20101027.0256:4109-4152	William Galston	NYT_ENG_20090928.0180:2837-2851	C	L	58',
 
-  # Conflate Billy and Billy A.
-  #002226	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101116.0207:3602-3658,APW_ENG_20101116.0207:3624-3658,XIN_ENG_20100512.0269:3526-3620,XIN_ENG_20100611.0178:641-713	William A. Galston	APW_ENG_20101116.0207:3214-3231	C	L	58
-  '002229	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20090928.0180:2837-2880,NYT_ENG_20100218.0167:4637-4680,WPB_ENG_20100922.0073:4776-4820,XIN_ENG_20101027.0256:4109-4152	William Galston	NYT_ENG_20090928.0180:2837-2851	C	L	61' =>
-  '002229	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20090928.0180:2837-2880,NYT_ENG_20100218.0167:4637-4680,WPB_ENG_20100922.0073:4776-4820,XIN_ENG_20101027.0256:4109-4152	William Galston	NYT_ENG_20090928.0180:2837-2851	C	L	58',
+#   # Conflate Bill and Bill H.
+#   #002227	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20100917.0015:3728-3783,WPB_ENG_20100611.0066:2331-2386,WPB_ENG_20101214.0095:2190-2230,WPB_ENG_20101223.0018:3597-3652	William Frey	WPB_ENG_20101214.0095:2190-2201	C	L	59
+#   '002230	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101214.0641:835-874,LTW_ENG_20091224.0051:1817-1858,NYT_ENG_20091027.0123:3655-3694	William H. Frey	NYT_ENG_20091027.0123:3655-3669	C	S	62' =>
+#   '002230	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101214.0641:835-874,LTW_ENG_20091224.0051:1817-1858,NYT_ENG_20091027.0123:3655-3694	William H. Frey	NYT_ENG_20091027.0123:3655-3669	C	S	59',
 
-  # Conflate Bill and Bill H.
-  #002227	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20100917.0015:3728-3783,WPB_ENG_20100611.0066:2331-2386,WPB_ENG_20101214.0095:2190-2230,WPB_ENG_20101223.0018:3597-3652	William Frey	WPB_ENG_20101214.0095:2190-2201	C	L	59
-  '002230	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101214.0641:835-874,LTW_ENG_20091224.0051:1817-1858,NYT_ENG_20091027.0123:3655-3694	William H. Frey	NYT_ENG_20091027.0123:3655-3669	C	S	62' =>
-  '002230	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101214.0641:835-874,LTW_ENG_20091224.0051:1817-1858,NYT_ENG_20091027.0123:3655-3694	William H. Frey	NYT_ENG_20091027.0123:3655-3669	C	S	59',
+#   # Current inconsistency in judgments
+#   #000767  CS14_ENG_099_439f0e71-3388-3890-a09d-79e699a3a5f8:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	C	C	1
+#   '000776	CS14_ENG_099_6252fd06-ab6c-3b1b-88a1-e8f6b01082e4:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	X	L	0' =>
+#   '000776	CS14_ENG_099_6252fd06-ab6c-3b1b-88a1-e8f6b01082e4:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	C	C	2',
 
-  # Current inconsistency in judgments
-  #000767  CS14_ENG_099_439f0e71-3388-3890-a09d-79e699a3a5f8:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	C	C	1
-  '000776	CS14_ENG_099_6252fd06-ab6c-3b1b-88a1-e8f6b01082e4:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	X	L	0' =>
-  '000776	CS14_ENG_099_6252fd06-ab6c-3b1b-88a1-e8f6b01082e4:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	C	C	2',
-
-  # Current inconsistency in judgments
-  #000896  CS14_ENG_117_4ab1e67e-6ac0-3d83-a3b5-ea90266166b3:per:title     XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922     executive       XIN_ENG_20100526.0378:914-922   C       S       4
-  '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	X	S	0' =>
-  '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	C	S	5',
-
+#   # Current inconsistency in judgments
+#   #000896  CS14_ENG_117_4ab1e67e-6ac0-3d83-a3b5-ea90266166b3:per:title     XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922     executive       XIN_ENG_20100526.0378:914-922   C       S       4
+#   '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	X	S	0' =>
+#   '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	C	S	5',
+### DO INCLUDE
 );
 
-#####################################################################
-# END patches                                                       #
-#####################################################################
+# #####################################################################
+# # END patches                                                       #
+# #####################################################################
 
+### DO INCLUDE
 # Generate a slot filler if the slot is required and does not currently have a value.
 sub generate_slot {
   my ($logger, $where, $queries, $schema, $entry, $slot) = @_;
@@ -2347,9 +2351,11 @@ sub load {
   my $columns = $schema->{COLUMNS};
   while (<$infile>) {
     chomp;
+### DO NOT INCLUDE
     # Repair known problems in the assessment files
     my $repair = $repairs{$_};
     $_ = $repair if defined $repair;
+### DO INCLUDE
     # Kill carriage returns (FIXME: We might need to replace them with
     # \ns in some strange Microsoft future)
     s/\r//gs;
@@ -2378,9 +2384,11 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     $entry->{SCHEMA} = $schema;
     $entry->{COMMENT} = $comment;
 
+### DO NOT INCLUDE
     my $replacement = $fix_utf8{$entry->{VALUE}};
     $entry->{VALUE} = $replacement if defined $replacement;
 
+### DO INCLUDE
     # Remember the year and type of the entry
     $entry->{YEAR} = $schema->{YEAR};
     $entry->{TYPE} = uc $schema->{TYPE};
