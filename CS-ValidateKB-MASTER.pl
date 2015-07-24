@@ -21,7 +21,7 @@ binmode(STDOUT, ":utf8");
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "4.1";
+my $version = "4.2";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -85,6 +85,19 @@ my $error_output = *STDERR{IO};
 
 # This is not really a KB per se, because we have to be resilient to errors in the input
 package KB;
+
+# A KB contains the following fields:
+#  ASSERTIONS0	- All assertions
+#  ASSERTIONS1	- Assertions indexed by subject
+#  ASSERTIONS2	- Assertions indexed by subject and verb
+#  ASSERTIONS3	- Assertions indexed by subject, verb and object
+#  DOCIDS	- Assertions indexed by subject, verb and docid
+#  ENTITIES	- Maps from entity name to entity structure
+#  LOGGER	- Logger object for reporting errors and traces
+#  MENTIONS	- Mention assertions indexed by docid
+#  PREDICATES	- PredicateSet object
+#  RUNID	- Run ID of the KB file this KB was built from
+#  RUNID_LINE	- Entire line from which RUNID was extracted, including comments
 
 # Create a new empty KB
 sub new {
@@ -207,6 +220,9 @@ sub add_assertion {
     $kb->entity_use($subject_entity, 'TYPEDEF', $source);
     $kb->entity_typedef($subject_entity, $object, 'TYPEDEF', $source);
   }
+  elsif ($verb eq 'link') {
+    # FIXME
+  }
   else {
     $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->entity_typedef($subject_entity, $predicate->get_domain(), 'SUBJECT', $source);
@@ -214,6 +230,7 @@ sub add_assertion {
       # Make sure this is a properly double quoted string
       unless ($object =~ /^"(?>(?:(?>[^"\\]+)|\\.)*)"$/) {
 	# If not, complain and stick double quotes around it
+	# FIXME: Need to quote internal quotes; use String::Escape
 	$kb->{LOGGER}->record_problem('UNQUOTED_STRING', $object, $source);
 	$object =~ s/(["\\])/\\$1/g;
 	$object = "\"$object\"";
@@ -229,7 +246,10 @@ sub add_assertion {
   }
   # Check for duplicate assertions
   my $is_duplicate_of;
-  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type') {
+### DO NOT INCLUDE
+  # FIXME: There's gotta be a better way
+### DO INCLUDE
+  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
   existing:
     # We don't consider inferred assertions to be duplicates
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {
@@ -330,6 +350,10 @@ sub add_assertion {
     if defined $predicate && ($predicate->{NAME} eq 'mention');
   push(@{$kb->{DOCIDS}{$subject}{$verb}{$provenance->get_docid()}}, $assertion)
     if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention');
+  if ($predicate->{NAME} eq 'link') {
+    # FIXME
+    $assertion->{OBJECT} =~ /^(.*?):(.*)$/;
+  }
   push(@{$kb->{ASSERTIONS3}{$subject}{$verb}{$object}}, $assertion);
   push(@{$kb->{ASSERTIONS2}{$subject}{$verb}}, $assertion);
   push(@{$kb->{ASSERTIONS1}{$subject}}, $assertion);
@@ -496,15 +520,22 @@ sub check_confidence {
   }
 }
 
+my @do_not_check_endpoints = qw(
+  type
+  mention
+  canonical_mention
+  link
+);
+
+my %do_not_check_endpoints = map {$_ => $_} @do_not_check_endpoints;
+
 # Each endpoint of a relation that is an entity must be attested in
 # a document that attests to the relation
 sub check_relation_endpoints {
   my ($kb) = @_;
   foreach my $assertion ($kb->get_assertions()) {
     next unless ref $assertion->{PREDICATE};
-    next if $assertion->{PREDICATE}{NAME} eq 'type';
-    next if $assertion->{PREDICATE}{NAME} eq 'mention';
-    next if $assertion->{PREDICATE}{NAME} eq 'canonical_mention';
+    next if $do_not_check_endpoints{$assertion->{PREDICATE}{NAME}};
     my $provenance = $assertion->{PROVENANCE};
     my $num_provenance_entries = $provenance->get_num_entries();
     if (defined $assertion->{SUBJECT_ENTITY}) {
@@ -621,7 +652,7 @@ sub load_tac {
     # Now assign the entries to the appropriate fields
     my ($subject, $predicate, $object, $provenance_string) = @entries;
     my $provenance;
-    if (lc $predicate eq 'type') {
+    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
       unless (@entries == 3) {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
 	next;
@@ -647,7 +678,8 @@ sub load_tac {
 # When outputting TAC format, place assertions in a particular order
 sub get_assertion_priority {
   my ($name) = @_;
-  return 2 if $name eq 'type';
+  return 3 if $name eq 'type';
+  return 2 if $name eq 'link';
   return 1 if $name eq 'mention' || $name eq 'canonical_mention';
   return 0;
 }
@@ -679,7 +711,8 @@ sub export_tac {
     my $domain_string = "";
     if ($predicate_string ne 'type' &&
 	$predicate_string ne 'mention' &&
-	$predicate_string ne 'canonical_mention') {
+	$predicate_string ne 'canonical_mention' &&
+	$predicate_string ne 'link') {
       $domain_string = $kb->get_entity_type($assertion->{SUBJECT_ENTITY});
       next if $domain_string eq 'unknown';
       next if $domain_string eq 'multiple';
@@ -707,16 +740,21 @@ sub export_edl {
   my ($kb) = @_;
   # Collect type information
   my %entity2type;
-  my %entity2nilnum;
+  my %entity2link;
   my $next_nilnum = "0001";
   foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
     next if $assertion->{OMIT_FROM_OUTPUT};
     # Only output assertions that have fully resolved predicates
     next unless ref $assertion->{PREDICATE};
     my $predicate_string = $assertion->{PREDICATE}{NAME};
-    next unless $predicate_string eq 'type';
-    $entity2type{$assertion->{SUBJECT}} = $assertion->{OBJECT};
-    $entity2nilnum{$assertion->{SUBJECT}} = $next_nilnum++;
+    if ($predicate_string eq 'type') {
+      $entity2type{$assertion->{SUBJECT}} = $assertion->{OBJECT};
+      $entity2link{$assertion->{SUBJECT}} = $next_nilnum++ unless $entity2link{$assertion->{SUBJECT}};
+    }
+    elsif ($predicate_string eq 'link') {
+      # FIXME: Ensure only one link relation
+      $entity2link{$assertion->{SUBJECT}} = $assertion->{OBJECT};
+    }
   }
   my $next_mentionid = "M00001";
   foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
@@ -730,7 +768,7 @@ sub export_edl {
     my $mention_id = $next_mentionid++;
     my $mention_string = $assertion->{OBJECT};
     my $provenance = $assertion->{PROVENANCE}->tooriginalstring();
-    my $kbid = "NIL_$entity2nilnum{$assertion->{SUBJECT}}";
+    my $kbid = "NIL_$entity2link{$assertion->{SUBJECT}}";
     my $entity_type = $entity2type{$assertion->{SUBJECT}};
     my $mention_type = "NAM";
     my $confidence = $assertion->{CONFIDENCE};
@@ -754,6 +792,8 @@ $switches->put('output_file', 'STDOUT');
 $switches->addVarSwitch("output", "Specify the output format. Legal formats are $output_formats." .
 		                  " Use 'none' to perform error checking with no output.");
 $switches->put("output", 'none');
+$switches->addVarSwitch("linkkb", "Specify which links should be used to produce KB IDs for the \"-output edl\" option. Legal values depend upon the prefixes found in the argument to 'link' relations in the KB being validated. This option has no effect unless \"-output edl\" has been specified.");
+$switches->put("linkkb", "TKB15");
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch("predicates", "File containing specification of additional predicates to allow");
@@ -885,7 +925,6 @@ exit 0;
 #     - Ensured that if a relation is omitted from the output, its inverse is too
 # 1.3 - Added binmode(STDOUT, ":utf8"); to avoid wide character errors
 #
-#
 # 2.0 - Updated for TAC 2013
 #     - per:employee_or_member_of
 #     - New offset specifications (no longer pairs)
@@ -899,5 +938,6 @@ exit 0;
 #
 # 4.0 - First version on GitHub
 # 4.1 - Added export in EDL format
+# 4.2 - Fixed bug in which LINK relations were receiving a leading entity type
 
 1;

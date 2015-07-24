@@ -1272,7 +1272,6 @@ sub new {
 # Retrieve or create the EquivalenceClassTree node corresponding to a particular assessment
 sub get_node_for_assessment {
   my ($self, $assessment, $assessments) = @_;
-print STDERR "GNFA({", join(",\n      ", map {"$_ => " . ($assessment->{$_} || 'UNDEF')} sort keys %{$assessment}), "}, ...)\n";
   my $ec = $assessment->{VALUE_EC};
   # If the EC is not 0, then it contains all the information necessary to identify the correct node
   return $self->get($ec, $assessment->{QUANTITY}) unless $ec eq '0';
@@ -2280,7 +2279,6 @@ my %fix_utf8 = (
 
 # A few of the original assessment entries are inconsistent; this repairs them
 my %repairs = (
-### DO NOT INCLUDE
 #   # Don't conflate MP and representative
 #   #002066	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	XIN_ENG_20100822.0023:613-760	MP	XIN_ENG_20100822.0023:747-748	C	C	2
 #   '002067	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:420-569	representative	AFP_ENG_20100830.0294:488-501	C	C	2' =>
@@ -2317,7 +2315,6 @@ my %repairs = (
 #   #000896  CS14_ENG_117_4ab1e67e-6ac0-3d83-a3b5-ea90266166b3:per:title     XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922     executive       XIN_ENG_20100526.0378:914-922   C       S       4
 #   '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	X	S	0' =>
 #   '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	C	S	5',
-### DO INCLUDE
 );
 
 # #####################################################################
