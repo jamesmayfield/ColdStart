@@ -21,7 +21,10 @@ binmode(STDOUT, ":utf8");
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "4.2";
+### DO NOT INCLUDE
+# FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
+### DO INCLUDE
+my $version = "4.3";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -700,7 +703,8 @@ sub assertion_comparator {
 # the order defined by the above comparator (just to make the output
 # pretty; there is no fundamental need to do so)
 sub export_tac {
-  my ($kb, $output_labels) = @_;
+  my ($kb, $options) = @_;
+  my $output_labels = $options->{OUTPUT_LABELS};
   print $program_output "$kb->{RUNID_LINE}\n\n";
   foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
     next if $assertion->{OMIT_FROM_OUTPUT};
@@ -726,7 +730,7 @@ sub export_tac {
   }
 }
 
-# EDL format is a tab-separated file with the following columns:
+# EDL 2015 format is a tab-separated file with the following columns:
 #  1. System run ID
 #  2. Mention ID
 #  3. Mention head string
@@ -737,7 +741,8 @@ sub export_tac {
 #  8. Confidence value
 
 sub export_edl {
-  my ($kb) = @_;
+  my ($kb, $options) = @_;
+  my $linkkbname = $options->{LINK_KB};
   # Collect type information
   my %entity2type;
   my %entity2link;
@@ -753,7 +758,12 @@ sub export_edl {
     }
     elsif ($predicate_string eq 'link') {
       # FIXME: Ensure only one link relation
-      $entity2link{$assertion->{SUBJECT}} = $assertion->{OBJECT};
+      my $linkspec = $assertion->{OBJECT};
+      # FIXME: Need to check for well-formedness in some less drastic way (and probably elsewhere)
+      $linkspec =~ /^(.*?):(.*)$/ or $kb->{LOGGER}->NIST_die("Malformed link specification: $linkspec");
+      my $linkkb = uc $1;
+      my $kbid = $2;
+      $entity2link{$assertion->{SUBJECT}} = $kbid if $linkkbname eq $linkkb;
     }
   }
   my $next_mentionid = "M00001";
@@ -783,8 +793,9 @@ sub export_edl {
 ##################################################################################### 
 
 # Handle run-time switches
-my $switches = SwitchProcessor->new($0, "Validate a TAC Cold Start KB file, checking for common errors.",
-				    "");
+my $switches = SwitchProcessor->new($0,
+   "Validate a TAC Cold Start KB file, checking for common errors, and optionally exporting to a variety of formats.",
+   "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
 $switches->addVarSwitch('output_file', "Specify a file to which output should be redirected");
@@ -793,11 +804,11 @@ $switches->addVarSwitch("output", "Specify the output format. Legal formats are 
 		                  " Use 'none' to perform error checking with no output.");
 $switches->put("output", 'none');
 $switches->addVarSwitch("linkkb", "Specify which links should be used to produce KB IDs for the \"-output edl\" option. Legal values depend upon the prefixes found in the argument to 'link' relations in the KB being validated. This option has no effect unless \"-output edl\" has been specified.");
-$switches->put("linkkb", "TKB15");
+$switches->put("linkkb", "none");
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch("predicates", "File containing specification of additional predicates to allow");
-$switches->addVarSwitch("labels", "Colon-separated list of triple labels for output");
+$switches->addVarSwitch("labels", "Colon-separated list of triple labels for output. Useful in conjunction with -predicates switch.");
 $switches->put("labels", "TAC");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addVarSwitch('multiple', "Are multiple assertions of the same triple allowed? " .
@@ -858,6 +869,11 @@ foreach my $label (split(/:/, uc $labels)) {
 }
 print $error_output "WARNING: 'TAC' not included in output labels\n" unless $tac_found;
 
+my $output_options = {
+  OUTPUT_LABELS => \%output_labels,
+  LINK_KB => uc $switches->get("linkkb"),
+};
+
 # Load any additional predicate specifications
 my $predicates_file = $switches->get("predicates");
 $predicates->load($predicates_file) if defined $predicates_file;
@@ -902,7 +918,7 @@ else {
   print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
   # Output the KB if so desired
   if ($output_fn) {
-    &{$output_fn}($kb, \%output_labels);
+    &{$output_fn}($kb, $output_options);
   }
 }
 
@@ -939,5 +955,6 @@ exit 0;
 # 4.0 - First version on GitHub
 # 4.1 - Added export in EDL format
 # 4.2 - Fixed bug in which LINK relations were receiving a leading entity type
+# 4.3 - Slightly refactored output functions; proper functioning of -linkkb switch
 
 1;
