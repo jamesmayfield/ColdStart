@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "4.3";
+my $version = "4.4";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -576,11 +576,11 @@ sub check_relation_endpoints {
 
 # Perform a number of basic checks to make sure that the KB is well-formed
 sub check_integrity {
-  my ($kb) = @_;
+  my ($kb, $predicate_constraints) = @_;
   $kb->check_entity_types();
   $kb->check_definitions();
   $kb->assert_inverses();
-  $kb->assert_mentions();
+  $kb->assert_mentions() if !defined $predicate_constraints || $predicate_constraints->{'canonical_mention'};
   $kb->check_relation_endpoints();
   $kb->check_confidence();
 }
@@ -620,7 +620,7 @@ sub trim {
 
 # Load a KB that is expressed in TAC format (tab-separated triples with provenance)
 sub load_tac {
-  my ($logger, $predicates, $filename, $docids) = @_;
+  my ($logger, $task, $predicates, $predicate_constraints, $filename, $docids) = @_;
   my $kb = KB->new($logger, $predicates);
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $runid = <$infile>;
@@ -654,6 +654,10 @@ sub load_tac {
     $confidence = pop(@entries) if @entries && $entries[-1] =~ /^\d+\.\d+$/;
     # Now assign the entries to the appropriate fields
     my ($subject, $predicate, $object, $provenance_string) = @entries;
+    if (defined $predicate_constraints && !$predicate_constraints->{lc $predicate}) {
+      $kb->{LOGGER}->record_problem('OFF_TASK_SLOT', $predicate, $task, $source);
+      next;
+    }
     my $provenance;
     if (lc $predicate eq 'type' || lc $predicate eq 'link') {
       unless (@entries == 3) {
@@ -672,7 +676,7 @@ sub load_tac {
     $kb->add_assertion($subject, $predicate, $object, $provenance, $confidence, $source, $comment);
   }
   close $infile;
-  $kb->check_integrity();
+  $kb->check_integrity($predicate_constraints);
 #&main::dump_structure($kb, 'KB', [qw(LOGGER CONFIDENCE LABEL QUANTITY BESTDEF BESTUSE TYPEDEFS USES COMMENT INVERSE_NAME SOURCE WHERE DOMAIN RANGE)]);
 #exit 0;
   $kb;
@@ -790,7 +794,20 @@ sub export_edl {
 
 ##################################################################################### 
 # Runtime switches and main program
-##################################################################################### 
+#####################################################################################
+
+my %tasks = (
+  CSKB => {DESCRIPTION => "Cold Start Knowledge Base variant",
+	  },
+  CSED => {DESCRIPTION => "Cold Start Entity Discovery variant",
+	   LEGAL_PREDICATES => [qw(type mention)],
+	  },
+### DO NOT INCLUDE
+  CSEDL => {DESCRIPTION => "Cold Start Entity Discovery and Linking variant",
+	    LEGAL_PREDICATES => [qw(type mention link)],
+	   },
+### DO INCLUDE
+);
 
 # Handle run-time switches
 my $switches = SwitchProcessor->new($0,
@@ -817,12 +834,18 @@ $switches->put('multiple', $multiple_attestations);
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addVarSwitch('ignore', "Colon-separated list of warnings to ignore. Legal values are: " .
 			Logger->new()->get_warning_names());
+$switches->addVarSwitch('task', "Specify task to validate. Legal values are: " . join(", ", map {"$_ ($tasks{$_}{DESCRIPTION})"} sort keys %tasks) . ".");
+$switches->put('task', 'CSKB');
 $switches->addParam("filename", "required", "File containing input KB specification.");
 
 $switches->process(@ARGV);
 
 # This holds the "knowledge base"
 my $kb;
+
+my $task = $switches->get("task");
+my $predicate_constraints;
+$predicate_constraints = {map {$_ => 'true'} @{$tasks{$task}{LEGAL_PREDICATES}}} if defined $tasks{$task}{LEGAL_PREDICATES};
 
 # Allow redirection of stdout and stderr
 my $output_filename = $switches->get("output_file");
@@ -907,7 +930,7 @@ if (defined $docids_file) {
 }
 
 # Load the knowledge base
-$kb = &load_tac($logger, $predicates, $filename, $docids);
+$kb = &load_tac($logger, $task, $predicates, $predicate_constraints, $filename, $docids);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
@@ -956,5 +979,6 @@ exit 0;
 # 4.1 - Added export in EDL format
 # 4.2 - Fixed bug in which LINK relations were receiving a leading entity type
 # 4.3 - Slightly refactored output functions; proper functioning of -linkkb switch
+# 4.4 - Added checks for CSED variant
 
 1;
