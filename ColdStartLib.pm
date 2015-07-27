@@ -115,6 +115,8 @@ END_PROBLEM_FORMATS
 
 package Logger;
 
+use Carp;
+
 # Create a new Logger object
 sub new {
   my ($class, $formats, $error_output) = @_;
