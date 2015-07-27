@@ -84,7 +84,7 @@ sub generate_round2_query {
 sub generate_round1_queries {
   my ($logger, $queries) = @_;
   my $new_queries = QuerySet->new($logger);
-  foreach my $query ($queries->get_all()) {
+  foreach my $query ($queries->get_all_queries()) {
     $new_queries->add(&generate_round1_query($logger, $query));
   }
   $new_queries;
