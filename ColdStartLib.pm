@@ -115,6 +115,8 @@ END_PROBLEM_FORMATS
 
 package Logger;
 
+use Carp;
+
 # Create a new Logger object
 sub new {
   my ($class, $formats, $error_output) = @_;
@@ -2403,6 +2405,17 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     # Keep track of all RUNIDs
     $self->{RUNIDS}{$entry->{RUNID}}++ if defined $entry->{RUNID};
     # FIXME: Record MULTIPLE_RUNIDS problem here?
+    
+	my $current_runid = $self->get_runid();
+    if (defined $current_runid) {
+      if (defined $entry->{RUNID} && $entry->{RUNID} ne $current_runid) {
+	    $logger->record_problem('MULTIPLE_RUNIDS', $current_runid, $entry->{RUNID}, $entry);
+	    $entry->{RUNID} = $current_runid;
+      }
+    }
+    else {
+      $self->set_runid($entry->{RUNID});
+    }
 
     # Allow recovery of parent query ID and equivalence class
     if ($entry->{TYPE} eq 'ASSESSMENT' && $entry->{JUDGMENT} eq 'CORRECT') {
@@ -2703,6 +2716,11 @@ sub tostring {
 sub get_runid {
   my ($self) = @_;
   $self->{RUNID};
+}
+
+sub set_runid {
+  my ($self, $new_runid) = @_;
+  $self->{RUNID} = $new_runid;
 }
 
 sub set_confidence {
