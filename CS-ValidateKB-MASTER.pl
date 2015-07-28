@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "4.4";
+my $version = "4.5";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -465,7 +465,7 @@ sub assert_inverses {
 
 # Make sure that mentions and canonical_mentions are in sync
 sub assert_mentions {
-  my ($kb) = @_;
+  my ($kb, $canonical_mentions_allowed) = @_;
   foreach my $subject ($kb->get_subjects()) {
     my %docids;
     foreach my $docid ($kb->get_docids($subject, 'mention'),
@@ -479,7 +479,7 @@ sub assert_mentions {
     foreach my $docid (keys %docids) {
       my %mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'mention', undef, $docid);
       my %canonical_mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'canonical_mention', undef, $docid);
-      if (!keys %canonical_mentions && keys %mentions) {
+      if ($canonical_mentions_allowed && !keys %canonical_mentions && keys %mentions) {
 	$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
 	# Pick a mention at random to serve as the canonical
 	# mention. This makes the validator non-deterministic, but
@@ -490,7 +490,7 @@ sub assert_mentions {
 					   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
 	$assertion->{INFERRED} = 'true';
       }
-      elsif (keys %canonical_mentions > 1) {
+      elsif ($canonical_mentions_allowed && keys %canonical_mentions > 1) {
 	$kb->{LOGGER}->record_problem('MULTIPLE_CANONICAL', $subject, $docid, 'NO_SOURCE');
       }
       while (my ($string, $canonical_mention) = each %canonical_mentions) {
@@ -515,7 +515,7 @@ sub check_confidence {
   my ($kb) = @_;
   foreach my $assertion ($kb->get_assertions()) {
     if (defined $assertion->{CONFIDENCE}) {
-      unless ($assertion->{CONFIDENCE} =~ /^(?:1\.0*)$|^(?:0?\.[0-9]+)$/) {
+      unless ($assertion->{CONFIDENCE} =~ /^(?:1\.0*)$|^(?:0?\.[0-9]*[1-9][0-9]*)$/) {
 	$kb->{LOGGER}->record_problem('ILLEGAL_CONFIDENCE_VALUE', $assertion->{CONFIDENCE}, $assertion->{SOURCE});
 	$assertion->{CONFIDENCE} = '1.0';
       }
@@ -580,7 +580,7 @@ sub check_integrity {
   $kb->check_entity_types();
   $kb->check_definitions();
   $kb->assert_inverses();
-  $kb->assert_mentions() if !defined $predicate_constraints || $predicate_constraints->{'canonical_mention'};
+  $kb->assert_mentions(!defined $predicate_constraints || $predicate_constraints->{'canonical_mention'});
   $kb->check_relation_endpoints();
   $kb->check_confidence();
 }
@@ -980,5 +980,6 @@ exit 0;
 # 4.2 - Fixed bug in which LINK relations were receiving a leading entity type
 # 4.3 - Slightly refactored output functions; proper functioning of -linkkb switch
 # 4.4 - Added checks for CSED variant
+# 4.5 - Fixed mention checking in CSED task; made confidence = 0.0 illegal
 
 1;
