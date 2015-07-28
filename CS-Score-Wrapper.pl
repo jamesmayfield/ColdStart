@@ -23,7 +23,7 @@ foreach my $run_file( @run_files ){
 	my ($run_file_dir, $run_file_name) = ($1,$2);
 	my $output_file_name = $run_file_name.".".$output_postfix;
 	my $output_file = "$runs_dir/$run_file_dir$output_file_name";
-	push(@cmds, "perl CS-Score-MASTER.pl $assessment_file $run_file $queries_file > $output_file");
+	push(@cmds, "perl CS-Score.pl $assessment_file $run_file $queries_file > $output_file");
 	#print "--running cmd=$cmd\n";
 	#`$cmd`;
 }
