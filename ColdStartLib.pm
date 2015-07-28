@@ -98,6 +98,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
+  OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
   UNKNOWN_SLOT_NAME             ERROR    Unknown slot name: %s
