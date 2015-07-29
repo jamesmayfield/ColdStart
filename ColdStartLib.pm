@@ -18,7 +18,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2.2";		# Added LINK predicate
+my $version = "2.3";		# Added 2015SFSubmissions and VALUE_TYPE
 
 ### BEGIN INCLUDE Switches
 
@@ -1685,22 +1685,6 @@ my %schemas = (
       CONFIDENCE
     )],
   },
-  
-  '2015SFsubmissions' => {
-    YEAR => 2015,
-    TYPE => 'SUBMISSION',
-    SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	PER	NYT_ENG_20101103.0024:815-833	1.0"],
-    COLUMNS => [qw(
-      QUERY_ID
-      SLOT_NAME
-      RUNID
-      RELATION_PROVENANCE_TRIPLES
-      VALUE
-      VALUE_TYPE
-      VALUE_PROVENANCE_TRIPLES
-      CONFIDENCE
-    )],
-  },
 
   '2014assessments' => {
     YEAR => 2014,
@@ -1725,6 +1709,22 @@ my %schemas = (
       S => 'INEXACT_SHORT',
       L => 'INEXACT_LONG',
     },
+  },
+
+  '2015SFsubmissions' => {
+    YEAR => 2015,
+    TYPE => 'SUBMISSION',
+    SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	PER	NYT_ENG_20101103.0024:815-833	1.0"],
+    COLUMNS => [qw(
+      QUERY_ID
+      SLOT_NAME
+      RUNID
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
+      VALUE_TYPE
+      VALUE_PROVENANCE_TRIPLES
+      CONFIDENCE
+    )],
   },
 
 );
@@ -1788,7 +1788,7 @@ my %columns = (
 
   CONFIDENCE => {
     DESCRIPTION => "System confidence in entry, taken from submission",
-    YEARS => [2014],
+    YEARS => [2014, 2015],
     PATTERN => qr/\d+\.\d+/,
   },
 
@@ -1961,13 +1961,13 @@ my %columns = (
 
   QUERY_AND_SLOT_NAME => {
     DESCRIPTION => "Query ID concatenated with slot name",
-    YEARS => [2014],
+    YEARS => [2014, 2015],
     PATTERN => qr/.+:.+:.+/,
   },
 
   QUERY_ID => {
     DESCRIPTION => "Query ID of query this entry is responding to. Explicit in 2014, generated in other years",
-    YEARS => [2014],
+    YEARS => [2014, 2015],
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
       if (defined $entry->{QUERY_AND_HOP}) {
@@ -2033,13 +2033,13 @@ my %columns = (
 
   RELATION_PROVENANCE_TRIPLES => {
     DESCRIPTION => "Original string representation of RELATION_PROVENANCE",
-    YEARS => [2013, 2014],
+    YEARS => [2013, 2014, 2015],
     PATTERN => $provenance_triples_pattern,
   },
 
   RUNID => {
     DESCRIPTION => "Run ID for this entry",
-    YEARS => [2014],
+    YEARS => [2014, 2015],
     PATTERN => $anything_pattern,
   },
 
@@ -2153,7 +2153,7 @@ my %columns = (
 
   VALUE => {
     DESCRIPTION => "The slot fill",
-    YEARS => [2012, 2013, 2014],
+    YEARS => [2012, 2013, 2014, 2015],
     PATTERN => $anything_pattern,
     REQUIRED => 'ALL',
   },
@@ -2208,14 +2208,14 @@ my %columns = (
 
   VALUE_PROVENANCE_TRIPLES => {
     DESCRIPTION => "Original string representation of VALUE_PROVENANCE",
-    YEARS => [2013, 2014],
+    YEARS => [2013, 2014, 2015],
     PATTERN => $provenance_triples_pattern,
   },
   
   VALUE_TYPE => {
     DESCRIPTION => "{PER, ORG, GPE, STRING}",
     YEARS => [2015],
-	PATTERN => $anything_pattern,
+    PATTERN => qr/PER|ORG|GPE|STRING/i,
   },
 
   YEAR => {
