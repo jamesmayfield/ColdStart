@@ -76,6 +76,8 @@ sub generate_round2_query {
   # FIXME: Should be generalized to multiple hops
   my $next_slot = $new_query->get('SLOT1');
   my ($next_slot_type) = $next_slot =~ /^(.*?):/;
+  my $submission_value_type = lc $submission->{VALUE_TYPE};
+  return if($next_slot_type ne $submission_value_type);
   $new_query->put('SLOT', $next_slot);
   $new_query->put('ENTTYPE', $next_slot_type);
   $new_query;
@@ -121,7 +123,10 @@ $switches->addParam("runfile", "File containing query output. Omit to generate i
 $switches->process(@ARGV);
 
 my $queryfile = $switches->get("queryfile");
-my $outputfile = $switches->get("runfile");
+### DO NOT INCLUDE
+# The following variable was never used. 
+#my $outputfile = $switches->get("runfile");
+### DO INCLUDE
 
 ### DO NOT INCLUDE
 # my $queryfile = "/Users/mayfield/Documents/Work/TAC/2013/ColdStart/Data/LDC2013E87_TAC_2013_KBP_English_Cold_Start_Evaluation_Queries_and_Annotations/data/tac_2013_kbp_english_cold_start_evaluation_queries-corrected.xml";

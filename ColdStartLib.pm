@@ -1685,6 +1685,22 @@ my %schemas = (
       CONFIDENCE
     )],
   },
+  
+  '2015SFsubmissions' => {
+    YEAR => 2015,
+    TYPE => 'SUBMISSION',
+    SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	PER	NYT_ENG_20101103.0024:815-833	1.0"],
+    COLUMNS => [qw(
+      QUERY_ID
+      SLOT_NAME
+      RUNID
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
+      VALUE_TYPE
+      VALUE_PROVENANCE_TRIPLES
+      CONFIDENCE
+    )],
+  },
 
   '2014assessments' => {
     YEAR => 2014,
@@ -2194,6 +2210,12 @@ my %columns = (
     DESCRIPTION => "Original string representation of VALUE_PROVENANCE",
     YEARS => [2013, 2014],
     PATTERN => $provenance_triples_pattern,
+  },
+  
+  VALUE_TYPE => {
+    DESCRIPTION => "{PER, ORG, GPE, STRING}",
+    YEARS => [2015],
+	PATTERN => $anything_pattern,
   },
 
   YEAR => {
