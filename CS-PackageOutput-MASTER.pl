@@ -22,7 +22,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.2";
+my $version = "1.3";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -134,5 +134,5 @@ exit 0;
 # 1.0 - Initial version
 # 1.1 - Ensured all program exits are NIST-compliant
 # 1.2 - Bug fixes
-
+# 1.3 - Handle 2015 format changes
 1;
