@@ -11,7 +11,7 @@ use ColdStartLib;
 ### DO INCLUDE
 ##################################################################################### 
 # This program marshals round 1 and round 2 output for the Slot
-# Filling variant of the Cold Start 2014 task. It basically just
+# Filling variant of the Cold Start 2015 task. It basically just
 # concatenates the two files, but it makes sure that the round 1
 # responses come first (so that the corresponding queries can be
 # automatically generated)
@@ -54,7 +54,7 @@ my $pattern = $main::comment_pattern;
 ##################################################################################### 
 
 # Handle run-time switches
-my $switches = SwitchProcessor->new($0, "Marshal round 1 and round 2 output for the Cold Start 2014 Slot Filling variant.",
+my $switches = SwitchProcessor->new($0, "Marshal round 1 and round 2 output for the Cold Start 2015 Slot Filling variant.",
 				    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
