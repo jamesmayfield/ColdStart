@@ -80,6 +80,9 @@ open($program_output, ">:utf8", $outputfilename) or $logger->NIST_die("Could not
 
 my $queries = QuerySet->new($logger, $queryfile);
 
+print $program_output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+print $program_output "<query_set>\n";
+
 foreach my $query( $queries->get_all_queries() ){
 	my $entrypoints = $query->get("ENTRYPOINTS");
 	my $query_id = $query->get("QUERY_ID");
@@ -95,6 +98,7 @@ foreach my $query( $queries->get_all_queries() ){
 	}
 	
 }
+print $program_output "<query_set>\n";
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
