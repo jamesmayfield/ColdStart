@@ -2,6 +2,7 @@
 
 use warnings;
 use strict;
+use utf8;
 
 binmode(STDOUT, ":utf8");
 
@@ -22,7 +23,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.3";
+my $version = "1.3.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -135,4 +136,5 @@ exit 0;
 # 1.1 - Ensured all program exits are NIST-compliant
 # 1.2 - Bug fixes
 # 1.3 - Handle 2015 format changes
+# 1.3.1 - Fixing the wide character error due to not having the utf8 included
 1;
