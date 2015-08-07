@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Carp;
 use utf8;
+use JSON;
 
 binmode(STDOUT, ":utf8");
 
@@ -18,7 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2.3";		# Added 2015SFSubmissions and VALUE_TYPE
+my $version = "2.4";		# Used JSON to encode strings before generating UUIDs
 
 ### BEGIN INCLUDE Switches
 
@@ -523,8 +524,8 @@ package Query;
 # REWRITE   changes the field name to the indicated name
 my %tags = (
   ENTRYPOINTS => {ORD => 0, TYPE => 'single'},
-  ENTTYPE =>     {ORD => 1, TYPE => 'single',   YEARS => '2014'},
-  SLOT =>        {ORD => 2, TYPE => 'single',   YEARS => '2014'},
+  ENTTYPE =>     {ORD => 1, TYPE => 'single',   YEARS => '2014:2015'},
+  SLOT =>        {ORD => 2, TYPE => 'single',   YEARS => '2014:2015'},
   SLOT0 =>       {ORD => 3, TYPE => 'single',                        REQUIRED => 'yes'},
   SLOT1 =>       {ORD => 4, TYPE => 'single',   },
   SLOT2 =>       {ORD => 5, TYPE => 'single',   YEARS => '2012'},
@@ -587,6 +588,14 @@ sub get_query_id_base {
   $result;
 }
 
+# Calculate a hash of this query
+sub get_short_uuid {
+  my ($self) = @_;
+  my $entrypoint = $self->get_entrypoint(0);
+  my $string = "$entrypoint->{DOCID}:$entrypoint->{START}:$entrypoint->{END}:" . join(":", @{$self->{SLOTS}});
+  &main::short_uuid_generate($string);
+}
+
 sub get_entrypoint {
   my ($self, $pos) = @_;
   $pos = 0 unless defined $pos;
@@ -633,6 +642,21 @@ sub new {
   bless($self, $class);
   $self->populate_from_text($text) if defined $text;
   $self;
+}
+
+sub duplicate {
+  my ($self, @fields_to_omit) = @_;
+  my %fields_to_omit = map {$_ => 'true'} @fields_to_omit;
+  my $class = ref $self;
+  my $result = $class->new($self->{LOGGER});
+  foreach my $key (keys %{$self}) {
+    # Skip keys that are automatically generated
+    next if $key =~ /^(?:QUERY_ID_BASE|LASTSLOT|SLOT\d*|LOGGER)$/;
+    # Skip keys we were requested to skip (Note: this will not prevent automatic creation)
+    next if $fields_to_omit{$key};
+    $result->put($key, $self->get($key));
+  }
+  $result;
 }
 
 # Create a follow-on query for a given reponse
@@ -1310,7 +1334,9 @@ sub add_assessments {
     $assessment->{EC_TREE} = $node;
     # Check assessment file for entries that have equivalence class without correct parent entry
     if ($assessment->{JUDGMENT} eq "CORRECT") {
+### DO NOT INCLUDE
 print STDERR "node = {", join(", ", map {"$_ => " . ($node->{$_} || 'UNDEF')} sort keys %{$node}), "}\n" unless defined $node->{NAME};
+### DO INCLUDE
       my $ec = $node->{NAME};
       my @ec_components = split(/:/, $ec);
       my $base_query_id = shift @ec_components;
@@ -2708,8 +2734,11 @@ sub column2string {
   elsif ($column =~ /_ASSESSMENT$/) {
     return $schema->{INVERSE_ASSESSMENT_CODES}{$entry->{$column}};
   }
-  else {
+  elsif (defined $entry->{$column}) {
     return $entry->{$column};
+  }
+  else {
+    die "No value present for column $column";
   }
 }
 
@@ -3052,6 +3081,7 @@ sub printstat {
 ### DO INCLUDE
 ### BEGIN INCLUDE Utils
 package main;
+use JSON;
 
 #####################################################################################
 # UUIDs from UUID::Tiny
@@ -3196,13 +3226,34 @@ sub create_UUID_as_string {
 # This is the end of the code taken from UUID::Tiny
 #####################################################################################
 
+my $json = JSON->new->allow_nonref->utf8;
+
 sub uuid_generate {
   my ($queryid, $value, $provenance_string) = @_;
-# FIXME
-my $glop = $value;
-$glop =~ s/’/'/g;
-#  create_UUID_as_string(UUID_V3, "$queryid:$value:$provenance_string");
-  create_UUID_as_string(UUID_V3, "$queryid:$glop:$provenance_string");
+  my $encoded_string = $json->encode("$queryid:$value:$provenance_string");
+  $encoded_string =~ s/^"//;
+  $encoded_string =~ s/"$//;
+### DO NOT INCLUDE
+# NOTE: this is the 2014 code, which special cased a query that had a funky character. I expect the patch is not backward compatible.  
+# # FIXME
+# my $glop = $value;
+# $glop =~ s/’/'/g;
+# #  create_UUID_as_string(UUID_V3, "$queryid:$value:$provenance_string");
+#  create_UUID_as_string(UUID_V3, "$queryid:$glop:$provenance_string");
+### DO INCLUDE
+  create_UUID_as_string(UUID_V3, $encoded_string);
+}
+
+sub short_uuid_generate {
+  my ($string) = @_;
+  my $encoded_string = $json->encode($string);
+  $encoded_string =~ s/^"//;
+  $encoded_string =~ s/"$//;
+### DO NOT INCLUDE
+print STDERR "Original string = <<$string>>\n Encoded string = <<$encoded_string>>\n" unless $string eq $encoded_string;
+### DO INCLUDE
+  my $long_uuid = create_UUID_as_string(UUID_V3, $encoded_string);
+  substr($long_uuid, -10, 10);
 }
 
 sub min {
