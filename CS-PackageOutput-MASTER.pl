@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 binmode(STDOUT, ":utf8");
+binmode(STDERR, ":utf8");
 
 ### DO NOT INCLUDE
 use ColdStartLib;
@@ -22,7 +23,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.3";
+my $version = "1.4";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -121,8 +122,8 @@ my ($num_errors, $num_warnings) = $logger->report_all_problems();
 if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
-print $program_output $sf_output1->tostring("2014SFsubmissions");
-print $program_output $sf_output2->tostring("2014SFsubmissions");
+print $program_output $sf_output1->tostring("2015SFsubmissions");
+print $program_output $sf_output2->tostring("2015SFsubmissions");
 close $program_output;
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;
@@ -135,4 +136,5 @@ exit 0;
 # 1.1 - Ensured all program exits are NIST-compliant
 # 1.2 - Bug fixes
 # 1.3 - Handle 2015 format changes
+# 1.4 - Further 2015 format changes
 1;
