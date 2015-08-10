@@ -84,12 +84,16 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   UNKNOWN_TYPE                  ERROR    Cannot infer type for Entity %s
 
 ########## Query File Errors
-  DUPLICATE_QUERY               WARNING  Duplicate query ID %s
+  DUPLICATE_QUERY               WARNING  Queries %s and %s share entry point(s)
+  DUPLICATE_QUERY_ID            WARNING  Duplicate query ID %s
   DUPLICATE_QUERY_FIELD         WARNING  Duplicate <%s> tag
   MALFORMED_QUERY               ERROR    Malformed query %s
+  MISMATCHED_HOP_SUBTYPES       WARNING  In %s, range of %s does not match domain of %s
+  MISMATCHED_HOP_TYPES          WARNING  In %s, type of %s does not match domain of %s
   MISMATCHED_TAGS               WARNING  <%s> tag closed with </%s>
   MISSING_QUERY_FIELD           ERROR    Missing <%s> tag in query %s
   NO_QUERIES_LOADED             WARNING  No queries found
+  POSSIBLE_DUPLICATE_QUERY      WARNING  Queries %s and %s are possibly duplicates, based on entrypoint %s
   QUERY_WITHOUT_LOADED_PARENT   ERROR    Query %s has parent %s that was not loaded
   UNKNOWN_QUERY_FIELD           WARNING  <%s> is not a recognized query field
   UNLOADED_QUERY                WARNING  Query %s is not present in the query files; skipping it
@@ -182,8 +186,8 @@ sub record_problem {
   $self->{PROBLEM_COUNTS}{$format->{TYPE}}++;
   my $type = $format->{TYPE};
   my $message = "$type: " . sprintf($format->{FORMAT}, @args);
-  my $where = (ref $source ? "$source->{FILENAME} line $source->{LINENUM}" : 'NO_SOURCE');
-  $self->NIST_die($message . (ref $source ? ": $where" : "")) if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
+  my $where = (ref $source ? "$source->{FILENAME} line $source->{LINENUM}" : $source);
+  $self->NIST_die("$message$where") if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
   $self->{PROBLEMS}{$problem}{$message}{$where}++;
 }
 
@@ -524,7 +528,8 @@ package Query;
 # REWRITE   changes the field name to the indicated name
 my %tags = (
   ENTRYPOINTS => {ORD => 0, TYPE => 'single'},
-  ENTTYPE =>     {ORD => 1, TYPE => 'single',   YEARS => '2014:2015'},
+
+  ENTTYPE =>     {ORD => 1, TYPE => 'single',   YEARS => '2014:2015', REQUIRED => 'yes'},
   SLOT =>        {ORD => 2, TYPE => 'single',   YEARS => '2014:2015'},
   SLOT0 =>       {ORD => 3, TYPE => 'single',                        REQUIRED => 'yes'},
   SLOT1 =>       {ORD => 4, TYPE => 'single',   },
@@ -562,10 +567,17 @@ sub put {
     my $predicates = PredicateSet->new($self->{LOGGER});
     my @candidates = $predicates->lookup_predicate($shortname, $domain);
     unless (@candidates) {
-      $self->{LOGGER}->record_problem('UNKNOWN_SLOT_NAME', $value, {FILENAME => 'UNKNOWN',
-								    LINENUM => 'UNKNOWN'});
+      $self->{LOGGER}->record_problem('UNKNOWN_SLOT_NAME', $value, 'NO_SOURCE');
       return;
     }
+    if (@candidates > 1) {
+      # FIXME: I'm not convinced this can happen with fully qualified
+      # predicate names; it probably dates back to the time when
+      # predicate specifications were not guaranteed to be qualified
+      # with the domain name.
+      print STDERR "Warning: more than one candidate predicate for $shortname in domain $domain\n";
+    }
+    $self->{PREDICATES}[$level] = $candidates[0];
     if ($level == 0) {
       $self->put('SLOT', $value);
       $self->put('QUANTITY', $candidates[0]{QUANTITY});
@@ -585,6 +597,7 @@ sub get_query_id_base {
   my $result = $query_id;
   $result = $1 if $query_id =~ /^(.*?)_\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
   $result = $1 if $query_id =~ /^(.*?)_PSEUDO/;
+  $result = $1 if $query_id =~ /^(.*?)_[0-9a-f]{10}$/i;
   $result;
 }
 
@@ -594,6 +607,19 @@ sub get_short_uuid {
   my $entrypoint = $self->get_entrypoint(0);
   my $string = "$entrypoint->{DOCID}:$entrypoint->{START}:$entrypoint->{END}:" . join(":", @{$self->{SLOTS}});
   &main::short_uuid_generate($string);
+}
+
+sub get_hashname {
+  my ($self) = @_;
+  my $short_uuid = $self->get_short_uuid();
+  my $query_base = $self->get('QUERY_ID_BASE');
+  "${query_base}_$short_uuid";
+}
+
+sub rename_query {
+  my ($self, $new_name) = @_;
+  $new_name = $self->get_hashname() unless defined $new_name;
+  $self->put('QUERY_ID', $new_name);
 }
 
 sub get_entrypoint {
@@ -616,8 +642,7 @@ sub add_entrypoint {
   my ($self, %entrypoint) = @_;
   unless (defined($entrypoint{PROVENANCE})) {
     $entrypoint{PROVENANCE} = Provenance->new($self->{LOGGER},
-					      $entrypoint{WHERE} || {FILENAME => 'UNKNOWN',
-								     LINENUM => 'UNKNOWN'},
+					      $entrypoint{WHERE} || 'NO_SOURCE',
 					      'DOCID_OFFSET_OFFSET',
 					      $entrypoint{DOCID},
 					      $entrypoint{START},
@@ -657,6 +682,16 @@ sub duplicate {
     $result->put($key, $self->get($key));
   }
   $result;
+}
+
+sub truncate_slots {
+  my ($self, $max_slot) = @_;
+  my @truncated = @{$self->{SLOTS}}[0..$max_slot];
+  $self->{SLOTS} = \@truncated;
+  for (my $num = $max_slot + 1; defined $self->{"SLOT$num"}; $num++) {
+    delete $self->{"SLOT$num"};
+  }
+  $self;
 }
 
 # Create a follow-on query for a given reponse
@@ -712,16 +747,20 @@ sub populate_from_text {
     my ($tag, $value, $closer) = (uc $1, $2, uc $3);
     $self->{LOGGER}->record_problem('MISMATCHED_TAGS', $tag, $closer, $where)
       unless $tag eq $closer;
+    my $original_name;
     my $info = $tags{$tag};
     unless (defined $info) {
       $self->{LOGGER}->record_problem('UNKNOWN_QUERY_FIELD', $tag, $where);
       next;
     }
     # decode HTML entities
-    $value =~ s/&(.+?);/$html_entities{$1}/ge if $tag eq 'NAME';
+    if ($tag eq 'NAME') {
+      $original_name = $value;
+      $value =~ s/&(.+?);/$html_entities{$1}/ge;
+    }
     # apply aliases and renamings
     $tag = $info->{REWRITE} if defined $info->{REWRITE};
-    # 2013 included more than one entrypoint per query. Here we
+    # 2013 and 2015 include more than one entrypoint per query. Here we
     # collect each such entrypoint into its own hash
     if ($info->{TYPE} eq 'multiple') {
       if (defined $entrypoint->{$tag}) {
@@ -729,6 +768,7 @@ sub populate_from_text {
 	$entrypoint = {};
       }
       $entrypoint->{$tag} = $value;
+      $entrypoint->{ORIGINAL_NAME} = $original_name if $tag eq 'NAME';
     }
     else {
       if (defined $self->{$tag}) {
@@ -749,8 +789,13 @@ sub populate_from_text {
 
 # Convert the query object back to the correct text file format
 sub tostring {
-  my ($self, $indent) = @_;
+  my ($self, $indent, $omit) = @_;
   $indent = "" unless defined $indent;
+  $omit = [] unless defined $omit;
+  my %omit = (ORIGINAL_NAME => 'true');
+  foreach my $field (@{$omit}) {
+    $omit{$field}++;
+  }
   my $string = "$indent<query id=\"$self->{QUERY_ID}\">\n";
   foreach my $field (sort {$tags{$a}{ORD} <=> $tags{$b}{ORD}}
 		     grep {$tags{$_}{TYPE} eq 'single'} keys %tags) {
@@ -758,8 +803,10 @@ sub tostring {
       foreach my $entrypoint (@{$self->{ENTRYPOINTS}}) {
 	foreach my $subfield (sort {$tags{$a}{ORD} <=> $tags{$b}{ORD}}
 			      grep {$tags{$_}{TYPE} eq 'multiple'} keys %tags) {
+	  next if $omit{$subfield};
 	  my $value = defined $tags{$subfield}{REWRITE} ?
 	    $entrypoint->{$tags{$subfield}{REWRITE}} :
+	    $subfield eq 'NAME' ? $entrypoint->{ORIGINAL_NAME} :
 	    $entrypoint->{$subfield};
 	  if (defined $value) {
 	    $string .= "$indent  <" . lc($subfield) . ">$value</" . lc($subfield) . ">\n";
@@ -774,6 +821,10 @@ sub tostring {
       }
     }
     else {
+      next if $omit{$field};
+      if ($tags{$field}{REQUIRED} && !defined $self->{$field}) {
+	$self->{LOGGER}->NIST_die("Missing query field: $field");
+      }
       $string .= "$indent  <" . lc($field) . ">$self->{$field}</" . lc($field) . ">\n"
 	if defined $self->{$field};
     }
@@ -836,7 +887,7 @@ sub add {
     # generated (if only to ensure the GENERATED field is properly
     # set)
     $self->{QUERIES}{$id} = $query unless $query->{GENERATED};
-    # FIXME: Might want to flag a DUPLICATE_QUERY here
+    # FIXME: Might want to flag a DUPLICATE_QUERY_ID here
   }
   else {
     $self->{QUERIES}{$id} = $query;
@@ -895,7 +946,7 @@ sub get_child_ids {
 
 # Convert the QuerySet to text form, suitable for print as a TAC evaluation query file
 sub tostring {
-  my ($self, $indent, $queryids) = @_;
+  my ($self, $indent, $queryids, $omit) = @_;
   $indent = "" unless defined $indent;
   my $string = "$indent<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n$indent<query_set>\n";
   foreach my $query (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID}}
@@ -903,7 +954,7 @@ sub tostring {
     # FIXME: I hope this works as intended...
     next if $query->{GENERATED};
     next unless !defined $queryids || $queryids->{$query->{QUERY_ID}};
-    $string .= $query->tostring("$indent  ");
+    $string .= $query->tostring("$indent  ", $omit);
   }
   $string .= "$indent</query_set>\n";
   $string;
@@ -2747,7 +2798,7 @@ sub tostring {
   my ($self, $schema_name) = @_;
   # Prevent duplicate adjacent lines from appearing in output
   my $previous = "";
-  $schema_name = '2014SFsubmissions' unless defined $schema_name;
+  $schema_name = '2015SFsubmissions' unless defined $schema_name;
   my $schema = $schemas{$schema_name};
   $self->{LOGGER}->NIST_die("Unknown file schema: $schema_name") unless $schema;
   my $string = "";
