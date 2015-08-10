@@ -253,6 +253,7 @@ sub add_assertion {
   # FIXME: There's gotta be a better way
 ### DO INCLUDE
   unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
+#  unless ($verb eq 'link') {
   existing:
     # We don't consider inferred assertions to be duplicates
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {

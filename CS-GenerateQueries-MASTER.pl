@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.5";
+my $version = "1.7";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -71,15 +71,18 @@ sub generate_round2_query {
   $new_query->add_entrypoint(NAME => $name,
 			     PROVENANCE => $submission->{VALUE_PROVENANCE});
   foreach my $key (keys %{$original_query}) {
-    $new_query->put($key, $original_query->get($key)) if $key =~ /^slot(\d+)$/i;
+    $new_query->put('slot' . ($1 - 1), $original_query->get($key)) if $key =~ /^slot(\d+)$/i;
   }
   # FIXME: Should be generalized to multiple hops
-  my $next_slot = $new_query->get('SLOT1');
-  my ($next_slot_type) = $next_slot =~ /^(.*?):/;
-  my $submission_value_type = lc $submission->{VALUE_TYPE};
-  return if($next_slot_type ne $submission_value_type);
-  $new_query->put('SLOT', $next_slot);
-  $new_query->put('ENTTYPE', $next_slot_type);
+  my $next_slot = $original_query->get('SLOT1');
+  if (defined $next_slot) {
+    my ($next_slot_type) = $next_slot =~ /^(.*?):/;
+    my $submission_value_type = lc $submission->{VALUE_TYPE};
+    return if ($next_slot_type ne $submission_value_type);
+    $new_query->put('SLOT', $next_slot);
+    $new_query->put('ENTTYPE', $next_slot_type);
+print STDERR "Set ENTTYPE of $new_queryid to $next_slot_type\n";
+  }
   $new_query;
 }
 
@@ -87,7 +90,8 @@ sub generate_round1_queries {
   my ($logger, $queries) = @_;
   my $new_queries = QuerySet->new($logger);
   foreach my $query ($queries->get_all_queries()) {
-    $new_queries->add(&generate_round1_query($logger, $query));
+    my $new_query = &generate_round1_query($logger, $query);
+    $new_queries->add($new_query);
   }
   $new_queries;
 }  
@@ -97,7 +101,7 @@ sub generate_round2_queries {
   my $new_queries = QuerySet->new($logger);
   foreach my $submission (@{$round1_submissions->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
     my $new_query = &generate_round2_query($logger, $submission, $valid);
-    $new_queries->add($new_query);
+    $new_queries->add($new_query) if defined $new_query->{SLOT};
   }
   $new_queries;
 }
@@ -197,6 +201,18 @@ else {
   my $new_queries = &generate_round1_queries($logger, $queries);
   print $program_output $new_queries->tostring() if defined $program_output;
   exit 0;
+### DO NOT INCLUDE
+  # This code was briefly considered when CS-ExpandQueries.pl was
+  # introduced to remove multiple entry points from
+  # queries. Ultimately we decided to keep the requirement for
+  # participants to run CS-GenerateQueres.pl at the start of the
+  # process to avoid having to change the documentation
+  # my $short_queryfile = $queryfile;
+  # $short_queryfile =~ s/.*\///;
+  # print $error_output "Starting in 2015, CS-GenerateQueries does not need to be run on distributed queries.\n",
+  #                     "Please use $short_queryfile directly for the first round queries.\n";
+  # exit 0;
+### DO INCLUDE
 }
 
 ### DO NOT INCLUDE
@@ -215,5 +231,7 @@ else {
 # 1.3 - Bug fixes
 # 1.4 - Bug fixes
 # 1.5 - Added -valid option for quoting ampersands etc. so as to produce compliant XML
+# 1.6 - Removed requirement to run GenerateQueries on the LDC queries (We are running CS-ExpandQueries instead)
+# 1.7 - Reverted to requirement to maintain consistency with documentation; bug fixes
 
 1;
