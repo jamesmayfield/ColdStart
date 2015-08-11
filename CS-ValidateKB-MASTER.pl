@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "4.5";
+my $version = "4.6";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -43,7 +43,9 @@ my %use_priority = (
 
 my %type2export = (
   tac => \&export_tac,
+### DO NOT INCLUDE
   edl => \&export_edl,
+### DO INCLUDE
 );
 
 my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
@@ -223,9 +225,11 @@ sub add_assertion {
     $kb->entity_use($subject_entity, 'TYPEDEF', $source);
     $kb->entity_typedef($subject_entity, $object, 'TYPEDEF', $source);
   }
+### DO NOT INCLUDE
   elsif ($verb eq 'link') {
     # FIXME
   }
+### DO INCLUDE
   else {
     $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->entity_typedef($subject_entity, $predicate->get_domain(), 'SUBJECT', $source);
@@ -251,9 +255,10 @@ sub add_assertion {
   my $is_duplicate_of;
 ### DO NOT INCLUDE
   # FIXME: There's gotta be a better way
-### DO INCLUDE
-  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
+#  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
 #  unless ($verb eq 'link') {
+### DO INCLUDE
+  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type') {
   existing:
     # We don't consider inferred assertions to be duplicates
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {
@@ -354,10 +359,12 @@ sub add_assertion {
     if defined $predicate && ($predicate->{NAME} eq 'mention');
   push(@{$kb->{DOCIDS}{$subject}{$verb}{$provenance->get_docid()}}, $assertion)
     if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention');
+### DO NOT INCLUDE
   if ($predicate->{NAME} eq 'link') {
     # FIXME
     $assertion->{OBJECT} =~ /^(.*?):(.*)$/;
   }
+### DO INCLUDE
   push(@{$kb->{ASSERTIONS3}{$subject}{$verb}{$object}}, $assertion);
   push(@{$kb->{ASSERTIONS2}{$subject}{$verb}}, $assertion);
   push(@{$kb->{ASSERTIONS1}{$subject}}, $assertion);
@@ -528,7 +535,9 @@ my @do_not_check_endpoints = qw(
   type
   mention
   canonical_mention
+### DO NOT INCLUDE
   link
+### DO INCLUDE
 );
 
 my %do_not_check_endpoints = map {$_ => $_} @do_not_check_endpoints;
@@ -660,7 +669,10 @@ sub load_tac {
       next;
     }
     my $provenance;
-    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
+### DO NOT INCLUDE
+#    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
+### DO INCLUDE
+    if (lc $predicate eq 'type') {
       unless (@entries == 3) {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
 	next;
@@ -687,7 +699,9 @@ sub load_tac {
 sub get_assertion_priority {
   my ($name) = @_;
   return 3 if $name eq 'type';
+### DO NOT INCLUDE
   return 2 if $name eq 'link';
+### DO INCLUDE
   return 1 if $name eq 'mention' || $name eq 'canonical_mention';
   return 0;
 }
@@ -735,6 +749,7 @@ sub export_tac {
   }
 }
 
+### DO NOT INCLUDE
 # EDL 2015 format is a tab-separated file with the following columns:
 #  1. System run ID
 #  2. Mention ID
@@ -792,6 +807,7 @@ sub export_edl {
 			             $mention_type, $confidence), "\n";
   }
 }
+### DO INCLUDE
 
 ##################################################################################### 
 # Runtime switches and main program
@@ -821,8 +837,10 @@ $switches->put('output_file', 'STDOUT');
 $switches->addVarSwitch("output", "Specify the output format. Legal formats are $output_formats." .
 		                  " Use 'none' to perform error checking with no output.");
 $switches->put("output", 'none');
+### DO NOT INCLUDE
 $switches->addVarSwitch("linkkb", "Specify which links should be used to produce KB IDs for the \"-output edl\" option. Legal values depend upon the prefixes found in the argument to 'link' relations in the KB being validated. This option has no effect unless \"-output edl\" has been specified.");
 $switches->put("linkkb", "none");
+### DO INCLUDE
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch("predicates", "File containing specification of additional predicates to allow");
@@ -895,7 +913,9 @@ print $error_output "WARNING: 'TAC' not included in output labels\n" unless $tac
 
 my $output_options = {
   OUTPUT_LABELS => \%output_labels,
+### DO NOT INCLUDE
   LINK_KB => uc $switches->get("linkkb"),
+### DO INCLUDE
 };
 
 # Load any additional predicate specifications
@@ -982,5 +1002,6 @@ exit 0;
 # 4.3 - Slightly refactored output functions; proper functioning of -linkkb switch
 # 4.4 - Added checks for CSED variant
 # 4.5 - Fixed mention checking in CSED task; made confidence = 0.0 illegal
+# 4.6 - Incorporate changes to underlying library; remove links & export_edl for the time being
 
 1;

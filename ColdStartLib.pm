@@ -595,8 +595,12 @@ sub get {
 sub get_query_id_base {
   my ($query_id) = @_;
   my $result = $query_id;
+  # Remove full UUIDs (from 2014)
   $result = $1 if $query_id =~ /^(.*?)_\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
   $result = $1 if $query_id =~ /^(.*?)_PSEUDO/;
+  # Remove longer short uuid (from 2015)
+  $result = $1 if $query_id =~ /^(.*?)_[0-9a-f]{12}$/i;
+  # Remove short uuid (from GenerateQueries)
   $result = $1 if $query_id =~ /^(.*?)_[0-9a-f]{10}$/i;
   $result;
 }
@@ -806,7 +810,7 @@ sub tostring {
 	  next if $omit{$subfield};
 	  my $value = defined $tags{$subfield}{REWRITE} ?
 	    $entrypoint->{$tags{$subfield}{REWRITE}} :
-	    $subfield eq 'NAME' ? $entrypoint->{ORIGINAL_NAME} :
+	    $subfield eq 'NAME' && defined $entrypoint->{ORIGINAL_NAME} ? $entrypoint->{ORIGINAL_NAME} :
 	    $entrypoint->{$subfield};
 	  if (defined $value) {
 	    $string .= "$indent  <" . lc($subfield) . ">$value</" . lc($subfield) . ">\n";
@@ -3292,7 +3296,9 @@ sub uuid_generate {
 # #  create_UUID_as_string(UUID_V3, "$queryid:$value:$provenance_string");
 #  create_UUID_as_string(UUID_V3, "$queryid:$glop:$provenance_string");
 ### DO INCLUDE
-  create_UUID_as_string(UUID_V3, $encoded_string);
+  # We're shortening the uuid for 2015
+  my $long_uuid = create_UUID_as_string(UUID_V3, $encoded_string);
+  substr($long_uuid, -12, 12);
 }
 
 sub short_uuid_generate {

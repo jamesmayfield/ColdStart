@@ -81,7 +81,6 @@ sub generate_round2_query {
     return if ($next_slot_type ne $submission_value_type);
     $new_query->put('SLOT', $next_slot);
     $new_query->put('ENTTYPE', $next_slot_type);
-print STDERR "Set ENTTYPE of $new_queryid to $next_slot_type\n";
   }
   $new_query;
 }
