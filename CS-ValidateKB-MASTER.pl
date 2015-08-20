@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "4.6";
+my $version = "4.7";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -531,12 +531,12 @@ sub check_confidence {
   }
 }
 
-my @do_not_check_endpoints = qw(
-  type
-  mention
-  canonical_mention
+my @do_not_check_endpoints = (
+  'type',
+  'mention',
+  'canonical_mention',
 ### DO NOT INCLUDE
-  link
+  'link',
 ### DO INCLUDE
 );
 
@@ -862,7 +862,9 @@ $switches->process(@ARGV);
 # This holds the "knowledge base"
 my $kb;
 
-my $task = $switches->get("task");
+my $task = uc $switches->get("task");
+Logger->new()->NIST_die("Unknown task: $task (known tasks are [" . join(", ", keys %tasks) . "]")
+  unless defined $tasks{$task};
 my $predicate_constraints;
 $predicate_constraints = {map {$_ => 'true'} @{$tasks{$task}{LEGAL_PREDICATES}}} if defined $tasks{$task}{LEGAL_PREDICATES};
 
@@ -1003,5 +1005,6 @@ exit 0;
 # 4.4 - Added checks for CSED variant
 # 4.5 - Fixed mention checking in CSED task; made confidence = 0.0 illegal
 # 4.6 - Incorporate changes to underlying library; remove links & export_edl for the time being
+# 4.7 - Detect illegal -task specification
 
 1;
