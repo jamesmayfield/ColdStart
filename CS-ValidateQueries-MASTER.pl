@@ -19,7 +19,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.0";
+my $version = "1.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -65,7 +65,7 @@ my $subtype_repair_string = "{" . join("; ", map {"$_: $subtype_repairs{$_}"} so
 my %dup_repairs = (
   none => "Do not check for duplicates",
   ignore => "Check for duplicates but do not repair",
-		   'delete' => "Delete the later (orthographically) query",
+  'delete' => "Delete the later (orthographically) query",
 );
 my $dups_repair_string = "{" . join("; ", map {"$_: $dup_repairs{$_}"} sort keys %dup_repairs) . "}";
 
@@ -193,14 +193,13 @@ sub check_for_duplication {
       }
       $candidate_matches{$candidate_hashstring} = $query_id;
     }
-#print STDERR "Adding $query_id to new queries\n" if $query_id eq 'CS15_ENG_0020' || $query_id eq 'CS15_ENG_0665';
     $new_queries->add($query);
   }
   $new_queries;
 }
 
 sub generate_expanded_queries {
-  my ($queries, $query_base) = @_;
+  my ($queries, $query_base, $index_file) = @_;
   my $new_queries = QuerySet->new($queries->{LOGGER});
 
   foreach my $query ($queries->get_all_queries()) {
@@ -213,6 +212,7 @@ sub generate_expanded_queries {
       $new_query->put('QUERY_ID_BASE', $query_base);
       $new_query->rename_query();
       $new_queries->add($new_query);
+      print $index_file $new_query->get("QUERY_ID"), "\t$query_id\n" if defined $index_file;
     }
   }
   $new_queries;
@@ -231,6 +231,7 @@ $switches->addVarSwitch('error_file', "Specify a file to which error output shou
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('query_base', "Base name for generated queries");
 $switches->put('query_base', 'TAC2015CS');
+$switches->addVarSwitch('index_file', "Filename into which to place mapping from output query name to original LDC query name");
 $switches->addVarSwitch('types', "Repair queries with type mismatches (choices are $type_repair_string)");
 $switches->put('types', 'none');
 $switches->addVarSwitch('subtypes', "Repair queries with subtype mismatches (choices are $subtype_repair_string)");
@@ -265,16 +266,24 @@ my $outputfilename = $switches->get("outputfile");
 $logger->NIST_die("File $outputfilename already exists") if -e $outputfilename;
 open($program_output, ">:utf8", $outputfilename) or $logger->NIST_die("Could not open $outputfilename: $!");
 
+my $index_filename = $switches->get('index_file');
+my $index_file;
+if (defined $index_filename) {
+  $logger->NIST_die("File $index_filename already exists") if -e $index_filename;
+  open($index_file, ">:utf8", $index_filename) or $logger->NIST_die("Could not create $index_filename: $!");
+}
+
 my $queries = QuerySet->new($logger, $queryfile);
 
 $queries = &fix_queries($queries, $fix_types, $fix_subtypes)
   if $fix_types ne 'none' || $fix_subtypes ne 'none';
 $queries = &check_for_duplication($queries, $fix_dups) if $fix_dups ne 'none';
-$queries = &generate_expanded_queries($queries, $query_base) if $switches->get('expand');
+$queries = &generate_expanded_queries($queries, $query_base, $index_file) if $switches->get('expand');
 
 print $program_output $queries->tostring("", undef, ['SLOT']);
 
 close $program_output;
+close $index_file if defined $index_file;
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
@@ -290,5 +299,6 @@ exit 0;
 ################################################################################
 
 # 1.0 - Initial version
+# 1.1 - Added code to build index from expanded query_id to original LDC query_id
 
 1;
