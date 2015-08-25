@@ -148,9 +148,7 @@ if ($hop == 0) {
   print $program_output &expand_pool($logger, $pool, %index);
  
   # Generate LDC Queries for Hop-1 (Round#2)
-  my $hop1_query_output;
-  open($hop1_query_output, ">:utf8", $hop1_query_file) or $logger->NIST_die("Could not open $hop1_query_file: $!");
-  print $hop1_query_output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
+  my %hop1_queries;
   foreach my $ldc_queryid( keys %{$pool->{ENTRIES_BY_EC}}) {
   	foreach my $ldc_ec( keys %{$pool->{ENTRIES_BY_EC}{$ldc_queryid}}) {
   	  my @entries = @{$pool->{ENTRIES_BY_EC}{$ldc_queryid}{$ldc_ec}};
@@ -163,16 +161,24 @@ if ($hop == 0) {
   	  		push (@{$query->{ENTRYPOINTS}}, $entrypoint);	
   	  	  }
   	  	}
-  	  	$query->{QUERY_ID} = $ldc_ec;
+  	  	my $query_id = $ldc_ec;
+  	  	$query->{QUERY_ID} = $query_id;
   	  	my $slot1 = $query->{SLOT};
   	  	$slot1 =~ /^(.*?):.*?$/;
   	  	my $enttype = uc $1;
   	  	
   	  	$query->{ENTTYPE} = $enttype;
-  	  	print $hop1_query_output $query->tostring();
+  	  	$hop1_queries{ $query_id } = $query;
   	  } 
   	}
   }
+  my $hop1_query_output;
+  open($hop1_query_output, ">:utf8", $hop1_query_file) or $logger->NIST_die("Could not open $hop1_query_file: $!");
+  print $hop1_query_output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
+  foreach my $query_id( sort keys %hop1_queries ){
+  	my $query = $hop1_queries{ $query_id };
+  	print $hop1_query_output $query->tostring();
+  }  
   print $hop1_query_output "</query_set>\n";
   close($hop1_query_output);
 }
