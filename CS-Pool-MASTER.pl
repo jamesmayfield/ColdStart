@@ -12,17 +12,17 @@ use ColdStartLib;
 
 ### DO INCLUDE
 ##################################################################################### 
-# This program pools KB variant submissions, SF variant submissions,
-# and ground truth from LDC. It anonymizes the run ID, maps all
+# This program pools KB variant submissions transformed to SF format, SF variant 
+# submissions, and ground truth from LDC. It anonymizes the run ID, maps all
 # confidence values to 1.0, and sorts the results.
 #
-# Author: James Mayfield
+# Author: Shahzad Rajput
 # Please send questions or comments to jamesmayfield "at" gmail "dot" com
 #
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.0";
+my $version = "2.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -107,7 +107,7 @@ sub pool_to_string {
 ##################################################################################### 
 
 # Handle run-time switches
-my $switches = SwitchProcessor->new($0, "Validate a TAC Cold Start Slot Filling variant output file, checking for common errors.",
+my $switches = SwitchProcessor->new($0, "Create a pool from the submissions.",
 				    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
@@ -118,7 +118,7 @@ $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('runid', "Specify the Run ID for the pooled run");
 $switches->put('runid', 'Pool');
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
-$switches->addVarSwitch('hop0_assessment_file', "Tab-separated file containing \"expanded\" hop0 assessments");
+$switches->addVarSwitch('hop0_assessment_file', "Tab-separated file containing \"expanded\" hop0 assessments (\'hop0_pool.cssf.assessed\'). Required for generating pool for hop-1.");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("queryfile", "required", "File containing queries used to generate the input files");
 $switches->addParam("index_file", "required", "Filename which contains mapping from output query name to original LDC query name");
@@ -200,6 +200,6 @@ exit 0;
 ################################################################################
 
 # 1.0 - Initial version
-
+# 2.0 - Pooling in two steps with global equivalence classes. Conforms to 2015 format.
 
 1;
