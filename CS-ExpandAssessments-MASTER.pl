@@ -12,9 +12,7 @@ use ColdStartLib;
 
 ### DO INCLUDE
 ##################################################################################### 
-# This program pools KB variant submissions, SF variant submissions,
-# and ground truth from LDC. It anonymizes the run ID, maps all
-# confidence values to 1.0, and sorts the results.
+# This program transforms CSLDC assessment file to CSSF assessment file. 
 #
 # Author: James Mayfield
 # Please send questions or comments to jamesmayfield "at" gmail "dot" com
@@ -94,7 +92,7 @@ sub expand_pool {
 ##################################################################################### 
 
 # Handle run-time switches
-my $switches = SwitchProcessor->new($0, "Validate a TAC Cold Start Slot Filling variant output file, checking for common errors.",
+my $switches = SwitchProcessor->new($0, "Transform CSLDC assessment file to CSSF assessment file, checking for common errors.",
 				    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
@@ -104,8 +102,9 @@ $switches->addVarSwitch('error_file', "Specify a file to which error output shou
 $switches->put('error_file', "STDERR");
 $switches->addParam("ldc_queryfile", "required", "File containing LDC queries used to generate the input files");
 $switches->addParam("cssf_queryfile", "required", "File containing CSSF queries used to generate the input files");
-$switches->addParam("assessment_file", "required", "Tab-separated file (to be expanded) containing assessments from LDC (one that contains LDC QUERY IDs)");
-$switches->addVarSwitch("assessment_file_ex", "Tab-separated file containing \"expanded\" previous hop (hop0, in the current scheme) assessments from LDC (one that contains LDC QUERY IDs)");
+$switches->addParam("csldc_assessment_file", "required", "Tab-separated file containing assessments from LDC");
+$switches->addVarSwitch("cssf_hop0_assessment_file", "The hop0 cssf assessments should be written. Required for transforming the hop-1 (round#2) assessments.");
+$switches->addVarSwitch("hop1_query_file", "Specify the file to which hop1 queries should be written. This file is required by LDC and becomes input to their assessment system for assessing hop1 pool.");
 $switches->addParam("index_file", "required", "Filename which contains mapping from output query name to original LDC query name");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 
@@ -114,12 +113,12 @@ $switches->process(@ARGV);
 my $ldc_queryfile = $switches->get("ldc_queryfile");
 my $cssf_queryfile = $switches->get("cssf_queryfile");
 my $index_filename = $switches->get("index_file");
-my $assessment_file = $switches->get("assessment_file");
+my $csldc_assessment_file = $switches->get("csldc_assessment_file");
+my $hop1_query_file = $switches->get("hop1_query_file");
 my $hop = 0;
 
-my $assessment_file_ex = $switches->get("assessment_file_ex");
-$hop = 1 if (defined $assessment_file_ex);
-
+my $cssf_hop0_assessment_file = $switches->get("cssf_hop0_assessment_file");
+$hop = 1 if (defined $cssf_hop0_assessment_file);
 
 my $logger = Logger->new();
 # It is not an error for pools to have multiple fills for a single-valued slot
@@ -145,12 +144,41 @@ my %index = &load_index_file($logger, $index_filename);
 
 if ($hop == 0) {
   my $ldc_queries = QuerySet->new($logger, $ldc_queryfile);
-  my $pool = EvaluationQueryOutput->new($logger, 'ASSESSED', $ldc_queries, $assessment_file);
+  my $pool = EvaluationQueryOutput->new($logger, 'ASSESSED', $ldc_queries, $csldc_assessment_file);
   print $program_output &expand_pool($logger, $pool, %index);
+ 
+  # Generate LDC Queries for Hop-1 (Round#2)
+  my $hop1_query_output;
+  open($hop1_query_output, ">:utf8", $hop1_query_file) or $logger->NIST_die("Could not open $hop1_query_file: $!");
+  print $hop1_query_output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
+  foreach my $ldc_queryid( keys %{$pool->{ENTRIES_BY_EC}}) {
+  	foreach my $ldc_ec( keys %{$pool->{ENTRIES_BY_EC}{$ldc_queryid}}) {
+  	  my @entries = @{$pool->{ENTRIES_BY_EC}{$ldc_queryid}{$ldc_ec}};
+  	  my $query;
+  	  if( @entries ){
+  	  	my $entry = shift @entries;
+  	  	$query = $entry->{TARGET_QUERY};
+  	  	foreach my $entry( @entries ) {
+  	  	  foreach my $entrypoint( @{$entry->{TARGET_QUERY}->{ENTRYPOINTS}} ) {
+  	  		push (@{$query->{ENTRYPOINTS}}, $entrypoint);	
+  	  	  }
+  	  	}
+  	  	$query->{QUERY_ID} = $ldc_ec;
+  	  	my $slot1 = $query->{SLOT};
+  	  	$slot1 =~ /^(.*?):.*?$/;
+  	  	my $enttype = uc $1;
+  	  	
+  	  	$query->{ENTTYPE} = $enttype;
+  	  	print $hop1_query_output $query->tostring();
+  	  } 
+  	}
+  }
+  print $hop1_query_output "</query_set>\n";
+  close($hop1_query_output);
 }
 elsif ($hop == 1) {
   my $cssf_queries = QuerySet->new($logger, $cssf_queryfile);
-  my $pool = EvaluationQueryOutput->new($logger, 'ASSESSED', $cssf_queries, $assessment_file_ex);
+  my $pool = EvaluationQueryOutput->new($logger, 'ASSESSED', $cssf_queries, $cssf_hop0_assessment_file);
   
   # Generate query mapping
   my %mapping;
@@ -165,7 +193,7 @@ elsif ($hop == 1) {
   
   # Transform the assessments
   my $i = 1;
-  open(my $infile, "<:utf8", $assessment_file) or $logger->NIST_die("Could not open $assessment_file: $!");
+  open(my $infile, "<:utf8", $csldc_assessment_file) or $logger->NIST_die("Could not open $csldc_assessment_file: $!");
   while(my $line = <$infile>) {
     chomp $line;
     my @elements = split(/\t/, $line);
