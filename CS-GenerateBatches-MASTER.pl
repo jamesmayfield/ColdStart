@@ -19,7 +19,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.0";
+my $version = "1.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -55,14 +55,16 @@ $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('num_batches', "The number of batches to be created. This switch cannot be set together with switch batches_file. Only one of the switches: num_batches and batches_file must be specified.");
 $switches->addVarSwitch('batches_file', "File containing batch query mapping. This switch cannot be set together with switch num_batches. Only one of the switches: num_batches and batches_file must be specified.");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
-$switches->addParam("queryfile", "required", "File containing queries used to generate the file being validated");
+$switches->addParam("ldc_queryfile", "required", "File containing queries used to generate the file being validated");
+$switches->addParam("sf_queryfile", "required", "File containing queries used to generate the file being validated");
 $switches->addParam("index_file", "required", "Filename which contains mapping from output query name to original LDC query name");
 $switches->addParam("dir", "required", "Directory containing validated runs/submissions.");
 $switches->addParam('output_directory', "required", "Specify an output directory to which the batches should be written.");
 
 $switches->process(@ARGV);
 
-my $queryfile = $switches->get("queryfile");
+my $ldc_queryfile = $switches->get("ldc_queryfile");
+my $sf_queryfile = $switches->get("sf_queryfile");
 my $runs_directory = $switches->get("dir");
 my $output_directory = $switches->get("output_directory");
 my $batches_file = $switches->get("batches_file");
@@ -119,56 +121,79 @@ else{
 }
 
 # Generate the batch
-my $query_file_name = $queryfile;
-$query_file_name =~ s/(.*?\/)+//g;
+my $ldc_query_file_name = $ldc_queryfile;
+$ldc_query_file_name =~ s/(.*?\/)+//g;
+
+my $sf_query_file_name = $sf_queryfile;
+$sf_query_file_name =~ s/(.*?\/)+//g;
+
 foreach my $batch_id(keys %batches) {
 	# create the batch directory
 	my $batch_dir = "$output_directory/$batch_id";
 	`mkdir $batch_dir`;
 	
 	# Generate the queryfile for the batch
-	my $pool_query_file = "$batch_dir/$query_file_name";
-	my $queries = QuerySet->new($logger, $queryfile);
-	open(my $outfile, ">:utf8", $pool_query_file) or $logger->NIST_die("Could not open $pool_query_file: $!");
-	print $outfile "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
-	foreach my $ldc_query_id($queries->get_all_query_ids()) {
-		if(grep {$_ eq $ldc_query_id} @{$batches{$batch_id}}) {
-			# $ldc_query_id is member of this batch
-			my $query = $queries->get($ldc_query_id);
-			print $outfile $query->tostring("  ");
+	my $ldc_queries = QuerySet->new($logger, $ldc_queryfile);
+	my $sf_queries = QuerySet->new($logger, $sf_queryfile);
+	
+	foreach my $ldc_query_id(@{$batches{$batch_id}}) {
+		# Create query directory
+		my $query_directory = "$batch_dir/$ldc_query_id";
+		`mkdir $query_directory`;
+		
+		# Create runs directory
+		my $batch_runs_directory = "$query_directory/runs";
+		`mkdir $batch_runs_directory`;
+		
+		# Split the index file
+		my $batch_index_file = "$query_directory/queries.index";
+		open(my $outfile, ">:utf8", $batch_index_file) or $logger->NIST_die("Could not open $batch_index_file: $!");
+		foreach my $sf_query_id(@{$index{$ldc_query_id}}) {
+			print $outfile "$sf_query_id\t$ldc_query_id\n";
 		}
-	}
-	print $outfile "</query_set>";
-	close($outfile);
-	
-	# Generate the runs for the batch
-	my $batch_runs_dir = "$batch_dir/runs";
-	
-	# Generate the runs directory
-	`mkdir $batch_runs_dir`;
-	
-	# Generate the runs
-	my @files_to_pool = <$runs_directory/*.valid.ldc.tab.txt> or $logger->NIST_die("No files to pool found in directory $runs_directory");
-	foreach my $run_file(@files_to_pool) {
-		$run_file =~ /^(.*?\/)*(.*?)$/;
-		my $batch_run_file = "$batch_runs_dir/$2";
-		open(my $outfile, ">:utf8", $batch_run_file) or $logger->NIST_die("Could not open $batch_run_file: $!");
-		open(my $infile, "<:utf8", $run_file) or $logger->NIST_die("Could not open $run_file: $!");
-		while(my $line = <$infile>){
-			$line =~ /^(.*?)\t/;
-			my $sf_query_id = $1;
-			if($sf_query_id =~ /^(.*?)\_(.*?)\_(.*?)$/) {
-				$sf_query_id = "$1\_$2";
+		close($outfile);
+		
+		# Extract the answers for query=$ldc_query_id from each run and place in $runs_directory
+		my @files_to_pool = <$runs_directory/*.valid.ldc.tab.txt> or $logger->NIST_die("No files to pool found in directory $runs_directory");
+		foreach my $run_file(@files_to_pool) {
+			$run_file =~ /^(.*?\/)*(.*?)$/;
+			my $run_file_name = $2;
+			my $batch_run_file = "$batch_runs_directory/$run_file_name";
+			open($outfile, ">:utf8", $batch_run_file) or $logger->NIST_die("Could not open $batch_run_file: $!");
+			open(my $infile, "<:utf8", $run_file) or $logger->NIST_die("Could not open $run_file: $!");
+			while(my $line = <$infile>){
+				$line =~ /^(.*?)\t/;
+				my $entry_sf_query_id = $1;
+				if($entry_sf_query_id =~ /^(.*?)\_(.*?)\_(.*?)$/) {
+					$entry_sf_query_id = "$1\_$2";
+				}
+				my $entry_ldc_query_id = $inverted_index{$entry_sf_query_id};
+				if($entry_ldc_query_id eq $ldc_query_id) {
+					print $outfile $line;
+				}
 			}
-			my $ldc_query_id = $inverted_index{$sf_query_id};
-			if(not exists $inverted_index{$sf_query_id}) {
-				print "error\n";
-			}
-			if(grep {$_ eq $ldc_query_id} @{$batches{$batch_id}}) {
-				print $outfile $line;
-			}
+			close($infile);
+			close($outfile);			
 		}
-		close($infile);
+		
+		# Create the kit query file - LDC Query
+		my $kit_ldc_query_file = "$query_directory/$ldc_query_file_name";
+		open($outfile, ">:utf8", $kit_ldc_query_file) or $logger->NIST_die("Could not open $kit_ldc_query_file: $!");
+		print $outfile "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
+		my $ldc_query = $ldc_queries->get($ldc_query_id);
+		print $outfile $ldc_query->tostring("  ");
+		print $outfile "</query_set>";
+		close($outfile);
+		
+		# Create the kit query file - SF Query
+		my $kit_sf_query_file = "$query_directory/$sf_query_file_name";
+		open($outfile, ">:utf8", $kit_sf_query_file) or $logger->NIST_die("Could not open $kit_sf_query_file: $!");
+		print $outfile "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
+		foreach my $sf_query_id(@{$index{$ldc_query_id}}) {
+			my $sf_query = $sf_queries->get($sf_query_id);
+			print $outfile $sf_query->tostring(" ");
+		}
+		print $outfile "</query_set>";
 		close($outfile);
 	}
 }
@@ -186,5 +211,6 @@ exit 0;
 ################################################################################
 
 # 1.0 - Initial version
+# 1.1 - Every query file goes in its own directory
 
 1;

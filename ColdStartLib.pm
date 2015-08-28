@@ -2863,7 +2863,9 @@ sub column2string {
     return $entry->{$column};
   }
   elsif ($column =~ /_ASSESSMENT$/) {
-    return $schema->{INVERSE_ASSESSMENT_CODES}{$entry->{$column}};
+    return $schema->{INVERSE_ASSESSMENT_CODES}{$entry->{$column}}
+    	if(exists $entry->{$column});
+    return 0;
   }
   elsif (defined $entry->{$column}) {
     return $entry->{$column};

@@ -71,35 +71,112 @@ sub get_base_entry {
 
 # Convert this EvaluationQueryOutput back to its proper printed representation
 sub pool_to_string {
-  my ($logger, $pool, $hop) = @_;
-  my $schema_name = '2015Pool';
+  my ($logger, $pool) = @_;
+  my $hop = 0;
+  my $schema_name = '2014assessments';
   my $schema = $EvaluationQueryOutput::schemas{$schema_name};
   $logger->NIST_die("Unknown file schema: $schema_name") unless $schema;
+  my $i=1;
   my %output_strings;
+  my %assessment_ids;
   if (defined $pool->{ENTRIES_BY_TYPE}) {
     foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
 			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
 			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
-		       @{$pool->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}) {
+		       @{$pool->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+      $entry->{ASSESSMENT_ID} = "00000000";
+      $entry->{QUERY_AND_SLOT_NAME} = "$entry->{QUERY_ID}:$entry->{SLOT_NAME}";
+      $entry->{VALUE_EC} = 0;
       my $entry_string = join("\t", map {$pool->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
       if ($entry->{QUERY}->{LEVEL} == $hop) {
-      	if($hop==0) {
-      	  $output_strings{ $entry_string }++;
-      	}
-      	else{
-      	  my $base_entry = &get_base_entry($logger, $entry, $pool);
-      	  my $base_entry_ec = $base_entry->{VALUE_EC};
-      	  my $base_entry_query_id = $base_entry->{QUERY_ID};
-      	  my $base_entry_ldc_query_id = $base_entry->{QUERY}->{LDC_QUERY_ID};
-      	  my $ldc_ec = $base_entry_ec;
-      	  $ldc_ec =~ s/$base_entry_query_id/$base_entry_ldc_query_id/;
-      	  $entry_string =~ s/$base_entry_ldc_query_id/$ldc_ec/;
-          $output_strings{ $entry_string }++ if($base_entry->{JUDGMENT} eq "CORRECT");
-      	}
+      	  	my $sf_query_id = $entry->{"QUERY_ID"};
+      	  	my $ldc_query_id = $entry->{"QUERY"}{"LDC_QUERY_ID"};
+      	  	$entry_string =~ s/$sf_query_id/$ldc_query_id/g;
+       	    if(not exists $assessment_ids{$entry_string}){
+       	  	  my $assessment_id = sprintf("%s_%d_%03d",$ldc_query_id, $hop, $i);
+      	  	  $assessment_ids{$entry_string} = $assessment_id;
+      	  	  $entry_string =~ s/^00000000/$assessment_id/;
+          	  $output_strings{ $entry_string }++;
+          	  $i++;
+      	    }
       }
     }
   }
   join("\n", sort keys %output_strings), "\n";
+}
+
+# Generate pool for hop1 (round#2)
+sub generate_pool_hop1 {
+  my ($logger, $pool, $output_dir) = @_;
+	
+  my $hop = 1;
+  my $schema_name = '2014assessments';
+  my $schema = $EvaluationQueryOutput::schemas{$schema_name};
+  $logger->NIST_die("Unknown file schema: $schema_name") unless $schema;
+  my $i=1;
+  my %assessment_ids;
+  my %hop1_ldc_ecs;
+  if (defined $pool->{ENTRIES_BY_TYPE}) {
+    foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
+			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
+			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
+		       @{$pool->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+      $entry->{ASSESSMENT_ID} = "00000000";
+      $entry->{QUERY_AND_SLOT_NAME} = "$entry->{QUERY_ID}:$entry->{SLOT_NAME}";
+      $entry->{VALUE_EC} = 0;
+      my $entry_string = join("\t", map {$pool->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
+      if ($entry->{QUERY}->{LEVEL} == $hop) {
+      	  my $base_entry = &get_base_entry($logger, $entry, $pool);
+      	  if($base_entry->{JUDGMENT} eq "CORRECT"){
+	      	  my $base_entry_ec = $base_entry->{VALUE_EC};
+	      	  my $base_entry_query_id = $base_entry->{QUERY_ID};
+	      	  my $base_entry_ldc_query_id = $base_entry->{QUERY}->{LDC_QUERY_ID};
+	      	  my $entry_sf_query_id = $entry->{QUERY_ID};
+	      	  my $ldc_ec = $base_entry_ec;
+	      	  $ldc_ec =~ s/$base_entry_query_id/$base_entry_ldc_query_id/;
+	      	  $hop1_ldc_ecs{$ldc_ec}++;
+      	  }
+      }
+	}
+  }
+  
+  foreach my $kit_ldc_ec(keys %hop1_ldc_ecs) {
+  	my %output_strings;
+  	my $kit_hop1_query_dir = "$output_dir/$kit_ldc_ec";
+  	`mkdir $kit_hop1_query_dir`;
+	my $output_filename = "$kit_hop1_query_dir/hop1_pool.csldc";
+	open(my $outfile, ">:utf8", $output_filename) or $logger->NIST_die("Could not open $output_filename: $!");
+  	foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
+			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
+			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
+		       @{$pool->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+      $entry->{ASSESSMENT_ID} = "00000000";
+      $entry->{QUERY_AND_SLOT_NAME} = "$entry->{QUERY_ID}:$entry->{SLOT_NAME}";
+      $entry->{VALUE_EC} = 0;
+      my $entry_string = join("\t", map {$pool->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
+      if ($entry->{QUERY}->{LEVEL} == $hop) {
+      	  my $base_entry = &get_base_entry($logger, $entry, $pool);
+      	  my $base_entry_ec = $base_entry->{VALUE_EC};
+      	  my $base_entry_query_id = $base_entry->{QUERY_ID};
+      	  my $base_entry_ldc_query_id = $base_entry->{QUERY}->{LDC_QUERY_ID};
+      	  my $entry_sf_query_id = $entry->{QUERY_ID};
+      	  my $ldc_ec = $kit_ldc_ec;
+      	  $entry_string =~ s/$entry_sf_query_id/$ldc_ec/;
+      	  my $sf_query_id = $entry->{"QUERY_ID"};
+      	  my $ldc_query_id = $entry->{"QUERY"}{"LDC_QUERY_ID"};
+      	  $entry_string =~ s/$sf_query_id/$ldc_query_id/g;
+      	  if(not exists $assessment_ids{$entry_string}){
+      	  	my $assessment_id = sprintf("%s_%d_%03d",$ldc_query_id, $hop, $i);
+      	  	$assessment_ids{$entry_string} = $assessment_id;
+      	  	$entry_string =~ s/^00000000/$assessment_id/;
+          	$output_strings{ $entry_string }++ if($base_entry->{JUDGMENT} eq "CORRECT");
+          	$i++;
+      	  }
+      }
+	}
+	print $outfile join("\n", sort keys %output_strings), "\n";
+	close($outfile);
+  }
 }
 
 ##################################################################################### 
@@ -113,6 +190,7 @@ $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
 $switches->addVarSwitch('output_file', "Specify an output file with warnings repaired. Omit for validation only");
 $switches->put('output_file', 'STDOUT');
+$switches->addVarSwitch('output_dir', "Specify an output directory in which the kits for hop-1 should be created. Only required when pool for hop-1 (round#2) are being created.");
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('runid', "Specify the Run ID for the pooled run");
@@ -129,6 +207,7 @@ $switches->process(@ARGV);
 my $hop = 0;
 my $queryfile = $switches->get("queryfile");
 my $index_filename = $switches->get("index_file");
+my $output_dir = $switches->get("output_dir");
 
 my $logger = Logger->new();
 # It is not an error for pools to have multiple fills for a single-valued slot
@@ -190,7 +269,15 @@ if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
 
-print $program_output &pool_to_string($logger, $pool, $hop);
+if($hop == 0) {
+	print $program_output &pool_to_string($logger, $pool);
+}
+elsif($hop == 1){
+	&generate_pool_hop1($logger, $pool, $output_dir);
+}
+else{
+	$logger->NIST_die("Incorrect hop:$hop");
+}
 
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;

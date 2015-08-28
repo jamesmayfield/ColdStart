@@ -77,8 +77,8 @@ sub expand_pool {
       foreach my $cssf_queryid( @{$index{$ldc_query_id}} ) {
       	my $new_entry_string = $entry_string;
       	$new_entry_string =~ s/$ldc_query_id/$cssf_queryid/g;
-      	my $assessment_id = (($hop+1)*1000 + $ldc_query_num)*10000 + $i;
-     	$new_entry_string = "$assessment_id\t$new_entry_string";
+#      	my $assessment_id = (($hop+1)*1000 + $ldc_query_num)*10000 + $i;
+#     	$new_entry_string = "$assessment_id\t$new_entry_string";
         $output_strings{ $new_entry_string }++;   
         $i++;
       }
@@ -212,11 +212,12 @@ elsif ($hop == 1) {
       my $cssf_ec = "$cssf_query_id_base:$ec_num";
       foreach my $cssf_query_id( @{$mapping{ $cssf_ec }} ) {
       	my $new_query_slot = "$cssf_query_id:$slot";
-      	my $new_line = $line;
-      	$new_line =~ s/$ldc_ec_slot/$new_query_slot/g;
-      	$new_line =~ s/$ldc_query_id/$cssf_query_id_base/g;
-      	my $assessment_id = (($hop+1)*1000 + $ldc_query_num)*10000 + $i;
-      	print $program_output "$assessment_id\t$new_line\n";
+      	my $new_entry_string = $line;
+      	$new_entry_string =~ s/$ldc_ec_slot/$new_query_slot/g;
+      	$new_entry_string =~ s/$ldc_query_id/$cssf_query_id_base/g;
+      	#my $assessment_id = (($hop+1)*1000 + $ldc_query_num)*10000 + $i;
+      	#$new_entry_string = "$assessment_id\t$new_entry_string";
+      	print $program_output "$new_entry_string\n";
       	$i++;
       }
     }
