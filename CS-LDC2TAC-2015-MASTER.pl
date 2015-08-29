@@ -42,6 +42,7 @@ while (<$infile>) {
   my ($query_and_hop, $slotname, $runid, $full_provenance_string, $value_string, $type, $value_provenance_string, $confidence, $too_many) = split(/\t/);
   die "Too few entries on line" unless defined $confidence;
   die "Too many entries on line" if defined $too_many;
+  # Normalize provenance
   my $value_provenance = Provenance->new($logger,
 					 {FILENAME => "STDIN", LINENUM => $.},
 					 'PROVENANCETRIPLELIST',
@@ -52,6 +53,7 @@ while (<$infile>) {
 					'PROVENANCETRIPLELIST',
 					$full_provenance_string);
   $full_provenance_string = $full_provenance->tostring();
+  # Replace query and hop with appropriate query ID
   $query_and_hop =~ /^(.*)_(\d\d)$/ or die "Bad query_and_hop: $query_and_hop";
   my $query_id = $1;
   my $hop = $2;
