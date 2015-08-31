@@ -601,7 +601,7 @@ sub get_query_id_base {
   # Remove longer short uuid (from 2015)
   $result = $1 if $query_id =~ /^(.*?)_[0-9a-f]{12}$/i;
   # Remove short uuid (from GenerateQueries)
-  $result = $1 if $query_id =~ /^(.*?)_[0-9a-f]{10}$/i;
+  $result = $1 if $query_id =~ /^(.*?_[0-9a-f]{10})$/i;
   $result;
 }
 
@@ -707,6 +707,8 @@ sub generate_query {
   my $target_uuid = &main::uuid_generate($self->{QUERY_ID}, $value, $value_provenance->tostring());
   my $new_queryid = "$self->{QUERY_ID_BASE}_$target_uuid";
   $new_query->put('QUERY_ID', $new_queryid);
+  # LDC_QUERY_ID
+  $new_query->put('LDC_QUERY_ID', $self->get('LDC_QUERY_ID')) if $self->get('LDC_QUERY_ID');
   # SLOTS, SLOTn, SLOT
   my @new_slots = @{$self->{SLOTS}};
   shift @new_slots;
@@ -1651,7 +1653,7 @@ my %correctness_map = (
 # The schemas for the submission and assessment files have changed
 # over the years. This table specifies each such format, and allows
 # code that calculates or normalizes fields
-my %schemas = (
+our %schemas = (
 ### DO NOT INCLUDE
 #   '2012submissions' => {
 #     YEAR => 2012,
@@ -1792,6 +1794,32 @@ my %schemas = (
     },
   },
 
+  '2015assessments' => {
+    YEAR => 2015,
+    TYPE => 'ASSESSMENT',
+    SAMPLES => ["000001 000001	CS14_ENG_003:per:other_family	NYT_ENG_20101103.0024:705-834	George Hickenlooper	NYT_ENG_20101103.0024:815-833	C	C	1"],
+    COLUMNS => [qw(
+      ASSESSMENT_ID
+      LDC_ASSESSMENT_ID
+      QUERY_AND_SLOT_NAME
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
+      VALUE_PROVENANCE_TRIPLES
+      VALUE_ASSESSMENT
+      PROVENANCE_ASSESSMENT
+      VALUE_EC
+    )],
+    COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
+    ASSESSMENT_CODES => {
+      C => 'CORRECT',
+      W => 'WRONG',
+      X => 'INEXACT',
+      I => 'IGNORE',
+      S => 'INEXACT_SHORT',
+      L => 'INEXACT_LONG',
+    },
+  },
+
   '2015SFsubmissions' => {
     YEAR => 2015,
     TYPE => 'SUBMISSION',
@@ -1803,6 +1831,22 @@ my %schemas = (
       RELATION_PROVENANCE_TRIPLES
       VALUE
       VALUE_TYPE
+      VALUE_PROVENANCE_TRIPLES
+      CONFIDENCE
+    )],
+  },
+
+  '2015Pool' => {
+    YEAR => 2015,
+    TYPE => 'SUBMISSION',
+    SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	NYT_ENG_20101103.0024:815-833	1.0"],
+    COLUMNS => [qw(
+      LDC_QUERY_ID
+      LEVEL
+      SLOT_NAME
+      RUNID
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
       VALUE_PROVENANCE_TRIPLES
       CONFIDENCE
     )],
@@ -1906,6 +1950,30 @@ my %columns = (
     },
     DEPENDENCIES => [qw(QUERY_ID VALUE_EC)],
     REQUIRED => 'ASSESSMENT',
+  },
+
+  LEVEL => {
+    DESCRIPTION => "HOP number",
+    PATTERN => $anything_pattern,
+  },
+  
+  LDC_ASSESSMENT_ID => {
+    DESCRIPTION => "ID of line in assessments file; probably don't need it",
+    YEARS => [2015],
+    PATTERN => $anything_pattern,
+  },
+
+  LDC_QUERY_AND_SLOT_NAME => {
+    DESCRIPTION => "LDC Query ID concatenated with slot name",
+    YEARS => [2015],
+    PATTERN => qr/.+:.+(:.+)+/,
+  },
+
+  LDC_QUERY_ID => {
+    DESCRIPTION => "LDC Query ID",
+    YEARS => [2015],
+    DEPENDENCIES => [qw(QUERY_ID)],
+    PATTERN => $anything_pattern,
   },
 
   LINE => {
@@ -2020,7 +2088,7 @@ my %columns = (
     DESCRIPTION => "A pointer to the appropriate query structure",
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
-      my $query = $queries->get($entry->{QUERY_ID});
+      my $query = $entry->{QUERY_ID} ? $queries->get($entry->{QUERY_ID}) : undef;
       unless ($query) {
 	$logger->record_problem('UNLOADED_QUERY', $entry->{QUERY_ID}, $where);
 	# FIXME:
@@ -2067,6 +2135,9 @@ my %columns = (
 	$entry->{QUERY_AND_SLOT_NAME} =~ /^(.*?):(.*)$/;
 	$entry->{QUERY_ID} = $1;
 	$entry->{SLOT_NAME} = $2;
+      }
+      elsif (defined $entry->{QUERY}) {
+      	$entry->{QUERY_ID} = $entry->{QUERY}->{QUERY_ID};
       }
     },
     DEPENDENCIES => [qw(QUERY_AND_HOP QUERY_AND_SLOT_NAME)],
@@ -2140,6 +2211,11 @@ my %columns = (
 	$entry->{QUERY_ID} = $1;
 	$entry->{SLOT_NAME} = $2;
       }
+      elsif (defined $entry->{LDC_QUERY_AND_SLOT_NAME}) {
+      	my @elements = split(":", $entry->{LDC_QUERY_AND_SLOT_NAME});   
+      	$entry->{LDC_QUERY_ID} = $elements[0];
+      	$entry->{SLOT_NAME} = $elements[$#elements-1].":".$elements[$#elements];
+      }
       else {
 	$logger->NIST_die("Can't create SLOT_NAME");
       }
@@ -2203,7 +2279,7 @@ my %columns = (
       }
 	  $entry->{TARGET_QUERY} = $query;
     },
-    DEPENDENCIES => [qw(TARGET_QUERY_ID)],
+    DEPENDENCIES => [qw(QUERY TARGET_QUERY_ID)],
     REQUIRED => 'ALL',
   },
 
@@ -2213,7 +2289,7 @@ my %columns = (
       my ($logger, $where, $queries, $schema, $entry) = @_;
       $entry->{TARGET_QUERY_ID} = "$entry->{QUERY_ID_BASE}_$entry->{TARGET_UUID}";
     },
-    DEPENDENCIES => [qw(QUERY_ID_BASE TARGET_UUID)],
+    DEPENDENCIES => [qw(QUERY_ID QUERY_ID_BASE TARGET_UUID)],
     REQUIRED => 'ALL',
   },
 
@@ -2787,10 +2863,15 @@ sub column2string {
     return $entry->{$column};
   }
   elsif ($column =~ /_ASSESSMENT$/) {
-    return $schema->{INVERSE_ASSESSMENT_CODES}{$entry->{$column}};
+    return $schema->{INVERSE_ASSESSMENT_CODES}{$entry->{$column}}
+    	if(exists $entry->{$column});
+    return 0;
   }
   elsif (defined $entry->{$column}) {
     return $entry->{$column};
+  }
+  elsif (defined $entry->{QUERY}->{$column}) {
+  	return $entry->{QUERY}->{$column};
   }
   else {
     die "No value present for column $column";
