@@ -1637,6 +1637,16 @@ sub get_all_scores {
 
 package EvaluationQueryOutput;
 
+my $comments_allowed;
+
+sub enable_comments {
+  $comments_allowed = 'true';
+}
+
+sub disable_comments {
+  $comments_allowed = undef;
+}
+
 # Maps LDC judgments to one of {CORRECT, INCORRECT, IGNORE, NOT_ASSESSED}
 my %correctness_map = (
   CORRECT =>       'CORRECT',
@@ -2352,8 +2362,14 @@ sub identify_file_type {
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   while (<$infile>) {
     chomp;
-    s/$main::comment_pattern/$1/;
-    my $comment = $2 || "";
+    # A pound sign at the start of a line is always a comment; later
+    # in the line, $comments_allowed must be enabled
+    s/^\s*#.*$//;
+    my $comment = "";
+    if ($comments_allowed) {
+      s/$main::comment_pattern/$1/;
+      $comment = $2;
+    }
     # Skip blank lines
     next unless /\S/;
     # Kill carriage returns (FIXME: We might need to replace them with
@@ -2462,10 +2478,16 @@ sub load {
     # Kill carriage returns (FIXME: We might need to replace them with
     # \ns in some strange Microsoft future)
     s/\r//gs;
+    # A pound sign at the start of a line is always a comment; later
+    # in the line, $comments_allowed must be enabled
+    s/^\s*#.*$//;
     # Eliminate comments, ensuring that pound signs in the middle of
     # strings are not treated as comment characters
-    s/$main::comment_pattern/$1/;
-    my $comment = $2 || "";
+    my $comment = "";
+    if ($comments_allowed) {
+      s/$main::comment_pattern/$1/;
+      $comment = $2;
+    }
     # Skip blank lines
     next unless /\S/;
     # Note the current location for use by the logger
@@ -2807,7 +2829,9 @@ sub tostring {
   $self->{LOGGER}->NIST_die("Unknown file schema: $schema_name") unless $schema;
   my $string = "";
   if (defined $self->{ENTRIES_BY_TYPE}) {
-    foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
+    # FIXME: Might be preferable to keep a top-level query together with its children
+    foreach my $entry (sort {$a->{QUERY}{LEVEL} <=> $b->{QUERY}{LEVEL} ||
+			     $a->{QUERY_ID} cmp $b->{QUERY_ID} ||
 			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
 			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
 		       @{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}) {

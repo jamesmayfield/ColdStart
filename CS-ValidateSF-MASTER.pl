@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.6";
+my $version = "1.7";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -61,6 +61,7 @@ $switches->addVarSwitch('output_file', "Specify an output file with warnings rep
 $switches->put('output_file', 'none');
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
+$switches->addConstantSwitch('allow_comments', 'true', "Enable comments introduced by a pound sign in the middle of an input line");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addConstantSwitch('groundtruth', 'true', "Treat input file as ground truth (so don't, e.g., enforce single-valued slots)");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
@@ -71,6 +72,8 @@ $switches->process(@ARGV);
 
 my $queryfile = $switches->get("queryfile");
 my $outputfile = $switches->get("filename");
+
+&EvaluationQueryOutput::enable_comments() if $switches->get('allow_comments');
 
 my $logger = Logger->new();
 # It is not an error for ground truth to have multiple fills for a single-valued slot
@@ -136,5 +139,6 @@ exit 0;
 # 1.4 - Added support for -groundtruth switch to allow e.g., multiple fills for single-valued slots
 # 1.5 - Handle 2015 format changes
 # 1.6 - Incorporate updated libraries
+# 1.7 - Added switch to enable comments, defaulting to disabled
 
 1;
