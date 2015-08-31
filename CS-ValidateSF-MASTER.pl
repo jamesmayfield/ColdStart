@@ -72,6 +72,31 @@ $switches->process(@ARGV);
 my $queryfile = $switches->get("queryfile");
 my $outputfile = $switches->get("filename");
 
+# Sort the output file
+my $sortedfile = "$outputfile.sorted";
+my %output_strings;
+open(my $infile, "<:utf8", $outputfile) or die("Could not open $outputfile: $!");
+while(<$infile>) {
+  chomp;
+  /^(.*?)\t/;
+  my $query_id = $1;
+  my $query_length = length($query_id);
+  push(@{$output_strings{$query_length}{$query_id}}, $_);
+}
+close($infile);
+open(my $outfile, ">:utf8", $sortedfile) or die("Could not open $sortedfile: $!");
+foreach my $query_length( sort {$a<=>$b} keys %output_strings ) {
+  foreach my $query_id( sort keys %{$output_strings{$query_length}}) {
+	foreach my $line( @{$output_strings{$query_length}{$query_id}} ){
+	  print $outfile $line, "\n";
+	}
+  }
+}
+close($outfile);
+%output_strings = ();
+$outputfile = $sortedfile;
+$switches->put('filename', $outputfile);
+
 my $logger = Logger->new();
 # It is not an error for ground truth to have multiple fills for a single-valued slot
 $logger->delete_error('MULTIPLE_FILLS_SLOT') if $switches->get('groundtruth');
@@ -121,7 +146,24 @@ my ($num_errors, $num_warnings) = $logger->report_all_problems();
 if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
-print $program_output $sf_output->tostring() if defined $program_output;
+if(defined $program_output){
+	#print $program_output $sf_output->tostring('2015SFsubmissions', 1) if defined $program_output;
+	my $output_string = $sf_output->tostring('2015SFsubmissions', 1);
+	my %output_strings;
+	foreach my $line(split(/\n/, $output_string)){
+		$line =~ /^(.*?)\t/;
+		my $query_id = $1;
+		my $query_length = length($query_id);
+		push(@{$output_strings{$query_length}{$query_id}}, $line);
+	}
+	foreach my $query_length( sort {$a<=>$b} keys %output_strings ) {
+		foreach my $query_id( sort keys %{$output_strings{$query_length}}) {
+			foreach my $line( @{$output_strings{$query_length}{$query_id}} ){
+				print $program_output $line, "\n";
+			}
+		}
+	}
+}
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;
 

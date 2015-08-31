@@ -132,7 +132,7 @@ sub generate_pool_hop1 {
 	      	  my $base_entry_query_id = $base_entry->{QUERY_ID};
 	      	  my $base_entry_ldc_query_id = $base_entry->{QUERY}->{LDC_QUERY_ID};
 	      	  my $entry_sf_query_id = $entry->{QUERY_ID};
-	      	  my $ldc_ec = $base_entry_ec;
+	      	  my $ldc_ec = "$base_entry_query_id:$base_entry_ec";
 	      	  $ldc_ec =~ s/$base_entry_query_id/$base_entry_ldc_query_id/;
 	      	  $hop1_ldc_ecs{$ldc_ec}++;
       	  }

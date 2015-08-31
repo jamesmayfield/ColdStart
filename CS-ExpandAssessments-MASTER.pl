@@ -161,7 +161,8 @@ if ($hop == 0) {
   	  		push (@{$query->{ENTRYPOINTS}}, $entrypoint);	
   	  	  }
   	  	}
-  	  	my $query_id = $ldc_ec;
+  	  	#my $query_id = $ldc_ec;
+  	  	my $query_id = "$ldc_queryid:$ldc_ec";
   	  	$query->{QUERY_ID} = $query_id;
   	  	my $slot1 = $query->{SLOT};
   	  	$slot1 =~ /^(.*?):.*?$/;

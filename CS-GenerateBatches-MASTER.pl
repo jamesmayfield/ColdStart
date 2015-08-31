@@ -164,8 +164,8 @@ foreach my $batch_id(keys %batches) {
 			while(my $line = <$infile>){
 				$line =~ /^(.*?)\t/;
 				my $entry_sf_query_id = $1;
-				if($entry_sf_query_id =~ /^(.*?)\_(.*?)\_(.*?)$/) {
-					$entry_sf_query_id = "$1\_$2";
+				if($entry_sf_query_id =~ /^(.*?)_([0-9a-f]{12})$/i) {
+					$entry_sf_query_id = "$1";
 				}
 				my $entry_ldc_query_id = $inverted_index{$entry_sf_query_id};
 				if($entry_ldc_query_id eq $ldc_query_id) {
@@ -191,6 +191,7 @@ foreach my $batch_id(keys %batches) {
 		print $outfile "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
 		foreach my $sf_query_id(@{$index{$ldc_query_id}}) {
 			my $sf_query = $sf_queries->get($sf_query_id);
+			die "Query $sf_query_id is not loaded" unless $sf_query;
 			print $outfile $sf_query->tostring(" ");
 		}
 		print $outfile "</query_set>";

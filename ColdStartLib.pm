@@ -707,6 +707,7 @@ sub generate_query {
   my $target_uuid = &main::uuid_generate($self->{QUERY_ID}, $value, $value_provenance->tostring());
   my $new_queryid = "$self->{QUERY_ID_BASE}_$target_uuid";
   $new_query->put('QUERY_ID', $new_queryid);
+  $new_query->put('QUERY_ID_BASE', $self->get('QUERY_ID'));
   # LDC_QUERY_ID
   $new_query->put('LDC_QUERY_ID', $self->get('LDC_QUERY_ID')) if $self->get('LDC_QUERY_ID');
   # SLOTS, SLOTn, SLOT
@@ -915,7 +916,8 @@ sub add {
 sub get {
   my ($self, $queryid) = @_;
 $self->{LOGGER}->NIST_die() unless defined $queryid;
-  $self->{QUERIES}{$queryid};
+  $self->{QUERIES}{$queryid}
+  #$self->{QUERIES}{$queryid} if exists $self->{QUERIES}{$queryid};
 }
 
 sub get_all_queries {
@@ -2279,7 +2281,7 @@ my %columns = (
       }
 	  $entry->{TARGET_QUERY} = $query;
     },
-    DEPENDENCIES => [qw(QUERY TARGET_QUERY_ID)],
+    DEPENDENCIES => [qw(TARGET_QUERY_ID QUERY)],
     REQUIRED => 'ALL',
   },
 
@@ -2848,8 +2850,26 @@ sub new {
 
 # Map a particular column entry to its string representation
 sub column2string {
-  my ($self, $entry, $schema, $column) = @_;
-  if ($column =~ /^(.*)_TRIPLES$/) {
+  my ($self, $entry, $schema, $column, $fix_query_flag) = @_;
+
+### DO NOT INCLUDE
+# Patch for correcting base_query_ids BEGIN
+### DO INCLUDE
+  if(defined $fix_query_flag && $fix_query_flag == 1 && $column eq 'QUERY_ID') {
+  	return $entry->{QUERY_ID} if (not exists $entry->{QUERY}{GENERATED});
+  	if($entry->{QUERY}{GENERATED} eq 'true' && $entry->{QUERY_ID} =~ /^.*_([0-9a-f]{12})$/i) {
+	  my $uuid = $1; 
+	  my $correct_query_id = "$entry->{QUERY}{QUERY_ID_BASE}_$uuid";
+	  return $correct_query_id;
+    }
+    else {
+    	die "No corrected QUERY_ID found.";
+    }
+  }
+### DO NOT INCLUDE
+# Patch for correcting base_query_ids END
+### DO INCLUDE
+  elsif ($column =~ /^(.*)_TRIPLES$/) {
     my $provenance_column = $1;
     # NOTE: This outputs normalized provenance. That should be fine
     # for now, but might be a problem in the future.
@@ -2879,8 +2899,9 @@ sub column2string {
 }
 
 # Convert this EvaluationQueryOutput back to its proper printed representation
+# $fix_query_flag is to be used with 2015 validator to correctly produce the generated queries.
 sub tostring {
-  my ($self, $schema_name) = @_;
+  my ($self, $schema_name, $fix_query_flag) = @_;
   # Prevent duplicate adjacent lines from appearing in output
   my $previous = "";
   $schema_name = '2015SFsubmissions' unless defined $schema_name;
@@ -2892,7 +2913,7 @@ sub tostring {
 			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
 			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
 		       @{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}) {
-      my $entry_string = join("\t", map {$self->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
+      my $entry_string = join("\t", map {$self->column2string($entry, $schema, $_, $fix_query_flag)} @{$schema->{COLUMNS}});
       # Could use hash here to prevent duplicates
       $string .= "$entry_string\n" unless $entry_string eq $previous;
       $previous = $entry_string;
