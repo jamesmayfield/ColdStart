@@ -9,7 +9,7 @@ use ColdStartLib;
 
 # ResolveQueries.pl
 # Author: James Mayfield (jamesmayfield "at" gmail "dot" com)
-my $version = "2014.1.1";
+my $version = "2015.1.0";
 
 binmode(STDOUT, ":utf8");
 
@@ -66,6 +66,14 @@ binmode(STDOUT, ":utf8");
 # assertion fulfills any of the active tasks of that type. They are
 # stored globally here for some reason.
 my @retrievers;
+
+# Keep a global list of entity types
+push(@retrievers, sub  {
+                    my ($taskset, $assertion) = @_;
+		    $taskset->set_type($assertion->{entity}, $assertion->{object})
+		      if $assertion->{predicate} eq 'type';
+		    return ();
+                  });
 
 my $error_output = *STDERR;
 my $logger;
@@ -412,6 +420,22 @@ sub add_evaluation_query {
   $self->add_task($initial_task, 0);
 }
 
+# sub add_type_collector {
+#   my ($self) = @_;
+#   my $type_task = FindTypeTask->new($self);
+#   $self->add_task($type_task, 0);
+# }
+
+sub set_type {
+  my ($self, $entity_id, $type) = @_;
+  $self->{TYPES}{$entity_id} = $type;
+}
+
+sub get_type {
+  my ($self, $entity_id) = @_;
+  $self->{TYPES}{$entity_id};
+}
+
 # Number of open tasks
 sub get_num_active_tasks {
   $_[0]->{COUNT};
@@ -488,9 +512,11 @@ sub add_fill {
   my $full_provenance_string = $assertion->{offsets};
   # Column 5: Slot Filler
   my $filler;
-  # Column 6: Slot Filler Provenance
+  # Column 6: Type
+  my $type = $self->get_type($assertion->{object}) || 'STRING';
+  # Column 7: Slot Filler Provenance
   my $filler_provenance;
-  # Column 7: Confidence score
+  # Column 8: Confidence score
   my $confidence = $assertion->{confidence};
   # This routine either receives a single task and matching assertion
   # (if this a string-valued slot) or two such pairs, one for the
@@ -506,11 +532,13 @@ sub add_fill {
   }
   # We've calculated all of the necessary values, so print the result
   my $outfile = $self->{OUTFILE};
+  # FIXME: Should probably use the appropriate schema from ColdStartLib here
   print $outfile join("\t", ($query_id,
   			     $slot_name,
   			     $run_id,
   			     $full_provenance_string,
   			     $filler,
+			     $type,
   			     $filler_provenance,
   			     $confidence,
   			    )), "\n";
@@ -625,6 +653,7 @@ sub process_runfile {
   # out tasks at position 0, so add evaluation queries afterward
   my $runid = &seek_to_start($infile, $taskset);
   $taskset->set_runid($runid);
+#  $taskset->add_type_collector();
   foreach my $evaluation_query ($evaluation_queries->get_all_queries()) {
     $taskset->add_evaluation_query($evaluation_query);
   }
@@ -715,7 +744,7 @@ else {
   open($outfile, ">:utf8", $output_file) or die "Could not open $output_file: $!";
   $outfile_opened = 'true';
 }
-print STDERR "WARNING: $runfile might not be a validated Cold Start run file (it doesn't end in .valid)\n" if $runfile =~ /\./ && $runfile !~ /\.valid/;
+print STDERR "WARNING: $runfile might not be a validated Cold Start run file (it doesn't contain .valid)\n" if $runfile =~ /\./ && $runfile !~ /\.valid/;
 &process_runfile($runfile, $queries, $outfile);
 close $outfile if $outfile_opened;
 
@@ -727,3 +756,4 @@ close $outfile if $outfile_opened;
 
 # 2014.1.0: Original resolver based on 2013 model
 # 2014.1.1: Fixed incorrect self-documentation
+# 2015.1.0: Added type column to output
