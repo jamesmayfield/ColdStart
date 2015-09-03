@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.7";
+my $version = "1.8";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -86,9 +86,11 @@ if ($output_filename eq 'none') {
 }
 elsif (lc $output_filename eq 'stdout') {
   $program_output = *STDOUT{IO};
-} elsif (lc $output_filename eq 'stderr') {
+}
+elsif (lc $output_filename eq 'stderr') {
   $program_output = *STDERR{IO};
-} else {
+}
+else {
   open($program_output, ">:utf8", $output_filename) or $logger->NIST_die("Could not open $output_filename: $!");
 }
 
@@ -140,5 +142,6 @@ exit 0;
 # 1.5 - Handle 2015 format changes
 # 1.6 - Incorporate updated libraries
 # 1.7 - Added switch to enable comments, defaulting to disabled
+# 1.8 - Enabled WRONG_SLOT_NAME warning
 
 1;
