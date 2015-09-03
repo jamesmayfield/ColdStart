@@ -67,6 +67,8 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
   ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
   MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
+  # This is the WARNING version of ILLEGAL_CONFIDENCE_VALUE:
+  MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
   MISSING_RUNID                 ERROR    The first line of the file does not contain a legal runid
   MISSING_TYPEDEF               WARNING  No type asserted for Entity %s
@@ -1880,7 +1882,9 @@ my %columns = (
   CONFIDENCE => {
     DESCRIPTION => "System confidence in entry, taken from submission",
     YEARS => [2014, 2015],
-    PATTERN => qr/\d+\.\d+/,
+    # We're lenient here. Guidelines state there must be a decimal
+    # point, but we want a warning only for a missing decimal point
+    PATTERN => qr/\d+(?:\.\d+)?/,
   },
 
   DOCID => {
@@ -2528,11 +2532,17 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
       }
     }
 
+    # Make sure that the submitted slot matches the slot requested by the query
+    if ($entry->{SLOT_NAME} ne $entry->{QUERY}{SLOT}) {
+      $logger->record_problem('WRONG_SLOT_NAME', $entry->{SLOT_NAME}, $entry->{QUERY_ID}, $entry->{QUERY}{SLOT}, $where);
+      next;
+    }
+
     # Keep track of all RUNIDs
     $self->{RUNIDS}{$entry->{RUNID}}++ if defined $entry->{RUNID};
     # FIXME: Record MULTIPLE_RUNIDS problem here?
     
-	my $current_runid = $self->get_runid();
+    my $current_runid = $self->get_runid();
     if (defined $current_runid) {
       if (defined $entry->{RUNID} && $entry->{RUNID} ne $current_runid) {
 	    $logger->record_problem('MULTIPLE_RUNIDS', $current_runid, $entry->{RUNID}, $entry);
