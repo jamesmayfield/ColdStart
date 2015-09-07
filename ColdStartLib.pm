@@ -1916,7 +1916,7 @@ my %columns = (
   CONFIDENCE => {
     DESCRIPTION => "System confidence in entry, taken from submission",
     YEARS => [2014, 2015],
-    PATTERN => qr/\d+\.\d+/,
+    PATTERN => qr/\d+|\d+\.\d+/,
   },
 
   DOCID => {
