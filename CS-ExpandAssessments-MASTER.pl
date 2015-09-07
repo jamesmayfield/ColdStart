@@ -14,13 +14,13 @@ use ColdStartLib;
 ##################################################################################### 
 # This program transforms CSLDC assessment file to CSSF assessment file. 
 #
-# Author: James Mayfield
-# Please send questions or comments to jamesmayfield "at" gmail "dot" com
+# Author: Shahzad Rajput
+# Please send questions or comments to shahzad "dot" rajput "at" gmail "dot" com
 #
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.0";
+my $version = "1.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -66,10 +66,7 @@ sub expand_pool {
   my $hop = 0;
   my $i = 1;
   if (defined $pool->{ENTRIES_BY_TYPE}) {
-    foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
-			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
-			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
-		       @{$pool->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}) {
+    foreach my $entry (@{$pool->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}) {
       my $entry_string = join("\t", map {$pool->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
       my $ldc_query_id = $entry->{QUERY_ID};
       $ldc_query_id =~ /(\d+)$/;
@@ -156,12 +153,13 @@ if ($hop == 0) {
   	  if( @entries ){
   	  	my $entry = shift @entries;
   	  	$query = $entry->{TARGET_QUERY};
-  	  	foreach my $entry( @entries ) {
-  	  	  foreach my $entrypoint( @{$entry->{TARGET_QUERY}->{ENTRYPOINTS}} ) {
-  	  		push (@{$query->{ENTRYPOINTS}}, $entrypoint);	
-  	  	  }
-  	  	}
-  	  	#my $query_id = $ldc_ec;
+### DO NOT INCLUDE
+#  	  	foreach my $entry( @entries ) {
+#  	  	  foreach my $entrypoint( @{$entry->{TARGET_QUERY}->{ENTRYPOINTS}} ) {
+#  	  		push (@{$query->{ENTRYPOINTS}}, $entrypoint);	
+#  	  	  }
+#  	  	}
+### DO INCLUDE
   	  	my $query_id = "$ldc_queryid:$ldc_ec";
   	  	$query->{QUERY_ID} = $query_id;
   	  	my $slot1 = $query->{SLOT};
@@ -241,6 +239,6 @@ exit 0;
 ################################################################################
 
 # 1.0 - Initial version
-
+# 1.1 - Hop#1 queries file now just outputs one entry point rather than the long process of collecting all the entry points in the next round
 
 1;
