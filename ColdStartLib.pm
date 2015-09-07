@@ -1916,7 +1916,7 @@ my %columns = (
   CONFIDENCE => {
     DESCRIPTION => "System confidence in entry, taken from submission",
     YEARS => [2014, 2015],
-    PATTERN => qr/\d+|\d+\.\d+/,
+    PATTERN => qr/\d+\.\d+|\d+/,
   },
 
   DOCID => {
@@ -2837,6 +2837,8 @@ sub new {
 	      LOGGER => $logger};
   bless($self, $class);
   foreach my $filename (@filenames) {
+  	# Skip empty files
+  	next if(-z $filename);
     my $type = &identify_file_type($logger, $filename);
     my $schema = $schemas{$type};
     unless ($schema) {

@@ -17,12 +17,12 @@ use ColdStartLib;
 # confidence values to 1.0, and sorts the results.
 #
 # Author: Shahzad Rajput
-# Please send questions or comments to jamesmayfield "at" gmail "dot" com
+# Please send questions or comments to shahzad "dot" rajput "at" gmail "dot" com
 #
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.0";
+my $version = "2.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -64,9 +64,11 @@ sub get_base_entry {
 	my $query_id = $entry->{QUERY_ID};
 	my $query_id_base = $entry->{QUERY_ID_BASE};
 	my @base_entries = grep {$_->{TARGET_QUERY_ID} eq $query_id} @{ $pool->{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id_base} };
-	$logger->NIST_die("Multiple matching base queries") if @base_entries > 1;
+	foreach my $base_entry(@base_entries) {
+	  return $base_entry
+	  	if($base_entry->{TARGET_QUERY_ID} eq $entry->{QUERY_ID});
+	}
 	$logger->NIST_die("No matching base query") if @base_entries == 0;
-	$base_entries[0];
 }
 
 # Convert this EvaluationQueryOutput back to its proper printed representation
@@ -250,6 +252,8 @@ $queries = &add_ldc_query_ids($logger, $queries, $index_filename);
 
 my $dirname = $switches->get('dir');
 my @files_to_pool = <$dirname/*.valid.ldc.tab.txt> or $logger->NIST_die("No files to pool found in directory $dirname");
+# Remove CMUML1 and CMUML2 from the pool
+@files_to_pool = grep {$_ !~ /SF_CMUML/} @files_to_pool;
 
 my $hop0_assessment_file = $switches->get("hop0_assessment_file");
 
@@ -288,5 +292,6 @@ exit 0;
 
 # 1.0 - Initial version
 # 2.0 - Pooling in two steps with global equivalence classes. Conforms to 2015 format.
+# 2.1 - Empty files are properly ignored rather than exiting the program.
 
 1;
