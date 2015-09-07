@@ -18,7 +18,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.0";
+my $version = "1.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -74,6 +74,10 @@ my $queryid = $switches->get("queryid");
 
 my $combine = $switches->get("combine");
 
+# Check if the script is a MASTER script, in that case MASTER of all the dependent scripts are used.
+my $master = "";
+$master = "-MASTER" if($0=~/MASTER/);
+
 my $cmd;
 
 if( $combine ){
@@ -87,7 +91,7 @@ if( $combine ){
 	print "Combined assessment file is stored at: $batches_dir/$batchid/$queryid/pool.csldc.assessed\n";
 }
 elsif($hop == 0) {
-	$cmd  = "perl CS-Pool-MASTER.pl ";
+	$cmd  = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.csldc ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index "; 
@@ -98,7 +102,7 @@ elsif($hop == 0) {
 }
 elsif($hop==1) {
 	
-	$cmd  = "perl CS-ExpandAssessments-MASTER.pl ";
+	$cmd  = "perl CS-ExpandAssessments$master.pl ";
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
 	$cmd .= "-hop1_query_file $batches_dir/$batchid/$queryid/hop1_queries.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_evaluation_queries.xml ";
@@ -109,7 +113,7 @@ elsif($hop==1) {
 	print "--running command: $cmd\n\n";
 	system($cmd);
 	
-	$cmd = "perl CS-Pool-MASTER.pl ";
+	$cmd = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_dir $batches_dir/$batchid/$queryid/ ";
 	$cmd .= "-hop0_assessment_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries.xml ";
@@ -125,5 +129,6 @@ elsif($hop==1) {
 ################################################################################
 
 # 1.0 - Initial version
+# 1.1 - Run off of MASTER with MASTER scripts, if necessary
 
 1;
