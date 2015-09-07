@@ -7,6 +7,7 @@ binmode(STDOUT, ":utf8");
 
 ### DO NOT INCLUDE
 use ColdStartLib;
+use List::Util qw(shuffle);
 
 ### DO INCLUDE
 ##################################################################################### 
@@ -19,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.1";
+my $version = "1.2";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -52,9 +53,8 @@ $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected.");
 $switches->put('error_file', "STDERR");
-$switches->addVarSwitch('num_batches', "The number of batches to be created. This switch cannot be set together with switch batches_file. Only one of the switches: num_batches and batches_file must be specified.");
-$switches->addVarSwitch('batches_file', "File containing batch query mapping. This switch cannot be set together with switch num_batches. Only one of the switches: num_batches and batches_file must be specified.");
-$switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
+$switches->addVarSwitch('num_batches', "The number of batches to be created.");
+$switches->addParam('batches_file', "required", "File containing batch query mapping (Input/Output). This switch when used along with switch num_batches would produce this file as output otherwise its taken as input.");$switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("ldc_queryfile", "required", "File containing queries used to generate the file being validated");
 $switches->addParam("sf_queryfile", "required", "File containing queries used to generate the file being validated");
 $switches->addParam("index_file", "required", "Filename which contains mapping from output query name to original LDC query name");
@@ -72,12 +72,6 @@ my $num_batches = $switches->get("num_batches");
 my $index_file = $switches->get("index_file");
 
 my $logger = Logger->new();
-
-$logger->NIST_die("Both switches: num_batches and batches_file specified at the same time.") 
-	if(defined $num_batches && defined $batches_file);
-
-$logger->NIST_die("None of the switches: num_batches and batches_file specified.") 
-	if(!defined $num_batches && !defined $batches_file);
 
 $logger->NIST_die("$output_directory already exists.") if -e $output_directory;
 
@@ -99,7 +93,7 @@ close($infile);
 # Load or prepare batch_id to query_id mapping
 my %batches;
 # Load the mapping
-if(defined $batches_file){
+if(not defined $num_batches){
 	$logger->NIST_die("$batches_file does not exists.") unless -e $batches_file;
 	open(my $infile, "<:utf8", $batches_file) or $logger->NIST_die("Could not open $batches_file: $!");
 	while(<$infile>){
@@ -112,12 +106,24 @@ if(defined $batches_file){
 # Prepare the mapping
 else{
 	my $i = 1;
-	foreach my $ldc_query_id(keys %index){
+	my @ldc_query_ids = keys %index;
+	my @random_indices = shuffle(0..$#ldc_query_ids);
+	foreach my $idx(0..$#random_indices){
+		my $index = $random_indices[$idx];
+		my $ldc_query_id = $ldc_query_ids[$index];
 		my $num_batch = ($i % $num_batches) + 1;
 		my $batch_id = sprintf("%s_%02d", "batch", $num_batch);
 		push (@{$batches{$batch_id}}, $ldc_query_id);
 		$i++;
 	}
+	# Write mapping to file
+	open(my $outfile, ">:utf8", $batches_file) or $logger->NIST_die("Could not open $batches_file: $!");
+	foreach my $batch_id( sort keys %batches ){
+		foreach my $ldc_query_id( sort @{$batches{$batch_id}} ){
+			print $outfile "$batch_id\t$ldc_query_id\n";
+		}
+	}
+	close($outfile);
 }
 
 # Generate the batch
@@ -127,7 +133,7 @@ $ldc_query_file_name =~ s/(.*?\/)+//g;
 my $sf_query_file_name = $sf_queryfile;
 $sf_query_file_name =~ s/(.*?\/)+//g;
 
-foreach my $batch_id(keys %batches) {
+foreach my $batch_id(sort keys %batches) {
 	# create the batch directory
 	my $batch_dir = "$output_directory/$batch_id";
 	`mkdir $batch_dir`;
@@ -136,7 +142,7 @@ foreach my $batch_id(keys %batches) {
 	my $ldc_queries = QuerySet->new($logger, $ldc_queryfile);
 	my $sf_queries = QuerySet->new($logger, $sf_queryfile);
 	
-	foreach my $ldc_query_id(@{$batches{$batch_id}}) {
+	foreach my $ldc_query_id(sort @{$batches{$batch_id}}) {
 		# Create query directory
 		my $query_directory = "$batch_dir/$ldc_query_id";
 		`mkdir $query_directory`;
@@ -213,5 +219,6 @@ exit 0;
 
 # 1.0 - Initial version
 # 1.1 - Every query file goes in its own directory
+# 1.2 - Queries go into batch randomly and mapping file written
 
 1;
