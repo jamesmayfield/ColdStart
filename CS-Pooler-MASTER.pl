@@ -18,7 +18,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.1";
+my $version = "1.2";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -93,7 +93,7 @@ if( $combine ){
 elsif($hop == 0) {
 	$cmd  = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.csldc ";
-	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries.xml ";
+	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index "; 
 	$cmd .= "$batches_dir/$batchid/$queryid/runs/";
 	
@@ -105,8 +105,8 @@ elsif($hop==1) {
 	$cmd  = "perl CS-ExpandAssessments$master.pl ";
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
 	$cmd .= "-hop1_query_file $batches_dir/$batchid/$queryid/hop1_queries.xml ";
-	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_evaluation_queries.xml ";
-	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries.xml ";
+	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_evaluation_queries_v2.xml ";
+	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/hop0_pool.csldc.assessed ";
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index";
 	
@@ -116,7 +116,7 @@ elsif($hop==1) {
 	$cmd = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_dir $batches_dir/$batchid/$queryid/ ";
 	$cmd .= "-hop0_assessment_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
-	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries.xml ";
+	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index ";
 	$cmd .= "$batches_dir/$batchid/$queryid/runs/";	
 
@@ -130,5 +130,6 @@ elsif($hop==1) {
 
 # 1.0 - Initial version
 # 1.1 - Run off of MASTER with MASTER scripts, if necessary
+# 1.2 - Queries file's version 2 being used now
 
 1;
