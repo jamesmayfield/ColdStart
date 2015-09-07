@@ -93,6 +93,7 @@ if( $combine ){
 elsif($hop == 0) {
 	$cmd  = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.csldc ";
+	$cmd .= "-error_file $batches_dir/$batchid/$queryid/hop0_pool.errlog ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index "; 
 	$cmd .= "$batches_dir/$batchid/$queryid/runs/";
@@ -104,6 +105,7 @@ elsif($hop==1) {
 	
 	$cmd  = "perl CS-ExpandAssessments$master.pl ";
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
+	$cmd .= "-error_file $batches_dir/$batchid/$queryid/hop1_expandassessments.errlog ";
 	$cmd .= "-hop1_query_file $batches_dir/$batchid/$queryid/hop1_queries.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_evaluation_queries_v2.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
@@ -115,6 +117,7 @@ elsif($hop==1) {
 	
 	$cmd = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_dir $batches_dir/$batchid/$queryid/ ";
+	$cmd .= "-error_file $batches_dir/$batchid/$queryid/hop1_pool.errlog ";
 	$cmd .= "-hop0_assessment_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index ";

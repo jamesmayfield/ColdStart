@@ -2430,8 +2430,9 @@ sub identify_file_type {
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   while (<$infile>) {
     chomp;
-    s/$main::comment_pattern/$1/;
-    my $comment = $2 || "";
+    #s/$main::comment_pattern/$1/;
+    #my $comment = $2 || "";
+    my $comment = "";
     # Skip blank lines
     next unless /\S/;
     # Kill carriage returns (FIXME: We might need to replace them with
@@ -2542,8 +2543,9 @@ sub load {
     s/\r//gs;
     # Eliminate comments, ensuring that pound signs in the middle of
     # strings are not treated as comment characters
-    s/$main::comment_pattern/$1/;
-    my $comment = $2 || "";
+    #s/$main::comment_pattern/$1/;
+    #my $comment = $2 || "";
+    my $comment = "";
     # Skip blank lines
     next unless /\S/;
     # Note the current location for use by the logger
