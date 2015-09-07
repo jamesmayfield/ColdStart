@@ -5,9 +5,10 @@ use strict;
 
 binmode(STDOUT, ":utf8");
 
+use List::Util qw(shuffle);
+
 ### DO NOT INCLUDE
 use ColdStartLib;
-use List::Util qw(shuffle);
 
 ### DO INCLUDE
 ##################################################################################### 
