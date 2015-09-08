@@ -2313,10 +2313,7 @@ my %columns = (
   VALUE => {
     DESCRIPTION => "The slot fill",
     YEARS => [2012, 2013, 2014, 2015],
-### DO NOT INCLUDE
-    #PATTERN => $anything_pattern,
-### DO INCLUDE
-    PATTERN => qr/.*/,
+    PATTERN => $anything_pattern,
     REQUIRED => 'ALL',
   },
 
