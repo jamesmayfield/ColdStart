@@ -2594,7 +2594,13 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     if (defined $current_runid) {
       if (defined $entry->{RUNID} && $entry->{RUNID} ne $current_runid) {
 	    $logger->record_problem('MULTIPLE_RUNIDS', $current_runid, $entry->{RUNID}, $entry);
-	    $entry->{RUNID} = $current_runid;
+### DO NOT INCLUDE
+		# Commenting the following line. We don't want to overwrite the RUNID field for entries belonging to different runs.
+		# FIXME: Is that OK Jim?
+		    
+	    #$entry->{RUNID} = $current_runid;
+	    
+### DO INCLUDE
       }
     }
     else {

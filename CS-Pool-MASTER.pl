@@ -71,7 +71,7 @@ sub get_base_entry {
 
 # Convert this EvaluationQueryOutput back to its proper printed representation
 sub pool_to_string {
-  my ($logger, $pool) = @_;
+  my ($logger, $pool, $depth) = @_;
   my $hop = 0;
   my $schema_name = '2014assessments';
   my $schema = $EvaluationQueryOutput::schemas{$schema_name};
@@ -79,28 +79,33 @@ sub pool_to_string {
   my $i=1;
   my %output_strings;
   my %assessment_ids;
-  if (defined $pool->{ENTRIES_BY_TYPE}) {
-    foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
-			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
-			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
-		       @{$pool->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
-      $entry->{ASSESSMENT_ID} = "00000000";
-      $entry->{QUERY_AND_SLOT_NAME} = "$entry->{QUERY_ID}:$entry->{SLOT_NAME}";
-      $entry->{VALUE_EC} = 0;
-      my $entry_string = join("\t", map {$pool->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
-      if ($entry->{QUERY}->{LEVEL} == $hop) {
-      	  	my $sf_query_id = $entry->{"QUERY_ID"};
-      	  	my $ldc_query_id = $entry->{"QUERY"}{"LDC_QUERY_ID"};
-      	  	$entry_string =~ s/$sf_query_id/$ldc_query_id/g;
-       	    if(not exists $assessment_ids{$entry_string}){
-       	  	  my $assessment_id = sprintf("%s_%d_%03d",$ldc_query_id, $hop, $i);
-      	  	  $assessment_ids{$entry_string} = $assessment_id;
-      	  	  $entry_string =~ s/^00000000/$assessment_id/;
-          	  $output_strings{ $entry_string }++;
-          	  $i++;
-      	    }
-      }
-    }
+  if (defined $pool->{ENTRIES_BY_RUNS}) {
+  	foreach my $run_id (keys %{$pool->{ENTRIES_BY_RUNS}}){
+  		my $depth_i = 0;
+  		foreach my $confidence (sort {$b<=>$a} keys %{$pool->{ENTRIES_BY_RUNS}{$run_id}}){
+		    foreach my $entry (@{$pool->{ENTRIES_BY_RUNS}{$run_id}{$confidence}}) {
+		      $entry->{ASSESSMENT_ID} = "00000000";
+		      $entry->{QUERY_AND_SLOT_NAME} = "$entry->{QUERY_ID}:$entry->{SLOT_NAME}";
+		      $entry->{VALUE_EC} = 0;
+		      my $entry_string = join("\t", map {$pool->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
+		      if ($entry->{QUERY}->{LEVEL} == $hop) {
+		      	  	my $sf_query_id = $entry->{"QUERY_ID"};
+		      	  	my $ldc_query_id = $entry->{"QUERY"}{"LDC_QUERY_ID"};
+		      	  	$entry_string =~ s/$sf_query_id/$ldc_query_id/g;
+		       	    if(not exists $assessment_ids{$entry_string}){
+		       	  	  my $assessment_id = sprintf("%s_%d_%03d",$ldc_query_id, $hop, $i);
+		      	  	  $assessment_ids{$entry_string} = $assessment_id;
+		      	  	  $entry_string =~ s/^00000000/$assessment_id/;
+		          	  $output_strings{ $entry_string }++;
+		          	  $i++;
+		      	    }
+		      }
+		      $depth_i++;
+		      last if(defined $depth && $depth_i == $depth);
+		    }
+		    last if(defined $depth && $depth_i == $depth);
+  		}
+  	}
   }
   my $retVal = "";
   
@@ -112,7 +117,10 @@ sub pool_to_string {
 
 # Generate pool for hop1 (round#2)
 sub generate_pool_hop1 {
-  my ($logger, $pool, $output_dir) = @_;
+  my ($logger, $pool, $output_dir, $depth) = @_;
+	
+  ## Handle $depth
+  exit;
 	
   my $hop = 1;
   my $schema_name = '2014assessments';
@@ -200,6 +208,7 @@ $switches->addVarSwitch('error_file', "Specify a file to which error output shou
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('runid', "Specify the Run ID for the pooled run");
 $switches->put('runid', 'Pool');
+$switches->addVarSwitch('depth', "Specify the maximum depth for the pooled run");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addVarSwitch('hop0_assessment_file', "Tab-separated file containing \"expanded\" hop0 assessments (\'hop0_pool.cssf.assessed\'). Required for generating pool for hop-1.");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
@@ -213,6 +222,7 @@ my $hop = 0;
 my $queryfile = $switches->get("queryfile");
 my $index_filename = $switches->get("index_file");
 my $output_dir = $switches->get("output_dir");
+my $depth = $switches->get("depth");
 
 my $logger = Logger->new();
 # It is not an error for pools to have multiple fills for a single-valued slot
@@ -265,6 +275,15 @@ if (defined $hop0_assessment_file) {
 }
 
 my $pool = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, @files_to_pool);
+
+# Prepare $pool->{ENTRIES_BY_RUNS}
+
+if (defined $pool->{ENTRIES_BY_TYPE}) {
+    foreach my $entry (@{$pool->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+    	push( @{$pool->{ENTRIES_BY_RUNS}{$entry->{RUNID}}{$entry->{CONFIDENCE}}}, $entry );
+    }
+}
+
 $pool->set_runid($switches->get('runid'));
 $pool->set_confidence('1.0');
 
@@ -275,10 +294,10 @@ if ($num_errors) {
 }
 
 if($hop == 0) {
-	print $program_output &pool_to_string($logger, $pool);
+	print $program_output &pool_to_string($logger, $pool, $depth);
 }
 elsif($hop == 1){
-	&generate_pool_hop1($logger, $pool, $output_dir);
+	&generate_pool_hop1($logger, $pool, $output_dir, $depth);
 }
 else{
 	$logger->NIST_die("Incorrect hop:$hop");

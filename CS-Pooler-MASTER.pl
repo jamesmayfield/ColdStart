@@ -58,6 +58,7 @@ $switches->addVarSwitch('hop', "Spefify the hop number for which the pool is bei
 $switches->put('hop', '0');
 $switches->addVarSwitch('batches_dir', "Spefify the directory containing batches.");
 $switches->put('batches_dir', 'batches');
+$switches->addVarSwitch('depth', "Specify the maximum depth for the pooled run");
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addConstantSwitch('combine', 'true', "Combine assessments from all hops (levels) of a given batch and query. The location of the output file is displayed after the action is completed.");
@@ -71,6 +72,7 @@ my $hop = $switches->get("hop");
 my $batches_dir = $switches->get("batches_dir");
 my $batchid = $switches->get("batchid");
 my $queryid = $switches->get("queryid");
+my $depth = $switches->get("depth");
 
 my $combine = $switches->get("combine");
 
@@ -92,6 +94,7 @@ if( $combine ){
 }
 elsif($hop == 0) {
 	$cmd  = "perl CS-Pool$master.pl ";
+	$cmd .= "-depth $depth " if(defined $depth);
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.csldc ";
 	$cmd .= "-error_file $batches_dir/$batchid/$queryid/hop0_pool.errlog ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
@@ -117,6 +120,7 @@ elsif($hop==1) {
 	
 	$cmd = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_dir $batches_dir/$batchid/$queryid/ ";
+	$cmd .= "-depth $depth " if(defined $depth);	
 	$cmd .= "-error_file $batches_dir/$batchid/$queryid/hop1_pool.errlog ";
 	$cmd .= "-hop0_assessment_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
