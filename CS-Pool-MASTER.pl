@@ -22,7 +22,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.1";
+my $version = "2.2";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -102,7 +102,12 @@ sub pool_to_string {
       }
     }
   }
-  join("\n", sort keys %output_strings), "\n";
+  my $retVal = "";
+  
+  $retVal = join("\n", sort keys %output_strings). "\n" 
+  				if (scalar(keys %output_strings) > 0);
+  
+  $retVal;
 }
 
 # Generate pool for hop1 (round#2)
@@ -289,4 +294,6 @@ exit 0;
 # 1.0 - Initial version
 # 2.0 - Pooling in two steps with global equivalence classes. Conforms to 2015 format.
 # 2.1 - Empty files are properly ignored rather than exiting the program.
+# 2.2 - In this release, we have fixed the output when all the submission files are empty.
+
 1;
