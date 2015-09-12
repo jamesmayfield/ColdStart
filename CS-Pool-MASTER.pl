@@ -9,6 +9,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 
 use ColdStartLib;
+use POSIX qw(ceil floor);
 
 ### DO INCLUDE
 ##################################################################################### 
@@ -22,7 +23,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.2";
+my $version = "2.3";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -71,7 +72,33 @@ sub get_base_entry {
 
 # Convert this EvaluationQueryOutput back to its proper printed representation
 sub pool_to_string {
-  my ($logger, $pool, $depth) = @_;
+  my ($logger, $pool, $depth_param, $epsilon) = @_;
+  ## Rules for $depth_param
+  # $constant_depth_flag = 0 => depth unspecified
+  # $constant_depth_flag = 1 => depth is constant
+  # $constant_depth_flag = 2 => depth varies across slots
+  my $constant_depth_flag = 0;
+  my %depth;
+  if(defined $depth_param){
+  	if(-e $depth_param){
+  		$constant_depth_flag = 2;
+  		open(my $infile, "<:utf8", $depth_param) or $logger->NIST_die("Could not open $depth_param: $!");
+  		while(<$infile>){
+  			chomp;
+  			my ($slot, $depth) = split(/\s+/);
+  			$logger->NIST_die("Duplicate depth specified for slot: $slot") if(exists $depth{$slot});
+  			my $delta_depth = ceil($depth*$epsilon);
+  			$depth{$slot} = $depth + $delta_depth;
+  		}
+  		close($infile);
+  	}
+  	elsif($depth_param =~ /^\d+$/){
+  		$constant_depth_flag = 1;
+  	}
+  	else{
+  		$logger->NIST_die("Illegal value for depth: $depth_param")
+  	}
+  }
   my $hop = 0;
   my $schema_name = '2014assessments';
   my $schema = $EvaluationQueryOutput::schemas{$schema_name};
@@ -79,6 +106,7 @@ sub pool_to_string {
   my $i=1;
   my %output_strings;
   my %assessment_ids;
+  my $move_on_flag;
   if (defined $pool->{ENTRIES_BY_RUNS}) {
   	foreach my $run_id (keys %{$pool->{ENTRIES_BY_RUNS}}){
   		my $depth_i = 0;
@@ -101,9 +129,15 @@ sub pool_to_string {
 		      	    }
 		      }
 		      $depth_i++;
-		      last if(defined $depth && $depth_i == $depth);
+		      $move_on_flag = 0;
+		      my $slot = $entry->{SLOT_NAME};
+		      my $max_depth;
+		      $max_depth = $depth_param if($constant_depth_flag == 1);
+		      $max_depth = $depth{$slot} if($constant_depth_flag == 2);
+		      $move_on_flag = 1 if($depth_i == $max_depth); 
+		      last if($move_on_flag == 1);
 		    }
-		    last if(defined $depth && $depth_i == $depth);
+		    last if($move_on_flag == 1);
   		}
   	}
   }
@@ -117,7 +151,7 @@ sub pool_to_string {
 
 # Generate pool for hop1 (round#2)
 sub generate_pool_hop1 {
-  my ($logger, $pool, $output_dir, $depth) = @_;
+  my ($logger, $pool, $output_dir, $depth, $epsilon) = @_;
 	
   ## Handle $depth
   exit;
@@ -208,7 +242,8 @@ $switches->addVarSwitch('error_file', "Specify a file to which error output shou
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('runid', "Specify the Run ID for the pooled run");
 $switches->put('runid', 'Pool');
-$switches->addVarSwitch('depth', "Specify the maximum depth for the pooled run");
+$switches->addVarSwitch('depth', "Specify the maximum depth for the pooled runs. This could be an integer value constant across slots or could be a file containing different slot depths written as slot and depth pair separated by space, one pair per line.");
+$switches->addVarSwitch('epsilon', "Epsilon used for depth pooling where depth varies per slot");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addVarSwitch('hop0_assessment_file', "Tab-separated file containing \"expanded\" hop0 assessments (\'hop0_pool.cssf.assessed\'). Required for generating pool for hop-1.");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
@@ -223,6 +258,7 @@ my $queryfile = $switches->get("queryfile");
 my $index_filename = $switches->get("index_file");
 my $output_dir = $switches->get("output_dir");
 my $depth = $switches->get("depth");
+my $epsilon = $switches->get("epsilon");
 
 my $logger = Logger->new();
 # It is not an error for pools to have multiple fills for a single-valued slot
@@ -294,10 +330,10 @@ if ($num_errors) {
 }
 
 if($hop == 0) {
-	print $program_output &pool_to_string($logger, $pool, $depth);
+	print $program_output &pool_to_string($logger, $pool, $depth, $epsilon);
 }
 elsif($hop == 1){
-	&generate_pool_hop1($logger, $pool, $output_dir, $depth);
+	&generate_pool_hop1($logger, $pool, $output_dir, $depth, $epsilon);
 }
 else{
 	$logger->NIST_die("Incorrect hop:$hop");
@@ -314,5 +350,6 @@ exit 0;
 # 2.0 - Pooling in two steps with global equivalence classes. Conforms to 2015 format.
 # 2.1 - Empty files are properly ignored rather than exiting the program.
 # 2.2 - In this release, we have fixed the output when all the submission files are empty.
-
+# 2.3 - Support added for pooling upto a certain depth, and depth/per slot with epsilon.
+ 
 1;

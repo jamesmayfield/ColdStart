@@ -18,7 +18,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.2";
+my $version = "1.3";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -58,7 +58,8 @@ $switches->addVarSwitch('hop', "Spefify the hop number for which the pool is bei
 $switches->put('hop', '0');
 $switches->addVarSwitch('batches_dir', "Spefify the directory containing batches.");
 $switches->put('batches_dir', 'batches');
-$switches->addVarSwitch('depth', "Specify the maximum depth for the pooled run");
+$switches->addVarSwitch('depth', "Specify the maximum depth for the pooled runs. This could be an integer value constant across slots or could be a file containing different slot depths written as slot and depth pair separated by space, one pair per line.");
+$switches->addVarSwitch('epsilon', "Epsilon used for depth pooling where depth varies per slot");
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addConstantSwitch('combine', 'true', "Combine assessments from all hops (levels) of a given batch and query. The location of the output file is displayed after the action is completed.");
@@ -73,6 +74,8 @@ my $batches_dir = $switches->get("batches_dir");
 my $batchid = $switches->get("batchid");
 my $queryid = $switches->get("queryid");
 my $depth = $switches->get("depth");
+my $epsilon = $switches->get("epsilon");
+
 
 my $combine = $switches->get("combine");
 
@@ -95,6 +98,7 @@ if( $combine ){
 elsif($hop == 0) {
 	$cmd  = "perl CS-Pool$master.pl ";
 	$cmd .= "-depth $depth " if(defined $depth);
+	$cmd .= "-epsilon $epsilon " if(defined $depth && -e $depth && defined $epsilon);
 	$cmd .= "-output_file $batches_dir/$batchid/$queryid/hop0_pool.csldc ";
 	$cmd .= "-error_file $batches_dir/$batchid/$queryid/hop0_pool.errlog ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
@@ -121,6 +125,7 @@ elsif($hop==1) {
 	$cmd = "perl CS-Pool$master.pl ";
 	$cmd .= "-output_dir $batches_dir/$batchid/$queryid/ ";
 	$cmd .= "-depth $depth " if(defined $depth);	
+	$cmd .= "-epsilon $epsilon " if(defined $depth && -e $depth && defined $epsilon);
 	$cmd .= "-error_file $batches_dir/$batchid/$queryid/hop1_pool.errlog ";
 	$cmd .= "-hop0_assessment_file $batches_dir/$batchid/$queryid/hop0_pool.cssf.assessed ";
 	$cmd .= "$batches_dir/$batchid/$queryid/tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml ";
@@ -138,5 +143,7 @@ elsif($hop==1) {
 # 1.0 - Initial version
 # 1.1 - Run off of MASTER with MASTER scripts, if necessary
 # 1.2 - Queries file's version 2 being used now
+# 1.3 - Support added for pooling upto a certain depth, and depth/per slot with epsilon.
+
 
 1;
