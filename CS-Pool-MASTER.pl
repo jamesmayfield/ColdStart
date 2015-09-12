@@ -3,13 +3,13 @@
 use warnings;
 use strict;
 
+use POSIX qw(ceil floor);
 
 binmode(STDOUT, ":utf8");
 
 ### DO NOT INCLUDE
 
 use ColdStartLib;
-use POSIX qw(ceil floor);
 
 ### DO INCLUDE
 ##################################################################################### 
