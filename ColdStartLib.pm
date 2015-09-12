@@ -112,6 +112,9 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 ########## Multi-Use Errors
   WRONG_NUM_ENTRIES             ERROR    Wrong number of entries on line (expected %d, got %d)
 
+########## Pooler Errors
+  UNDEFINED_SLOT_DEPTH          WARNING  Undefined depth for slot %s. Default depth value = %d used.	 
+
 END_PROBLEM_FORMATS
 
 

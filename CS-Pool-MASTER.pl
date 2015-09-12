@@ -133,9 +133,13 @@ sub pool_to_string {
 		      $depth_i++;
 		      $move_on_flag = 0;
 		      my $slot = $entry->{SLOT_NAME};
-		      my $max_depth = $default_max_depth;
+		      my $max_depth;
 		      $max_depth = $depth_param if($constant_depth_flag == 1);
 		      $max_depth = $depth{$slot} if($constant_depth_flag == 2);
+		      
+		      my $where = {FILENAME => $depth_param, LINENUM => undef};
+		      $logger->record_problem('UNDEFINED_SLOT_DEPTH', $slot, $default_max_depth, $where) unless $max_depth;
+		      $max_depth = $default_max_depth unless $max_depth;
 		      $move_on_flag = 1 if($depth_i == $max_depth); 
 		      last if($move_on_flag == 1);
 		    }
