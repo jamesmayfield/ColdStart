@@ -45,6 +45,8 @@ my $error_output = *STDERR{IO};
 ### DO INCLUDE EvaluationQueryOutput  ColdStartLib.pm
 ### DO INCLUDE Switches               ColdStartLib.pm
 
+my $default_max_depth = 10;
+
 # Load file which contains mapping from output query name to original LDC query name
 sub add_ldc_query_ids {
   my ($logger, $queries, $index_filename) = @_;
@@ -131,7 +133,7 @@ sub pool_to_string {
 		      $depth_i++;
 		      $move_on_flag = 0;
 		      my $slot = $entry->{SLOT_NAME};
-		      my $max_depth;
+		      my $max_depth = $default_max_depth;
 		      $max_depth = $depth_param if($constant_depth_flag == 1);
 		      $max_depth = $depth{$slot} if($constant_depth_flag == 2);
 		      $move_on_flag = 1 if($depth_i == $max_depth); 
