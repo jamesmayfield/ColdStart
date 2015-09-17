@@ -153,6 +153,7 @@ if ($hop == 0) {
   	  if( @entries ){
   	  	my $entry = shift @entries;
   	  	$query = $entry->{TARGET_QUERY};
+  	  	next if(not defined $query);
 ### DO NOT INCLUDE
 #  	  	foreach my $entry( @entries ) {
 #  	  	  foreach my $entrypoint( @{$entry->{TARGET_QUERY}->{ENTRYPOINTS}} ) {
