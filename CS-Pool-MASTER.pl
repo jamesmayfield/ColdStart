@@ -183,7 +183,7 @@ sub generate_pool_hop1 {
       my $entry_string = join("\t", map {$pool->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
       if ($entry->{QUERY}->{LEVEL} == $hop) {
       	  my $base_entry = &get_base_entry($logger, $entry, $pool);
-      	  if($base_entry->{JUDGMENT} eq "CORRECT"){
+      	  if($base_entry->{JUDGMENT} eq "CORRECT" || $base_entry->{VALUE_ASSESSMENT} eq "INEXACT"){
 	      	  my $base_entry_ec = $base_entry->{VALUE_EC};
 	      	  my $base_entry_query_id = $base_entry->{QUERY_ID};
 	      	  my $base_entry_ldc_query_id = $base_entry->{QUERY}->{LDC_QUERY_ID};
@@ -225,7 +225,7 @@ sub generate_pool_hop1 {
       	  	my $assessment_id = sprintf("%s_%d_%03d",$ldc_query_id, $hop, $i);
       	  	$assessment_ids{$entry_string} = $assessment_id;
       	  	$entry_string =~ s/^00000000/$assessment_id/;
-          	$output_strings{ $entry_string }++ if($base_entry->{JUDGMENT} eq "CORRECT");
+          	$output_strings{ $entry_string }++ if($base_entry->{JUDGMENT} eq "CORRECT" || $base_entry->{VALUE_ASSESSMENT} eq "INEXACT");
           	$i++;
       	  }
       }
