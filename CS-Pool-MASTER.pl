@@ -159,8 +159,11 @@ sub pool_to_string {
 sub generate_pool_hop1 {
   my ($logger, $pool, $output_dir, $depth, $epsilon) = @_;
 	
-  ## Handle $depth
-  exit;
+  # FIXME: Handle $depth
+  #
+  # We don't need to handle this now because most likely we are adding all 
+  # entries for selected queries for assessment. But, should it be the case
+  # that we need to subsample then this method would need considerable change.
 	
   my $hop = 1;
   my $schema_name = '2014assessments';

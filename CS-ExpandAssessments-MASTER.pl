@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.1";
+my $version = "1.2";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -160,6 +160,16 @@ if ($hop == 0) {
 #  	  	  }
 #  	  	}
 ### DO INCLUDE
+		my @entrypoints = @{$query->{ENTRYPOINTS}};
+		foreach my $entry( @entries ){
+			foreach my $entrypoint( @{$entry->{TARGET_QUERY}->{ENTRYPOINTS}} ) {
+				my @exists = grep {$_->{UUID} eq $entrypoint->{UUID}} @entrypoints;
+				push (@entrypoints, $entrypoint) if(scalar @exists == 0);
+			}
+		}
+		
+		@{$query->{ENTRYPOINTS}} = @entrypoints;
+			
   	  	my $query_id = "$ldc_queryid:$ldc_ec";
   	  	$query->{QUERY_ID} = $query_id;
   	  	my $slot1 = $query->{SLOT};
@@ -176,7 +186,7 @@ if ($hop == 0) {
   print $hop1_query_output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
   foreach my $query_id( sort keys %hop1_queries ){
   	my $query = $hop1_queries{ $query_id };
-  	print $hop1_query_output $query->tostring();
+  	print $hop1_query_output $query->tostring("  ");
   }  
   print $hop1_query_output "</query_set>\n";
   close($hop1_query_output);
@@ -240,5 +250,6 @@ exit 0;
 
 # 1.0 - Initial version
 # 1.1 - Hop#1 queries file now just outputs one entry point rather than the long process of collecting all the entry points in the next round
-
+# 1.2 - Hop#1 queries file includes multiple distint entry points; Inexact mentions included
+ 
 1;

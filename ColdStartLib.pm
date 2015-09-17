@@ -1944,12 +1944,18 @@ my %columns = (
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
       if ($schema->{COLUMN_TO_JUDGE}) {
-	$entry->{JUDGMENT} = $correctness_map{$schema->{ASSESSMENT_CODES}{$entry->{$schema->{COLUMN_TO_JUDGE}}}};
+    my $assessment_code = $entry->{$schema->{COLUMN_TO_JUDGE}};
+    my $assessment = $schema->{ASSESSMENT_CODES}{$assessment_code};
+	$entry->{JUDGMENT} = $correctness_map{$assessment};
 	# Verify that equivalence classes are in synch with CORRECT judgments
 	$logger->NIST_die("Correct entry without equivalence class, query = $entry->{QUERY_ID}")
-	  if $entry->{JUDGMENT} eq 'CORRECT' && !$entry->{VALUE_EC};
+	  if $entry->{JUDGMENT} eq 'CORRECT' 
+	  		&& $schema->{ASSESSMENT_CODES}{$assessment_code} eq 'INEXACT'
+	  		&& !$entry->{VALUE_EC};
 	$logger->NIST_die("Equivalence class without correct entry, query = $entry->{QUERY_ID}")
-	  if $entry->{JUDGMENT} ne 'CORRECT' && $entry->{VALUE_EC};
+	  if $entry->{JUDGMENT} ne 'CORRECT'
+	  		&& $schema->{ASSESSMENT_CODES}{$assessment_code} ne 'INEXACT'
+	  		&& $entry->{VALUE_EC};
 	# FIXME: Handle duplicate assessment here
       }
     },
@@ -2623,13 +2629,17 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
       next unless $key =~ /_ASSESSMENT$/;
       $entry->{$key} = $schema->{ASSESSMENT_CODES}{$entry->{$key}}
 	or $logger->NIST_die("Unknown assessment code: $entry->{$key}");
-    }
+    }   
 
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
     push(@{$self->{ENTRIES_BY_QUERY_ID_BASE}{$schema->{TYPE}}{$entry->{QUERY_ID_BASE}}}, $entry);
     push(@{$self->{ENTRIES_BY_ANSWER}{$entry->{QUERY_ID}}{$entry->{TARGET_QUERY_ID}}{$schema->{TYPE}}}, $entry);
-    push(@{$self->{ENTRIES_BY_EC}{$entry->{QUERY_ID}}{$entry->{VALUE_EC}}}, $entry)
-      if $entry->{TYPE} eq 'ASSESSMENT' && $entry->{JUDGMENT} eq 'CORRECT';
+    if ($entry->{TYPE} eq 'ASSESSMENT') {
+      if ($entry->{JUDGMENT} eq 'CORRECT' || $entry->{VALUE_ASSESSMENT} eq 'INEXACT') {
+      	push(@{$self->{ENTRIES_BY_EC}{$entry->{QUERY_ID}}{$entry->{VALUE_EC}}}, $entry);
+      }
+    }
+    
     push(@{$self->{ALL_ENTRIES}}, $entry);
 
     # Add the query corresponding to this entry to the set of queries
