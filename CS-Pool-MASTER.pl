@@ -195,12 +195,12 @@ sub generate_pool_hop1 {
 	}
   }
   
+  my $i = 1;
   foreach my $kit_ldc_ec(keys %hop1_ldc_ecs) {
   	my %output_strings;
   	my $kit_hop1_query_dir = "$output_dir/$kit_ldc_ec";
   	`mkdir $kit_hop1_query_dir`;
 	my $output_filename = "$kit_hop1_query_dir/hop1_pool.csldc";
-	my $i = 1;
 	open(my $outfile, ">:utf8", $output_filename) or $logger->NIST_die("Could not open $output_filename: $!");
   	foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
 			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
