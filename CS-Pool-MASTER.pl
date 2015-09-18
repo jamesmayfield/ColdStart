@@ -169,7 +169,6 @@ sub generate_pool_hop1 {
   my $schema_name = '2014assessments';
   my $schema = $EvaluationQueryOutput::schemas{$schema_name};
   $logger->NIST_die("Unknown file schema: $schema_name") unless $schema;
-  my $i=1;
   my %assessment_ids;
   my %hop1_ldc_ecs;
   if (defined $pool->{ENTRIES_BY_TYPE}) {
@@ -201,6 +200,7 @@ sub generate_pool_hop1 {
   	my $kit_hop1_query_dir = "$output_dir/$kit_ldc_ec";
   	`mkdir $kit_hop1_query_dir`;
 	my $output_filename = "$kit_hop1_query_dir/hop1_pool.csldc";
+	my $i = 1;
 	open(my $outfile, ">:utf8", $output_filename) or $logger->NIST_die("Could not open $output_filename: $!");
   	foreach my $entry (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID} ||
 			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
@@ -215,6 +215,8 @@ sub generate_pool_hop1 {
       	  my $base_entry_ec = $base_entry->{VALUE_EC};
       	  my $base_entry_query_id = $base_entry->{QUERY_ID};
       	  my $base_entry_ldc_query_id = $base_entry->{QUERY}->{LDC_QUERY_ID};
+      	  my $base_entry_ldc_ec = "$base_entry_ldc_query_id:$base_entry_ec";
+      	  next if($base_entry_ldc_ec ne $kit_ldc_ec); 
       	  my $entry_sf_query_id = $entry->{QUERY_ID};
       	  my $ldc_ec = $kit_ldc_ec;
       	  $entry_string =~ s/$entry_sf_query_id/$ldc_ec/;
