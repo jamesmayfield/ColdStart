@@ -186,6 +186,7 @@ if ($hop == 0) {
   open($hop1_query_output, ">:utf8", $hop1_query_file) or $logger->NIST_die("Could not open $hop1_query_file: $!");
   print $hop1_query_output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<query_set>\n";
   foreach my $query_id( sort keys %hop1_queries ){
+  	#print STDERR "--print $query_id\n";
   	my $query = $hop1_queries{ $query_id };
   	print $hop1_query_output $query->tostring("  ");
   }  
@@ -202,7 +203,8 @@ elsif ($hop == 1) {
     foreach my $ec( keys %{ $pool->{ENTRIES_BY_EC}{$query_id} }) {
   	  foreach my $entry( @{$pool->{ENTRIES_BY_EC}{$query_id}{$ec}} ) {
   	    my $target_query_id = $entry->{TARGET_QUERY_ID};
-  	    push( @{$mapping{$ec}}, $target_query_id );
+  	    #push( @{$mapping{$ec}}, $target_query_id );
+  	    $mapping{$ec}{$target_query_id}++;
   	  }
     }
   }
@@ -218,19 +220,20 @@ elsif ($hop == 1) {
     my ($ldc_query_id, $ec_num, $slot) = ($1, $2, $3);
     $ldc_query_id =~ /(\d+)$/;
     my $ldc_query_num = $1;
-    foreach my $cssf_query_id_base( @{$index{$ldc_query_id}} ) {
-      my $cssf_ec = "$cssf_query_id_base:$ec_num";
-      foreach my $cssf_query_id( @{$mapping{ $cssf_ec }} ) {
+   # foreach my $cssf_query_id_base( @{$index{$ldc_query_id}} ) {
+   #   my $cssf_ec = "$cssf_query_id_base:$ec_num";
+      foreach my $cssf_query_id( keys %{$mapping{ $ec_num }} ) {
       	my $new_query_slot = "$cssf_query_id:$slot";
       	my $new_entry_string = $line;
       	$new_entry_string =~ s/$ldc_ec_slot/$new_query_slot/g;
-      	$new_entry_string =~ s/$ldc_query_id/$cssf_query_id_base/g;
+      	#$new_entry_string =~ s/$ldc_query_id/$cssf_query_id_base/g;
+      	#$new_entry_string =~ s/$ldc_query_id/$cssf_query_id/g;
       	#my $assessment_id = (($hop+1)*1000 + $ldc_query_num)*10000 + $i;
       	#$new_entry_string = "$assessment_id\t$new_entry_string";
       	print $program_output "$new_entry_string\n";
       	$i++;
       }
-    }
+    #}
   }
   close $infile;
   

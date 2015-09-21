@@ -141,9 +141,9 @@ sub pool_to_string {
 		      			unless $max_depth;
 		      $max_depth = $default_max_depth unless $max_depth;
 		      $move_on_flag = 1 if($depth_i == $max_depth); 
-		      last if($move_on_flag == 1);
+		      last if($move_on_flag == 1 && defined $depth_param);
 		    }
-		    last if($move_on_flag == 1);
+		    last if($move_on_flag == 1 && defined $depth_param);
   		}
   	}
   }
