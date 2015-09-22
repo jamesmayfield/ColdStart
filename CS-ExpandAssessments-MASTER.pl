@@ -209,8 +209,8 @@ elsif ($hop == 1) {
     }
   }
   
+  my %assessment_ids;
   # Transform the assessments
-  my $i = 1;
   open(my $infile, "<:utf8", $csldc_assessment_file) or $logger->NIST_die("Could not open $csldc_assessment_file: $!");
   while(my $line = <$infile>) {
     chomp $line;
@@ -227,11 +227,14 @@ elsif ($hop == 1) {
       	my $new_entry_string = $line;
       	$new_entry_string =~ s/$ldc_ec_slot/$new_query_slot/g;
       	#$new_entry_string =~ s/$ldc_query_id/$cssf_query_id_base/g;
-      	#$new_entry_string =~ s/$ldc_query_id/$cssf_query_id/g;
+		$assessment_ids{$cssf_query_id} = 1 if not exists $assessment_ids{$cssf_query_id};
+      	my $i = $assessment_ids{$cssf_query_id};
+      	my $assessment_id = sprintf("%03d", $i);
+      	$new_entry_string =~ s/$ldc_query_id\_\d\_\d+/$cssf_query_id\_1\_$assessment_id/g;
+      	$assessment_ids{$cssf_query_id}++;
       	#my $assessment_id = (($hop+1)*1000 + $ldc_query_num)*10000 + $i;
       	#$new_entry_string = "$assessment_id\t$new_entry_string";
       	print $program_output "$new_entry_string\n";
-      	$i++;
       }
     #}
   }

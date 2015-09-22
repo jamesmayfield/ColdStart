@@ -2595,6 +2595,16 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
       }
     }
 
+#	# Expand the EC from numeric to one that encodes the entire path
+#	if($entry->{TYPE} eq 'ASSESSMENT' && $entry->{VALUE_EC} ne "0"){
+#		if($entry->{QUERY}->{LEVEL} == 0){
+#			$entry->{VALUE_EC} = $entry->{QUERY_ID}.":".$entry->{VALUE_EC};
+#		}
+#		else{
+#			$entry->{VALUE_EC} = $self->{QUERYID2PARENTASSESSMENT}->{VALUE_EC}.":".$entry->{VALUE_EC};
+#		}
+#	}
+
     # Keep track of all RUNIDs
     $self->{RUNIDS}{$entry->{RUNID}}++ if defined $entry->{RUNID};
     # FIXME: Record MULTIPLE_RUNIDS problem here?
@@ -2605,7 +2615,7 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
 	    $logger->record_problem('MULTIPLE_RUNIDS', $current_runid, $entry->{RUNID}, $entry);
 ### DO NOT INCLUDE
 		# Commenting the following line. We don't want to overwrite the RUNID field for entries belonging to different runs.
-		# FIXME: Is that OK Jim?
+		# FIXME: Is that OK, Jim?
 		    
 	    #$entry->{RUNID} = $current_runid;
 	    
