@@ -2627,7 +2627,7 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
     }
 
     # Allow recovery of parent query ID and equivalence class
-    if ($entry->{TYPE} eq 'ASSESSMENT' && $entry->{JUDGMENT} eq 'CORRECT') {
+    if ($entry->{TYPE} eq 'ASSESSMENT' && ($entry->{JUDGMENT} eq 'CORRECT' || $entry->{VALUE_ASSESSMENT} eq 'X')) {
       $self->{QUERYID2PARENTASSESSMENT}{$entry->{TARGET_QUERY_ID}} = $entry;
     }
 
