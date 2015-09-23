@@ -132,7 +132,7 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package ScoresPrinter;
 
 my @fields_to_print = (
-  {NAME => 'LDC_QUERY_ID',     HEADER => 'LDC_QID',  FORMAT => '%s',     JUSTIFY => 'L'},
+#  {NAME => 'LDC_QUERY_ID',     HEADER => 'LDC_QID',  FORMAT => '%s',     JUSTIFY => 'L'},
   {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',     JUSTIFY => 'L'},
   {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',     JUSTIFY => 'L'},
   {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',     JUSTIFY => 'L'},
@@ -149,7 +149,7 @@ sub new {
   my ($class, $separator) = @_;
   my $self = {FIELDS_TO_PRINT => \@fields_to_print,
 	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @fields_to_print},
-	      HEADERS => [map {$_->{HEADER}} @fields_to_print],
+	      HEADERS => [map {$_->{HEADER}} @fields_to_print], SCORES => {},
 	      LINES => [],
 	     };
   $self->{SEPARATOR} = $separator if defined $separator;
@@ -159,19 +159,14 @@ sub new {
 
 sub add_score {
   my ($self, $score) = @_;
-  my $ec = $score->{EC};
-  my @components = split(/:/, $ec);
+  my $cssf_query_ec = $score->{EC};
+  my @components = split(/:/, $cssf_query_ec);
   my $cssf_query_id = shift(@components);
-  my $csldc_query_id = $index{$cssf_query_id};
-  $score->{LDC_QUERY_ID} = $csldc_query_id;
-  $score->{LDC_QUERY_ID} = "ALL-Micro" if not defined $score->{LDC_QUERY_ID};
-  my %elements_to_print;
-  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
-    my $text = sprintf($field->{FORMAT}, $score->get($field->{NAME}));
-    $elements_to_print{$field->{NAME}} = $text;
-    $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
-  }
-  push(@{$self->{LINES}}, \%elements_to_print);
+  my $ec = (@components) ? join(":", @components) : undef;
+  my $csldc_query_id = ($cssf_query_ec eq "ALL-Micro") ? "ALL-Micro" : $index{$cssf_query_id};
+  my $csldc_query_ec = "$csldc_query_id";
+  $csldc_query_ec .= ":$ec" if defined $ec;
+  push(@{$self->{SCORES}{$csldc_query_ec}}, $score); 
 }
 
 sub print_line {
@@ -196,29 +191,150 @@ sub print_headers {
 
 sub print_lines {
   my ($self) = @_;
-  my @lines = sort {$a->{LDC_QUERY_ID} cmp $b->{LDC_QUERY_ID} || $a->{EC} cmp $b->{EC}} 
-  				grep {$_->{EC} =~ /^CS/} @{$self->{LINES}};
-  push(@lines, grep {$_->{EC} !~ /^CS/} @{$self->{LINES}});
-  foreach my $line (@lines) {
+  $self->prepare_lines();
+  $self->print_headers();
+  foreach my $line (@{$self->{LINES}}) {
     $self->print_line($line);
   }
 }
 
-package main;
-
 sub aggregate_score {
   my ($aggregates, $runid, $level, $scores) = @_;
   # Make sure the necessary aggregate structures are present
-  unless (defined $aggregates->{$runid}{$level}) {
+  unless (defined $aggregates->{$level}) {
     my $scoreset = ScoreSet->new();
     $scoreset->put('RUNID', $runid);
     $scoreset->put('EC', 'ALL-Micro');
     $scoreset->put('LEVEL', $level);
-    $aggregates->{$runid}{$level} = $scoreset;
+    $aggregates->{$level} = $scoreset;
   }
   # Aggregate this set of scores for regular slots
-  $aggregates->{$runid}{$level}->add($scores);
+  $aggregates->{$level}->add($scores);
 }
+
+sub prepare_lines {
+  my ($self) = @_;
+  my $aggregates = {};
+  foreach my $csldc_query_ec( sort keys %{$self->{SCORES}}) {
+  	my $avgscore = new Score;
+  	$avgscore->{EC} = $csldc_query_ec;
+  	foreach my $score(@{$self->{SCORES}{$csldc_query_ec}}) {
+  	  foreach my $key(keys %{$score}){
+  	  	my $value = $score->{$key};
+  	  	if($value =~ /^\d+$/ && exists $avgscore->{$key}) {
+  	  	  $avgscore->{$key} += $score->{$key};
+  		}
+  		elsif($key ne "EC"){
+  		  $avgscore->{$key} = $score->{$key}; 
+  		}
+  	  }
+  	}
+  	my $count = scalar @{$self->{SCORES}{$csldc_query_ec}};
+  	foreach my $key(keys %{$avgscore}){
+  	  $avgscore->{$key} /= $count if($avgscore->{$key} =~ /^\d+$/);
+  	}
+  	
+	&aggregate_score($aggregates, $avgscore->{RUNID}, $avgscore->{LEVEL}, $avgscore);
+	&aggregate_score($aggregates, $avgscore->{RUNID}, 'ALL', $avgscore);
+  	  	
+  	my %elements_to_print;
+  	foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+      my $text = sprintf($field->{FORMAT}, $avgscore->get($field->{NAME}));
+      $elements_to_print{$field->{NAME}} = $text;
+      $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
+  	}
+  	push(@{$self->{LINES}}, \%elements_to_print);
+  }	
+  
+  foreach my $level (sort keys %{$aggregates}) {
+    # Print the micro-averaged scores
+    my $score = $aggregates->{$level};
+  	my %elements_to_print;
+  	foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+      my $text = sprintf($field->{FORMAT}, $score->get($field->{NAME}));
+      $elements_to_print{$field->{NAME}} = $text;
+      $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
+  	}
+  	push(@{$self->{LINES}}, \%elements_to_print);
+    
+  }
+}
+
+#package ScoresPrinter2;
+#
+#my @fields_to_print = (
+##  {NAME => 'LDC_QUERY_ID',     HEADER => 'LDC_QID',  FORMAT => '%s',     JUSTIFY => 'L'},
+#  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',     JUSTIFY => 'L'},
+#  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',     JUSTIFY => 'L'},
+#  {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',     JUSTIFY => 'L'},
+#  {NAME => 'NUM_GROUND_TRUTH', HEADER => 'GT',       FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+#  {NAME => 'NUM_CORRECT',      HEADER => 'Right',    FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+#  {NAME => 'NUM_INCORRECT',    HEADER => 'Wrong',    FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+#  {NAME => 'NUM_REDUNDANT',    HEADER => 'Dup',      FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
+#  {NAME => 'PRECISION',        HEADER => 'Prec',     FORMAT => '%6.4f',  JUSTIFY => 'L'},
+#  {NAME => 'RECALL',           HEADER => 'Recall',   FORMAT => '%6.4f',  JUSTIFY => 'L'},
+#  {NAME => 'F1',               HEADER => 'F1',       FORMAT => '%6.4f',  JUSTIFY => 'L'},
+#);
+#
+#sub new {
+#  my ($class, $separator) = @_;
+#  my $self = {FIELDS_TO_PRINT => \@fields_to_print,
+#	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @fields_to_print},
+#	      HEADERS => [map {$_->{HEADER}} @fields_to_print],
+#	      LINES => [],
+#	     };
+#  $self->{SEPARATOR} = $separator if defined $separator;
+#  bless($self, $class);
+#  $self;
+#}
+#
+#sub add_score {
+#  my ($self, $score) = @_;
+#  my $ec = $score->{EC};
+#  my @components = split(/:/, $ec);
+#  my $cssf_query_id = shift(@components);
+#  my $csldc_query_id = $index{$cssf_query_id};
+#  $score->{EC} = "$csldc_query_id/". $score->{EC} if($csldc_query_id);
+#  my %elements_to_print;
+#  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+#    my $text = sprintf($field->{FORMAT}, $score->get($field->{NAME}));
+#    $elements_to_print{$field->{NAME}} = $text;
+#    $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
+#  }
+#  push(@{$self->{LINES}}, \%elements_to_print);
+#}
+#
+#sub print_line {
+#  my ($self, $line) = @_;
+#  my $separator = "";
+#  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+#    my $value = (defined $line ? $line->{$field->{NAME}} : $field->{HEADER});
+#    print $program_output $separator;
+#    my $numspaces = defined $self->{SEPARATOR} ? 0 : $self->{WIDTHS}{$field->{NAME}} - length($value);
+#    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'R' && !defined $self->{SEPARATOR};
+#    print $program_output $value;
+#    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'L' && !defined $self->{SEPARATOR};
+#    $separator = defined $self->{SEPARATOR} ? $self->{SEPARATOR} : ' ';
+#  }
+#  print $program_output "\n";
+#}
+#  
+#sub print_headers {
+#  my ($self) = @_;
+#  $self->print_line();
+#}
+#
+#sub print_lines {
+#  my ($self) = @_;
+##  my @lines = sort {$a->{LDC_QUERY_ID} cmp $b->{LDC_QUERY_ID} || $a->{EC} cmp $b->{EC}} 
+##  				grep {$_->{EC} =~ /^CS/} @{$self->{LINES}};
+##  push(@lines, grep {$_->{EC} !~ /^CS/} @{$self->{LINES}});
+#  foreach my $line (@{$self->{LINES}}) {
+#    $self->print_line($line);
+#  }
+#}
+
+package main;
 
 # Compare two equivalence class names; comparison is alphabetic for
 # the first component, and numerical for all subsequent
@@ -248,10 +364,10 @@ sub score_runid {
     foreach my $scores (sort compare_ec_names @scores) {
       $scores_printer->add_score($scores);
       # Aggregate scores along various axes
-      if ($query->{LEVEL} == 0) {
-	&aggregate_score($aggregates, $runid, $scores->{LEVEL}, $scores);
-	&aggregate_score($aggregates, $runid, 'ALL',            $scores);
-      }
+#      if ($query->{LEVEL} == 0) {
+#	&aggregate_score($aggregates, $runid, $scores->{LEVEL}, $scores);
+#	&aggregate_score($aggregates, $runid, 'ALL',            $scores);
+#      }
 ### DO NOT INCLUDE
       # FIXME
 #      &print_scores_line($scores, $query->{LEVEL} ? "  #" : "") if $query->{LEVEL} == 0 || $show_components;
@@ -269,13 +385,13 @@ my @runids = $submissions_and_assessments->get_all_runids();
 foreach my $runid (@runids) {
   my $scores_printer = &score_runid($runid, $submissions_and_assessments, $aggregates, $queries, $use_tabs);
 
-  # Only report on hops that are present in the run
-  foreach my $level (sort keys %{$aggregates->{$runid}}) {
-    # Print the micro-averaged scores
-    $scores_printer->add_score($aggregates->{$runid}{$level});
-  }
+#  # Only report on hops that are present in the run
+#  foreach my $level (sort keys %{$aggregates->{$runid}}) {
+#    # Print the micro-averaged scores
+#    $scores_printer->add_score($aggregates->{$runid}{$level});
+#  }
 
-  $scores_printer->print_headers();
+  #$scores_printer->print_headers();
   $scores_printer->print_lines();
 ### DO NOT INCLUDE
   
