@@ -13,7 +13,7 @@ use ColdStartLib;
 
 ### DO INCLUDE
 ##################################################################################### 
-# This program scores Cold Start 2014 submissions. It takes as input
+# This program scores Cold Start 2015 submissions. It takes as input
 # the evaluation queries, the appropriate assessment files, and a
 # submission file. The submission file is either a Slot Filling
 # variant submission file, or the result of applying the evaluation
@@ -26,7 +26,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.0";
+my $version = "2.1";
 
 # Filehandles for program and error output
 my $program_output;
@@ -67,6 +67,8 @@ $switches->put("error_file", "stdout");
 $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields instead of spaces");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
+$switches->addParam("index_file", "required", "Filename which contains mapping from output query name to original LDC query name");
+
 ### DO NOT INCLUDE
 # Shahzad: Which of thes switches do we want to keep?
 #$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
@@ -101,6 +103,19 @@ $error_output = $logger->get_error_output();
 my $discipline = $switches->get('discipline');
 my $use_tabs = $switches->get("tabs");
 
+# Load index file
+my $indexfile = $switches->get("index_file");
+my $input;
+my %index;
+open($input, "<:utf8", $indexfile);
+while(<$input>) {
+	chomp;
+	my ($cssf_query_id, $csldc_query_id) = split(/\t/);
+	$index{$cssf_query_id} = $csldc_query_id;
+}
+close($input);
+
+
 my @filenames = @{$switches->get("files")};
 my @queryfilenames = grep {/\.xml$/} @filenames;
 my @runfilenames = grep {!/\.xml$/} @filenames;
@@ -117,6 +132,7 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package ScoresPrinter;
 
 my @fields_to_print = (
+  {NAME => 'LDC_QUERY_ID',     HEADER => 'LDC_QID',  FORMAT => '%s',     JUSTIFY => 'L'},
   {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',     JUSTIFY => 'L'},
   {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',     JUSTIFY => 'L'},
   {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',     JUSTIFY => 'L'},
@@ -143,6 +159,12 @@ sub new {
 
 sub add_score {
   my ($self, $score) = @_;
+  my $ec = $score->{EC};
+  my @components = split(/:/, $ec);
+  my $cssf_query_id = shift(@components);
+  my $csldc_query_id = $index{$cssf_query_id};
+  $score->{LDC_QUERY_ID} = $csldc_query_id;
+  $score->{LDC_QUERY_ID} = "ALL-Micro" if not defined $score->{LDC_QUERY_ID};
   my %elements_to_print;
   foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
     my $text = sprintf($field->{FORMAT}, $score->get($field->{NAME}));
@@ -174,7 +196,10 @@ sub print_headers {
 
 sub print_lines {
   my ($self) = @_;
-  foreach my $line (@{$self->{LINES}}) {
+  my @lines = sort {$a->{LDC_QUERY_ID} cmp $b->{LDC_QUERY_ID} || $a->{EC} cmp $b->{EC}} 
+  				grep {$_->{EC} =~ /^CS/} @{$self->{LINES}};
+  push(@lines, grep {$_->{EC} !~ /^CS/} @{$self->{LINES}});
+  foreach my $line (@lines) {
     $self->print_line($line);
   }
 }
@@ -285,6 +310,7 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2.1 - Initial version of scorer for 2015
 # 2.0 - Rewrite to operate off of ground truth tree
 # 1.1 - Merged with Shahzad's pseudoslot scoring; added fuzzy match hooks
 # 1.0 - Initial version

@@ -88,7 +88,6 @@ $logger->set_error_output($error_filename);
 $error_output = $logger->get_error_output();
 
 my $queries = QuerySet->new($logger, $queryfile);
-
 my $pool = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $assessmentsfile);
 
 foreach my $entry(sort {$a->{LINENUM} <=> $b->{LINENUM}} @{$pool->{ENTRIES_BY_TYPE}{ASSESSMENT}}) {
