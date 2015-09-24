@@ -1408,7 +1408,7 @@ print STDERR "node = {", join(", ", map {"$_ => " . ($node->{$_} || 'UNDEF')} so
 	$parent_ec .= ":". join( ":", @ec_components) if @ec_components;
 	my $parent_ectree = $self->get($parent_ec);
 	$self->{LOGGER}->NIST_die("Equivalence class without correct parent entry:\n\t$assessment->{LINE}\n")
-	  unless grep {$_->{JUDGMENT} eq "CORRECT" || $_->{VALUE_EC} eq "INEXACT"} @{$parent_ectree->{ASSESSMENTS}};
+	  unless grep {$_->{JUDGMENT} eq "CORRECT" || $_->{VALUE_ASSESSMENT} eq "INEXACT"} @{$parent_ectree->{ASSESSMENTS}};
       }
     }
   }
