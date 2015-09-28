@@ -1949,8 +1949,8 @@ my %columns = (
 	$entry->{JUDGMENT} = $correctness_map{$assessment};
 	# Verify that equivalence classes are in synch with CORRECT judgments
 	$logger->NIST_die("Correct entry without equivalence class, query = $entry->{QUERY_ID}")
-	  if $entry->{JUDGMENT} eq 'CORRECT' 
-	  		&& $schema->{ASSESSMENT_CODES}{$assessment_code} eq 'INEXACT'
+	  if ($entry->{JUDGMENT} eq 'CORRECT' 
+	  		|| $schema->{ASSESSMENT_CODES}{$assessment_code} eq 'INEXACT')
 	  		&& !$entry->{VALUE_EC};
 	$logger->NIST_die("Equivalence class without correct entry, query = $entry->{QUERY_ID}")
 	  if $entry->{JUDGMENT} ne 'CORRECT'
