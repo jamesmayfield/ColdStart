@@ -39,9 +39,18 @@ my $error_output = *STDERR{IO};
 ### DO INCLUDE Switches               ColdStartLib.pm
 
 sub check_errors {
-  my ($assessment_file) = @_;
+  my ($assessment_file, $logger) = @_;
+  my %ecs;
   open(my $infile, "<:utf8", $assessment_file) or $logger->NIST_die("Could not open $assessment_file: $!");
-	
+  while(<$infile>) {
+  	chomp;
+  	my @elements = split(/\t/);
+  	my ($name, $canonical_mention_str, $ec) = map {$elements[$_]} (2,3,6);
+  	return 1 if (exists $ecs{"name\t$canonical_mention_str"} && $ecs{"name\t$canonical_mention_str"} != $ec);
+  	$ecs{"name\t$canonical_mention_str"} = $ec;
+  }
+  return 0;
+  close($infile);
 }
 
 ##################################################################################### 
@@ -137,17 +146,46 @@ elsif($hop==1) {
   	
   	my $ldc_assessed_hop0_file = "$ldc_hop0_dir/$query_id\_$slot0";
   	
-	$logger->NIST_die("Multiple equivalence class for a mention.") if(check_errors($ldc_assessed_hop0_file)==1);
+	$logger->NIST_die("Multiple equivalence class for a mention.") if(check_errors($ldc_assessed_hop0_file, $logger)==1);
   	
   	system("cp $ldc_assessed_hop0_file $query_dir/hop0_pool.csldc.assessed");
   	system("perl CS-Pooler$master.pl -batches_dir $intermediate_data_dir -hop 1 $batchid $query_id");
   	
-  	my $error_check = `cat $intermediate_data_dir/$batchid/*/hop1_pool.errlog | wc -l`;
-  	$logger->NIST_die("Errors encountered. See files $intermediate_data_dir/$batchid/*/hop1_pool.errlog for detail.") if($error_check>1); 
+  	my $error_check = `cat $intermediate_data_dir/$batchid/$query_id/hop1_pool.errlog | wc -l`;
+  	if($error_check>1) {
+  		my $errors = `cat $intermediate_data_dir/$batchid/$query_id/hop1_pool.errlog`;
+  		print $error_output $errors;
+  		$logger->NIST_die("Errors encountered while processing query $query_id"); 
+  	}
+  }
   	
-  	# Move the files over to the flat directory structure format for LDC
-  	
-  }	
+  # Create the hop1-queries.xml 
+  my $hop1_queries_file = "$ldc_batch_dir/hop1_queries.xml";
+  my $hop1_queries = `cat $intermediate_data_dir/$batchid/*/hop1_queries.xml`;
+  $hop1_queries =~ s/<\/query\_set>\n<\?xml version=\"1\.0\" encoding=\"UTF\-8\"\?>\n<query\_set>\n//gs;
+  open(my $outfile, ">:utf8", $hop1_queries_file) or $logger->NIST_die("Could not open $hop1_queries_file: $!");
+  print $outfile $hop1_queries;
+  close($outfile);
+  
+  my %query_slot;
+  while($hop1_queries =~ /<query id="(.*?)">(.*?)<\/query>/gs){
+  	my ($query_id, $body) = ($1, $2);
+  	$body =~ /<slot>(.*?)<\/slot>/;
+    my $slot = $1;
+    $slot =~ s/:/_/;
+    $query_slot{$query_id} = $slot;
+  }
+  
+  my $hop1_pool_files = `find $intermediate_data_dir/$batchid/ -type f | grep "hop1_pool.csldc"`;
+  my @files = split(/\n/, $hop1_pool_files);
+  foreach my $file(@files){
+  	my @elements = split(/\//, $file);
+	pop @elements;
+	my $query_id = pop @elements;
+	my $slot = $query_slot{$query_id};
+	$query_id =~ s/\:/_/;
+	system( "cp $file $ldc_hop1_dir/$query_id\_$slot\n" );
+  }   
 }
 else {
   $logger->NIST_die("Unexpected value \"$hop\" for hop.");
