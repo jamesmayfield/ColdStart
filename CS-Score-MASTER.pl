@@ -67,6 +67,7 @@ $switches->put("error_file", "stdout");
 $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields instead of spaces");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
+$switches->addVarSwitch('evaluation_queries', "File containing list of queryids that should be reported in the evaluation");
 $switches->addParam("index_file", "required", "Filename which contains mapping from output query name to original LDC query name");
 
 ### DO NOT INCLUDE
@@ -102,6 +103,20 @@ $error_output = $logger->get_error_output();
 
 my $discipline = $switches->get('discipline');
 my $use_tabs = $switches->get("tabs");
+
+my $evaluation_queries = $switches->get("evaluation_queries");
+my %evaluation_queries;
+
+# Load evaluation queries
+if($evaluation_queries) {
+	my $input;
+	open($input, "<:utf8", $evaluation_queries) or $logger->NIST_die("Could not open $evaluation_queries: $!");
+	while(<$input>){
+		chomp;
+		$evaluation_queries{$_}++;
+	}
+	close($input);
+}
 
 # Load index file
 my $indexfile = $switches->get("index_file");
@@ -354,6 +369,7 @@ sub score_runid {
   my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef);
   # Score each query, printing the query-by-query scores
   foreach my $query_id (sort $queries->get_all_top_level_query_ids()) {
+  	next if($evaluation_queries && not exists $evaluation_queries{$query_id});
     my $query = $queries->get($query_id);
     # Get the scores just for this query in this run
     my @scores = $submissions_and_assessments->score_query($query, $discipline, $runid);

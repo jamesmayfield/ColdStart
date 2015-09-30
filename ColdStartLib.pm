@@ -2595,6 +2595,10 @@ print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
       }
     }
 
+	## next if(not exists $queries->{$entry->{QUERY_ID}}->{SCORABLE});
+	##
+	##
+
 #	# Expand the EC from numeric to one that encodes the entire path
 #	if($entry->{TYPE} eq 'ASSESSMENT' && $entry->{VALUE_EC} ne "0"){
 #		if($entry->{QUERY}->{LEVEL} == 0){
@@ -2790,7 +2794,7 @@ sub get_ground_truth_for_submission {
   }
   return ($choices[0], $discipline) if @choices == 1;
   return unless @choices;
-  my @correct_choices = grep {$_->{VALUE_ASSESSMENT} eq 'CORRECT'} @choices;
+  my @correct_choices = grep {$_->{VALUE_ASSESSMENT} eq 'CORRECT' || $_->{VALUE_ASSESSMENT} eq 'INEXACT'} @choices;
   # If there is only one correct assessment, return it
   return ($correct_choices[0], $discipline) if @correct_choices == 1;
   # If there are no correct assessments, return any incorrect assessment
