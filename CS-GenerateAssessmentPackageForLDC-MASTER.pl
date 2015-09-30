@@ -45,7 +45,7 @@ sub check_errors {
   while(<$infile>) {
   	chomp;
   	my @elements = split(/\t/);
-  	my ($name, $canonical_mention_str, $ec) = map {$elements[$_]} (2,3,6);
+  	my ($name, $canonical_mention_str, $ec) = map {$elements[$_]} (3,4,7);
   	return 1 if (exists $ecs{"name\t$canonical_mention_str"} && $ecs{"name\t$canonical_mention_str"} != $ec);
   	$ecs{"name\t$canonical_mention_str"} = $ec;
   }
