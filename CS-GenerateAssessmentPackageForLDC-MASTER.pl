@@ -46,8 +46,10 @@ sub check_errors {
   	chomp;
   	my @elements = split(/\t/);
   	my ($name, $canonical_mention_str, $ec) = map {$elements[$_]} (3,4,7);
-  	return 1 if (exists $ecs{"name\t$canonical_mention_str"} && $ecs{"name\t$canonical_mention_str"} != $ec);
-  	$ecs{"name\t$canonical_mention_str"} = $ec;
+  	if (exists $ecs{"$name\t$canonical_mention_str"} && $ecs{"$name\t$canonical_mention_str"} != $ec){
+  		$logger->NIST_die("Multiple equivalence class for mention \"$name\t$canonical_mention_str\" in $assessment_file");
+  	}
+  	$ecs{"$name\t$canonical_mention_str"} = $ec;
   }
   return 0;
   close($infile);
@@ -146,7 +148,7 @@ elsif($hop==1) {
   	
   	my $ldc_assessed_hop0_file = "$ldc_hop0_dir/$query_id\_$slot0";
   	
-	$logger->NIST_die("Multiple equivalence class for a mention.") if(check_errors($ldc_assessed_hop0_file, $logger)==1);
+	check_errors($ldc_assessed_hop0_file, $logger);
   	
   	system("cp $ldc_assessed_hop0_file $query_dir/hop0_pool.csldc.assessed");
   	system("perl CS-Pooler$master.pl -batches_dir $intermediate_data_dir -hop 1 $batchid $query_id");
