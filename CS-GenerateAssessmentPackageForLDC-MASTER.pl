@@ -46,8 +46,10 @@ sub check_errors {
   	chomp;
   	my @elements = split(/\t/);
   	my ($name, $canonical_mention_str, $ec) = map {$elements[$_]} (3,4,7);
+  	next if($ec == 0);
   	if (exists $ecs{"$name\t$canonical_mention_str"} && $ecs{"$name\t$canonical_mention_str"} != $ec){
-  		$logger->NIST_die("Multiple equivalence class for mention \"$name\t$canonical_mention_str\" in $assessment_file");
+  		my $error_values = "$ec,".$ecs{"$name\t$canonical_mention_str"};
+  		$logger->NIST_die("Multiple equivalence classes ($error_values) for mention \"$name\t$canonical_mention_str\" in $assessment_file");
   	}
   	$ecs{"$name\t$canonical_mention_str"} = $ec;
   }
