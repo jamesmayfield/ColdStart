@@ -62,6 +62,8 @@ $switches->addVarSwitch('depth', "Specify the maximum depth for the pooled runs.
 $switches->addVarSwitch('epsilon', "Epsilon used for depth pooling where depth varies per slot");
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
+$switches->addVarSwitch('verbosity', "Specify a verbosity level. 0=>OFF 1=>ON");
+$switches->put('verbosity', '0');
 $switches->addConstantSwitch('combine', 'true', "Combine assessments from all hops (levels) of a given batch and query. The location of the output file is displayed after the action is completed.");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("batchid", "required", "The ID of the batch to which the query to be pooled belongs to.");
@@ -75,7 +77,7 @@ my $batchid = $switches->get("batchid");
 my $queryid = $switches->get("queryid");
 my $depth = $switches->get("depth");
 my $epsilon = $switches->get("epsilon");
-
+my $verbosity = $switches->get("verbosity");
 
 my $combine = $switches->get("combine");
 
@@ -90,7 +92,7 @@ if( $combine ){
 	$cmd .= "$batches_dir/$batchid/$queryid/*/*.csldc.assessed ";
 	$cmd .= "| sort > $batches_dir/$batchid/$queryid/pool.csldc.assessed";
 	
-	print "--running command: $cmd\n";
+	print "--running command: $cmd\n" if($verbosity);
 	system($cmd);
 	
 	print "Combined assessment file is stored at: $batches_dir/$batchid/$queryid/pool.csldc.assessed\n";
@@ -105,7 +107,7 @@ elsif($hop == 0) {
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index "; 
 	$cmd .= "$batches_dir/$batchid/$queryid/runs/";
 	
-	print "--running command: $cmd\n";
+	print "--running command: $cmd\n" if($verbosity);
 	system($cmd);	
 }
 elsif($hop==1) {
@@ -119,7 +121,7 @@ elsif($hop==1) {
 	$cmd .= "$batches_dir/$batchid/$queryid/hop0_pool.csldc.assessed ";
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index";
 	
-	print "--running command: $cmd\n\n";
+	print "--running command: $cmd\n\n" if($verbosity);
 	system($cmd);
 	
 	$cmd = "perl CS-Pool$master.pl ";
@@ -132,7 +134,7 @@ elsif($hop==1) {
 	$cmd .= "$batches_dir/$batchid/$queryid/queries.index ";
 	$cmd .= "$batches_dir/$batchid/$queryid/runs/";	
 
-	print "--running command: $cmd\n\n";
+	print "--running command: $cmd\n\n" if($verbosity);
 	system($cmd);
 }
 

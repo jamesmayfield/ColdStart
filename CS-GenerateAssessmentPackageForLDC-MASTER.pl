@@ -71,7 +71,7 @@ $switches->put('hop', '0');
 $switches->addVarSwitch('ldc_packages_dir', "Spefify the directory containing assessment packages for LDC.");
 $switches->put('ldc_packages_dir', 'AssessmentPackages');
 $switches->addVarSwitch('intermediate_data_dir', "Spefify the directory containing intermediate data.");
-$switches->put('intermediate_data_dir', 'Batches');
+$switches->put('intermediate_data_dir', 'IntermediateData');
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
@@ -92,7 +92,7 @@ $logger->set_error_output($error_filename);
 $error_output = $logger->get_error_output();
 
 
-# Check if the script is a MASTER script, in that case MASTER of all the dependent scripts are used.
+# Check if the script is a MASTER script, in which case MASTER of all the dependent scripts are used.
 my $master = "";
 $master = "-MASTER" if($0=~/MASTER/);
 
@@ -132,6 +132,8 @@ if($hop==0) {
   	my $destination_file = "$ldc_hop_dir/$query_id\_$slot0";
   	system("cp $query_dir/hop0_pool.csldc $destination_file");
   }
+  
+  print "\nBatch $batchid hop-0 pools created at: $ldc_hop_dir\n\n";
 }
 elsif($hop==1) {
   my $ldc_batch_dir = "$ldc_packages_dir/$batchid";
@@ -140,6 +142,8 @@ elsif($hop==1) {
   my $ldc_hop1_dir = "$ldc_batch_dir/hop_1";
   $logger->NIST_die("$ldc_hop1_dir already exists.") if(-e $ldc_hop1_dir);
   system("mkdir $ldc_hop1_dir");
+  my $hop1_queries_file = "$ldc_batch_dir/hop1_queries.xml";
+  system("rm $hop1_queries_file") if(-e $hop1_queries_file);
   # Create the hop-1 pools
   foreach my $query_id(sort keys %queryids) {
 	my $query_dir = "$intermediate_data_dir/$batchid/$query_id";
@@ -153,6 +157,14 @@ elsif($hop==1) {
 	check_errors($ldc_assessed_hop0_file, $logger);
   	
   	system("cp $ldc_assessed_hop0_file $query_dir/hop0_pool.csldc.assessed");
+  	
+  	# Remove any previous hop_1 files
+  	system("rm $query_dir/hop1_expandassessments.errlog") if(-e "$query_dir/hop1_expandassessments.errlog");
+  	system("rm $query_dir/hop1_pool.errlog") if(-e "$query_dir/hop1_pool.errlog");
+  	system("rm $query_dir/hop1_queries.xml") if(-e "$query_dir/hop1_queries.xml");
+  	system("rm -rf $query_dir/$query_id*");
+  	
+  	# Generate the pool
   	system("perl CS-Pooler$master.pl -batches_dir $intermediate_data_dir -hop 1 $batchid $query_id");
   	
   	my $error_check = `cat $intermediate_data_dir/$batchid/$query_id/hop1_pool.errlog | wc -l`;
@@ -164,7 +176,7 @@ elsif($hop==1) {
   }
   	
   # Create the hop1-queries.xml 
-  my $hop1_queries_file = "$ldc_batch_dir/hop1_queries.xml";
+  
   my $hop1_queries = `cat $intermediate_data_dir/$batchid/*/hop1_queries.xml`;
   $hop1_queries =~ s/<\/query\_set>\n<\?xml version=\"1\.0\" encoding=\"UTF\-8\"\?>\n<query\_set>\n//gs;
   open(my $outfile, ">:utf8", $hop1_queries_file) or $logger->NIST_die("Could not open $hop1_queries_file: $!");
@@ -180,6 +192,7 @@ elsif($hop==1) {
     $query_slot{$query_id} = $slot;
   }
   
+  # Move the pooled files to the LDC directory
   my $hop1_pool_files = `find $intermediate_data_dir/$batchid/ -type f | grep "hop1_pool.csldc"`;
   my @files = split(/\n/, $hop1_pool_files);
   foreach my $file(@files){
@@ -188,8 +201,9 @@ elsif($hop==1) {
 	my $query_id = pop @elements;
 	my $slot = $query_slot{$query_id};
 	$query_id =~ s/\:/_/;
-	system( "cp $file $ldc_hop1_dir/$query_id\_$slot\n" );
-  }   
+	system( "cp $file $ldc_hop1_dir/$query_id\_$slot\n" ) if($slot);
+  } 
+  print "\nBatch $batchid hop-1 pools created at: $ldc_hop1_dir\n\n";
 }
 else {
   $logger->NIST_die("Unexpected value \"$hop\" for hop.");
