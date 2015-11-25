@@ -3101,6 +3101,23 @@ sub add_boson {
 }
 ### DO INCLUDE
 
+sub get_NON_NIL_NUM_COMPONENTS {
+  my ($self) = @_;
+  my $result = 0;
+  foreach my $component (@{$self->{COMPONENTS}}) {
+  	my $num_ground_truth = $component->get("NUM_GROUND_TRUTH");
+  	next if($num_ground_truth == 0);
+    my $method = $component->can("get_NUM_COMPONENTS");
+    if ($method) {
+      $result += $method->($component);
+    }
+    else {
+      $result++;
+    }
+  }
+  $result - $self->{NUM_BOSONS};
+}
+
 sub get_NUM_COMPONENTS {
   my ($self) = @_;
   my $result = 0;
@@ -3140,6 +3157,14 @@ sub getsum {
 sub getmean {
   my ($self, $field) = @_;
   $self->getsum($field) / $self->get('NUM_COMPONENTS');
+}
+
+sub getadjustedmean {
+  my ($self, $field) = @_;
+  my $retVal = 0;
+  $retVal = $self->getsum($field) / $self->get('NON_NIL_NUM_COMPONENTS')
+		if $self->get('NON_NIL_NUM_COMPONENTS') > 0;
+  $retVal;
 }
 
 ### END INCLUDE Scoring
