@@ -75,7 +75,7 @@ sub get_queries_to_score {
   my %query_ids;
   foreach my $query_id (@query_ids) {
     unless ($queries->get($query_id)) {
-      $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id);
+      $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id, 'NO_SOURCE');
       next;
     }
     my $root = $queries->get_ancestor($query_id);
@@ -150,7 +150,7 @@ my $queries = $original_queries;
 $queries = $original_queries->expand($query_base) if $query_base;
 #print STDERR "Expanded queries\n  ", join("\n  ", $queries->get_all_query_ids()), "\n";
 
-my @queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $queries);
+my @queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $original_queries);
 
 my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, @runfilenames);
 
@@ -264,7 +264,11 @@ sub score_runid {
     my $query = $queries->get($query_id);
 #print STDERR "query is undef\n" unless defined $query;
     # Get the scores just for this query in this run
-    my @scores = $submissions_and_assessments->score_query($query, DISCIPLINE => $discipline, RUNID => $runid, COMBO => $combo, QUERY_BASE => $query_base);
+    my @scores = $submissions_and_assessments->score_query($query,
+							   DISCIPLINE => $discipline,
+							   RUNID => $runid,
+							   COMBO => $combo,
+							   QUERY_BASE => $query_base);
 ### DO NOT INCLUDE
     # # Ignore any queries that don't have at least one ground truth correct answer
     # next unless $scores->get('NUM_GROUND_TRUTH');
@@ -272,7 +276,7 @@ sub score_runid {
     foreach my $scores (sort compare_ec_names @scores) {
       $scores_printer->add_score($scores);
       # Aggregate scores along various axes
-      if ($query->{LEVEL} == 0) {
+      if ($query->get('LEVEL') == 0) {
 	&aggregate_score($aggregates, $runid, $scores->{LEVEL}, $scores);
 	&aggregate_score($aggregates, $runid, 'ALL',            $scores);
       }

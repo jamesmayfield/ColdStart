@@ -24,7 +24,9 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "4.7";
+my $version = "4.8";
+
+my $statsfile;
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -43,9 +45,7 @@ my %use_priority = (
 
 my %type2export = (
   tac => \&export_tac,
-### DO NOT INCLUDE
   edl => \&export_edl,
-### DO INCLUDE
 );
 
 my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
@@ -172,7 +172,7 @@ sub entity_typedef {
   }
   $type = lc $type;
   # Only legal types may be asserted
-  unless ($PredicateSet::legal_domain_types{$type}) {
+  unless ($PredicateSet::legal_entity_types{$type}) {
     $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_TYPE', $type, $source);
     return;
   }
@@ -212,24 +212,36 @@ sub add_assertion {
   $comment = "" unless defined $comment;
   # First, normalize all of the triple components
   my $subject_entity = $kb->intern($subject, $source);
-  return unless defined $subject_entity;
+  unless (defined $subject_entity) {
+    $kb->{STATS}{REJECTED_ASSERTIONS}{NO_SUBJECT}++;
+    return;
+  }
   $subject = $subject_entity->{NAME};
   my $subject_type = $kb->get_entity_type($subject_entity);
-  $subject_type = undef unless $PredicateSet::legal_domain_types{$subject_type};
+  $subject_type = undef unless $PredicateSet::legal_entity_types{$subject_type};
   my $object_entity;
   my $predicate = $kb->{PREDICATES}->get_predicate($verb, $subject_type, $source);
-  return unless ref $predicate;
+  unless (ref $predicate) {
+    $kb->{STATS}{REJECTED_ASSERTIONS}{NO_PREDICATE}++;
+    return;
+  }
   $verb = $predicate->get_name();
   # Record entity uses and type definitions. 'type' assertions are special-cased (as they have no object)
   if ($verb eq 'type') {
     $kb->entity_use($subject_entity, 'TYPEDEF', $source);
     $kb->entity_typedef($subject_entity, $object, 'TYPEDEF', $source);
   }
-### DO NOT INCLUDE
   elsif ($verb eq 'link') {
-    # FIXME
+    $kb->entity_use($subject_entity, 'SUBJECT', $source);
+    # This tells us nothing about the type of the entity, so don't call entity_typedef
+    unless ($object =~ /^"?(.*?):(.*?)"?$/) {
+      $kb->{LOGGER}->record_problem('ILLEGAL_LINK_SPECIFICATION', $object, $source);
+      $kb->{STATS}{REJECTED_ASSERTIONS}{BAD_PREDICATE}++;
+      return;
+    }
+    # Remove double quotes if they're present
+    $object = "$1:$2";
   }
-### DO INCLUDE
   else {
     $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->entity_typedef($subject_entity, $predicate->get_domain(), 'SUBJECT', $source);
@@ -245,7 +257,10 @@ sub add_assertion {
     }
     if (&PredicateSet::is_compatible($predicate->get_range(), \%PredicateSet::legal_entity_types)) {
       $object_entity = $kb->intern($object, $source);
-      return unless defined $object_entity;
+      unless (defined $object_entity) {
+	$kb->{STATS}{REJECTED_ASSERTIONS}{NO_OBJECT}++;
+	return;
+      }
       $object = $object_entity->{NAME};
       $kb->entity_use($object_entity, 'OBJECT', $source);
       $kb->entity_typedef($object_entity, $predicate->get_range(), 'OBJECT', $source);
@@ -255,10 +270,10 @@ sub add_assertion {
   my $is_duplicate_of;
 ### DO NOT INCLUDE
   # FIXME: There's gotta be a better way
-#  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
 #  unless ($verb eq 'link') {
+#  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type') {
 ### DO INCLUDE
-  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type') {
+  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
   existing:
     # We don't consider inferred assertions to be duplicates
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {
@@ -338,7 +353,10 @@ sub add_assertion {
   # Now we can decide how to handle the duplicate
   if ($is_duplicate_of) {
     # Make sure this isn't exactly the same assertion
-    return if $provenance->tostring() eq $is_duplicate_of->{PROVENANCE}->tostring();
+    if ($provenance->tostring() eq $is_duplicate_of->{PROVENANCE}->tostring()) {
+      $kb->{STATS}{REJECTED_ASSERTIONS}{DUPLICATE}++;
+      return;
+    }
     $kb->{LOGGER}->record_problem('DUPLICATE_ASSERTION', "$is_duplicate_of->{SOURCE}{FILENAME} line $is_duplicate_of->{SOURCE}{LINENUM}", $source);
     # Keep the duplicate with higher confidence. If the confidences are the same, keep the earlier one
     if ($confidence < $is_duplicate_of->{CONFIDENCE}) {
@@ -359,16 +377,19 @@ sub add_assertion {
     if defined $predicate && ($predicate->{NAME} eq 'mention');
   push(@{$kb->{DOCIDS}{$subject}{$verb}{$provenance->get_docid()}}, $assertion)
     if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention');
-### DO NOT INCLUDE
   if ($predicate->{NAME} eq 'link') {
-    # FIXME
     $assertion->{OBJECT} =~ /^(.*?):(.*)$/;
+    push(@{$kb->{LINKS}{$subject}{$1}}, $2);
   }
-### DO INCLUDE
   push(@{$kb->{ASSERTIONS3}{$subject}{$verb}{$object}}, $assertion);
   push(@{$kb->{ASSERTIONS2}{$subject}{$verb}}, $assertion);
   push(@{$kb->{ASSERTIONS1}{$subject}}, $assertion);
   push(@{$kb->{ASSERTIONS0}}, $assertion);
+
+  # We're definitely adding this assertion, so track assertion statistics
+  # $kb->{STATS}{NUM_ASSERTIONS}++;
+  # $kb->{STATS}{PREDICATES}{$verb || "NO_VERB"}++;
+  # $kb->{STATS}{SUBJECT_TYPE}{$subject_type || "UNDEFINED"}++;
   $assertion;
 }
 
@@ -416,6 +437,10 @@ sub get_assertions {
   return(@{$kb->{ASSERTIONS0} || []});
 }
 
+sub get_links {
+  my ($kb, $subject, $kb_target) = @_;
+  return(@{$kb->{LINKS}{$subject}{$kb_target}});
+}
 
 ##################################################################################### 
 # Error checking and inferred relations
@@ -523,6 +548,11 @@ sub check_confidence {
   my ($kb) = @_;
   foreach my $assertion ($kb->get_assertions()) {
     if (defined $assertion->{CONFIDENCE}) {
+      # Special case a confidence value of "1" to make it a warning only
+      if ($assertion->{CONFIDENCE} eq '1') {
+	$kb->{LOGGER}->record_problem('MISSING_DECIMAL_POINT', $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+	$assertion->{CONFIDENCE} = '1.0';
+      }
       unless ($assertion->{CONFIDENCE} =~ /^(?:1\.0*)$|^(?:0?\.[0-9]*[1-9][0-9]*)$/) {
 	$kb->{LOGGER}->record_problem('ILLEGAL_CONFIDENCE_VALUE', $assertion->{CONFIDENCE}, $assertion->{SOURCE});
 	$assertion->{CONFIDENCE} = '1.0';
@@ -535,9 +565,7 @@ my @do_not_check_endpoints = (
   'type',
   'mention',
   'canonical_mention',
-### DO NOT INCLUDE
   'link',
-### DO INCLUDE
 );
 
 my %do_not_check_endpoints = map {$_ => $_} @do_not_check_endpoints;
@@ -613,7 +641,60 @@ sub dump_assertions {
     print $outfile "\n";
   }
 }
+  # my $assertion = {SUBJECT => $subject,
+  # 		   VERB => $verb,
+  # 		   OBJECT => $object,
+  # 		   PRINT_STRING => "$verb($subject, $object)",
+  # 		   SUBJECT_ENTITY => $subject_entity,
+  # 		   PREDICATE => $predicate,
+  # 		   OBJECT_ENTITY => $object_entity,
+  # 		   PROVENANCE => $provenance,
+  # 		   CONFIDENCE => $confidence,
+  # 		   SOURCE => $source,
+  # 		   COMMENT => $comment};
 
+sub collect_stats {
+  my ($kb) = @_;
+  foreach my $assertion ($kb->get_assertions()) {
+    my $status = ($assertion->{OMIT_FROM_OUTPUT} ? "OMITTED" : "ASSERTED");
+    my $domain_string = $kb->get_entity_type($assertion->{SUBJECT_ENTITY});
+    $kb->{STATS}{$status}{DOMAIN}{$domain_string}++;
+    $kb->{STATS}{$status}{DOMAIN}{ALL}++;
+    my $predicate = $assertion->{VERB};
+    $predicate = "$domain_string:$predicate"
+      unless $predicate eq 'type' || $predicate eq 'mention' || $predicate eq 'canonical_mention' || $predicate eq 'link';
+    $kb->{STATS}{$status}{PREDICATE}{$predicate}++;
+    $kb->{HAS_MULTIPLE_CONFIDENCES} = 'true'
+      if defined $kb->{PREVIOUS_CONFIDENCE} && $kb->{PREVIOUS_CONFIDENCE} != $assertion->{CONFIDENCE};
+    $kb->{PREVIOUS_CONFIDENCE} = $assertion->{CONFIDENCE};
+  }
+  while (my ($name, $entity) = each %{$kb->{ENTITIES}}) {
+    my $type = $kb->get_entity_type($entity);
+    $kb->{STATS}{ENTITY}{$type}++;
+    $kb->{STATS}{ENTITY}{ALL}++;
+  }
+}
+
+sub print_hash_stats {
+  my ($header, $hash, $outfile) = @_;
+  foreach my $key (sort keys %{$hash}) {
+    my $value = $hash->{$key};
+    if (ref $value eq 'HASH') {
+      &print_hash_stats(($header ? "$header:$key" : $key), $value, $outfile);
+    }
+    else {
+      print $outfile "$header\t$key\t$value\n";
+    }
+  }
+}
+
+sub print_stats {
+  my ($kb, $outfile) = @_;
+  print $outfile "RUNID\t\t$kb->{RUNID}\n";
+#  print $outfile "FILENAME\t\t$kb->{FILENAME}\n";
+  print $outfile "HAS_MULTIPLE_CONFIDENCES\t\t", $kb->{HAS_MULTIPLE_CONFIDENCES} ? "YES" : "NO", "\n";
+  &print_hash_stats("", $kb->{STATS}, $outfile);
+}
 
 ##################################################################################### 
 # Loading and saving
@@ -632,6 +713,7 @@ sub trim {
 sub load_tac {
   my ($logger, $task, $predicates, $predicate_constraints, $filename, $docids) = @_;
   my $kb = KB->new($logger, $predicates);
+  $kb->{FILENAME} = $filename;
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $runid = <$infile>;
   chomp $runid;
@@ -670,9 +752,9 @@ sub load_tac {
     }
     my $provenance;
 ### DO NOT INCLUDE
-#    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
+#    if (lc $predicate eq 'type') {
 ### DO INCLUDE
-    if (lc $predicate eq 'type') {
+    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
       unless (@entries == 3) {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
 	next;
@@ -699,9 +781,7 @@ sub load_tac {
 sub get_assertion_priority {
   my ($name) = @_;
   return 3 if $name eq 'type';
-### DO NOT INCLUDE
   return 2 if $name eq 'link';
-### DO INCLUDE
   return 1 if $name eq 'mention' || $name eq 'canonical_mention';
   return 0;
 }
@@ -749,7 +829,6 @@ sub export_tac {
   }
 }
 
-### DO NOT INCLUDE
 # EDL 2015 format is a tab-separated file with the following columns:
 #  1. System run ID
 #  2. Mention ID
@@ -774,14 +853,13 @@ sub export_edl {
     my $predicate_string = $assertion->{PREDICATE}{NAME};
     if ($predicate_string eq 'type') {
       $entity2type{$assertion->{SUBJECT}} = $assertion->{OBJECT};
-      $entity2link{$assertion->{SUBJECT}} = $next_nilnum++ unless $entity2link{$assertion->{SUBJECT}};
+      $entity2link{$assertion->{SUBJECT}} = "NIL_" . $next_nilnum++ unless $entity2link{$assertion->{SUBJECT}};
     }
     elsif ($predicate_string eq 'link') {
-      # FIXME: Ensure only one link relation
       my $linkspec = $assertion->{OBJECT};
       # FIXME: Need to check for well-formedness in some less drastic way (and probably elsewhere)
       $linkspec =~ /^(.*?):(.*)$/ or $kb->{LOGGER}->NIST_die("Malformed link specification: $linkspec");
-      my $linkkb = uc $1;
+      my $linkkb = $1;
       my $kbid = $2;
       $entity2link{$assertion->{SUBJECT}} = $kbid if $linkkbname eq $linkkb;
     }
@@ -793,21 +871,20 @@ sub export_edl {
     next unless ref $assertion->{PREDICATE};
     my $predicate_string = $assertion->{PREDICATE}{NAME};
     my $domain_string = "";
-    next unless $predicate_string eq 'mention';
+    next unless $predicate_string eq 'mention' || $predicate_string eq 'nominal_mention';
     my $runid = $kb->{RUNID};
     my $mention_id = $next_mentionid++;
     my $mention_string = $assertion->{OBJECT};
     my $provenance = $assertion->{PROVENANCE}->tooriginalstring();
-    my $kbid = "NIL_$entity2link{$assertion->{SUBJECT}}";
+    my $kbid = $entity2link{$assertion->{SUBJECT}};
     my $entity_type = $entity2type{$assertion->{SUBJECT}};
-    my $mention_type = "NAM";
+    my $mention_type = $predicate_string eq 'mention' ? "NAM": "NOM";
     my $confidence = $assertion->{CONFIDENCE};
     print $program_output join("\t", $runid, $mention_id, $mention_string,
 			             $provenance, $kbid, $entity_type,
 			             $mention_type, $confidence), "\n";
   }
 }
-### DO INCLUDE
 
 ##################################################################################### 
 # Runtime switches and main program
@@ -819,11 +896,9 @@ my %tasks = (
   CSED => {DESCRIPTION => "Cold Start Entity Discovery variant",
 	   LEGAL_PREDICATES => [qw(type mention)],
 	  },
-### DO NOT INCLUDE
   CSEDL => {DESCRIPTION => "Cold Start Entity Discovery and Linking variant",
-	    LEGAL_PREDICATES => [qw(type mention link)],
+	    LEGAL_PREDICATES => [qw(type mention nominal_mention link)],
 	   },
-### DO INCLUDE
 );
 
 # Handle run-time switches
@@ -837,10 +912,8 @@ $switches->put('output_file', 'STDOUT');
 $switches->addVarSwitch("output", "Specify the output format. Legal formats are $output_formats." .
 		                  " Use 'none' to perform error checking with no output.");
 $switches->put("output", 'none');
-### DO NOT INCLUDE
 $switches->addVarSwitch("linkkb", "Specify which links should be used to produce KB IDs for the \"-output edl\" option. Legal values depend upon the prefixes found in the argument to 'link' relations in the KB being validated. This option has no effect unless \"-output edl\" has been specified.");
 $switches->put("linkkb", "none");
-### DO INCLUDE
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch("predicates", "File containing specification of additional predicates to allow");
@@ -855,6 +928,7 @@ $switches->addVarSwitch('ignore', "Colon-separated list of warnings to ignore. L
 			Logger->new()->get_warning_names());
 $switches->addVarSwitch('task', "Specify task to validate. Legal values are: " . join(", ", map {"$_ ($tasks{$_}{DESCRIPTION})"} sort keys %tasks) . ".");
 $switches->put('task', 'CSKB');
+$switches->addVarSwitch('stats_file', "Specify a file into which statistics about the KB being validated will be placed");
 $switches->addParam("filename", "required", "File containing input KB specification.");
 
 $switches->process(@ARGV);
@@ -893,6 +967,11 @@ else {
 
 my $logger = Logger->new(undef, $error_output);
 
+my $stats_filename = $switches->get("stats_file");
+if ($stats_filename) {
+  open($statsfile, ">:utf8", $stats_filename) or die "Could not open $stats_filename: $!";
+}
+
 my $output_mode = lc $switches->get('output');
 $logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{$output_mode} || $output_mode eq 'none';
 my $output_fn = $type2export{$output_mode};
@@ -915,9 +994,7 @@ print $error_output "WARNING: 'TAC' not included in output labels\n" unless $tac
 
 my $output_options = {
   OUTPUT_LABELS => \%output_labels,
-### DO NOT INCLUDE
   LINK_KB => uc $switches->get("linkkb"),
-### DO INCLUDE
 };
 
 # Load any additional predicate specifications
@@ -968,6 +1045,12 @@ else {
   }
 }
 
+if ($statsfile) {
+  $kb->collect_stats();
+  $kb->print_stats($statsfile);
+  close $statsfile;
+}
+
 exit 0;
 
 ################################################################################
@@ -1006,5 +1089,6 @@ exit 0;
 # 4.5 - Fixed mention checking in CSED task; made confidence = 0.0 illegal
 # 4.6 - Incorporate changes to underlying library; remove links & export_edl for the time being
 # 4.7 - Detect illegal -task specification
+# 4.8 - Added FAC and LOC as legal entity types; restored links and export_edl options; added nominal_mention links
 
 1;

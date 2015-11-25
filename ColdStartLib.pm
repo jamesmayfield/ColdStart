@@ -402,11 +402,20 @@ my $max_triples = 4;
 # representing the provenance for use in construction of a UUID
 sub tostring {
   my ($self) = @_;
-  join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
-       sort {$a->{DOCID} cmp $b->{DOCID} ||
-	     $a->{START} <=> $b->{START} ||
-	     $a->{END} cmp $b->{END}}
-       @{$self->{TRIPLES}});
+  # join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
+  #      sort {$a->{DOCID} cmp $b->{DOCID} ||
+  # 	     $a->{START} <=> $b->{START} ||
+  # 	     $a->{END} cmp $b->{END}}
+  #      @{$self->{TRIPLES}});
+### SPEEDUP
+  $self->{PROVENANCE_TOSTRING} = join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
+				      sort {$a->{DOCID} cmp $b->{DOCID} ||
+					      $a->{START} <=> $b->{START} ||
+					      $a->{END} cmp $b->{END}}
+				      @{$self->{TRIPLES}})
+    unless $self->{PROVENANCE_TOSTRING};
+### SPEEDUP
+  $self->{PROVENANCE_TOSTRING};
 }
 
 # tostring() normalizes provenance entry order; this retains the original order
@@ -525,6 +534,9 @@ sub get_num_entries {
 
 package Query;
 
+my $predicate_set;
+# $predicate_set = PredicateSet->new($logger);
+
 ### DO NOT INCLUDE
 # FIXME: We'd probably be better off using an existing SGML parser of some sort here
 ### DO INCLUDE
@@ -551,12 +563,40 @@ my %tags = (
   OFFSET =>      {ORD => 5, TYPE => 'multiple', YEARS => '2012:2013'},
 );
 
+sub parse_queryid {
+  my ($full) = @_;
+  my ($base, $query_id, $level, $expanded);
+  if (my ($prefix, $initial, $remainder) = $full =~ /^(?:(.+)_)?([0-9A-F]{10})(_[0-9A-F]{12})*$/i) {
+    $base = $prefix || "";
+    $remainder ||= "";
+    my @remainder = $remainder =~ /(_[0-9A-F]{12})/gi;
+    $level = scalar @remainder;
+    $query_id = "$initial$remainder";
+    $expanded = 'true';
+  }
+### DO NOT INCLUDE
+    # FIXME: Handle PSEUDO, etc., as used to be in &get_query_id_base
+### DO INCLUDE
+  else {
+    $base = "";
+    $level = 0;
+    $query_id = $full;
+  }
+  # FIXME: Eventually, let's completely separate base from query_id (by eliminating the following line)
+  $query_id = "${base}_$query_id" if $base;
+  ($base, $query_id, $level, $expanded);
+}
+
 sub put {
   my ($self, $fieldname, $value) = @_;
   $fieldname = uc $fieldname;
   $self->{$fieldname} = $value;
+### DO NOT INCLUDE
+  # FIXME: Can generalize to more than two levels, set LEVEL
+### DO INCLUDE
   if ($fieldname eq 'QUERY_ID') {
-    $self->{QUERY_ID_BASE} = &get_query_id_base($self->{QUERY_ID});
+    ($self->{QUERY_ID_BASE}, $self->{QUERY_ID}, $self->{LEVEL}, $self->{EXPANDED}) =
+      &Query::parse_queryid($value);
   }
   elsif ($fieldname eq 'SLOTS') {
     $self->{SLOT} = $value->[0];
@@ -573,8 +613,10 @@ sub put {
     $value =~ /^(.*?):(.*)$/;
     my $domain = $1;
     my $shortname = $2;
-    my $predicates = PredicateSet->new($self->{LOGGER});
-    my @candidates = $predicates->lookup_predicate($shortname, $domain);
+### SPEEDUP
+    $predicate_set = PredicateSet->new($self->{LOGGER}) unless $predicate_set;
+### SPEEDUP
+    my @candidates = $predicate_set->lookup_predicate($shortname, $domain);
     unless (@candidates) {
       $self->{LOGGER}->record_problem('UNKNOWN_SLOT_NAME', $value, 'NO_SOURCE');
       return;
@@ -600,42 +642,52 @@ sub put {
 
 sub get {
   my ($self, $fieldname) = @_;
+  if (uc $fieldname eq 'FULL_QUERY_ID') {
+    return $self->{QUERY_ID_BASE} ? "$self->{QUERY_ID_BASE}_$self->{QUERY_ID}" : $self->{QUERY_ID};
+  }
   $self->{uc $fieldname};
 }
-
-sub get_query_id_base {
-  my ($query_id) = @_;
-  my $result = $query_id;
-  # Remove full UUIDs (from 2014)
-  $result = $1 if $query_id =~ /^(.*?)_\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
-  $result = $1 if $query_id =~ /^(.*?)_PSEUDO/;
-  # Remove longer short uuid (from 2015)
-  $result = $1 if $query_id =~ /^(.*?)_[0-9a-f]{12}$/i;
-  # Remove short uuid (from GenerateQueries)
-  $result = $1 if $query_id =~ /^(.*?_[0-9a-f]{10})$/i;
-  $result;
-}
+### DO NOT INCLUDE
+# sub get_query_id_base {
+#   my ($query_id) = @_;
+#   my $result = $query_id;
+#   # Remove full UUIDs (from 2014)
+#   $result = $1 if $query_id =~ /^(.*?)_\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/;
+#   $result = $1 if $query_id =~ /^(.*?)_PSEUDO/;
+#   # Remove longer short uuid (from 2015)
+#   $result = $1 if $query_id =~ /^(.*?)_[0-9a-f]{12}$/i;
+#   # Remove short uuid (from GenerateQueries)
+#   $result = $1 if $query_id =~ /^(.*?_[0-9a-f]{10})$/i;
+#   $result;
+# }
+### DO INCLUDE
 
 # Calculate a hash of this query
 sub get_short_uuid {
   my ($self) = @_;
+### DO NOT INCLUDE
+  # FIXME: Don't even try to UUID an unexpanded query?
+### DO INCLUDE
   my $entrypoint = $self->get_entrypoint(0);
   my $string = "$entrypoint->{DOCID}:$entrypoint->{START}:$entrypoint->{END}:" . join(":", @{$self->{SLOTS}});
-  &main::short_uuid_generate($string);
+### DO NOT INCLUDE
+  # FIXME: Don't hard-code the length
+### DO INCLUDE
+  &main::generate_uuid_from_string($string, 10);
 }
 
-sub get_hashname {
-  my ($self) = @_;
-  my $short_uuid = $self->get_short_uuid();
-  my $query_base = $self->get('QUERY_ID_BASE');
-  "${query_base}_$short_uuid";
-}
+# sub get_hashname {
+#   my ($self) = @_;
+#   my $short_uuid = $self->get_short_uuid();
+#   my $query_base = $self->get('QUERY_ID_BASE');
+#   "${query_base}_$short_uuid";
+# }
 
-sub rename_query {
-  my ($self, $new_name) = @_;
-  $new_name = $self->get_hashname() unless defined $new_name;
-  $self->put('QUERY_ID', $new_name);
-}
+# sub rename_query {
+#   my ($self, $new_name) = @_;
+#   $new_name = $self->get_hashname() unless defined $new_name;
+#   $self->put('QUERY_ID', $new_name);
+# }
 
 sub get_entrypoint {
   my ($self, $pos) = @_;
@@ -667,9 +719,10 @@ sub add_entrypoint {
   $entrypoint{DOCID} = $provenance->{TRIPLES}[0]{DOCID} unless defined $entrypoint{DOCID};
   $entrypoint{START} = $provenance->{TRIPLES}[0]{START} unless defined $entrypoint{START};
   $entrypoint{END} = $provenance->{TRIPLES}[0]{END} unless defined $entrypoint{END};
-  $entrypoint{UUID} = &main::uuid_generate($self->{QUERY_ID},
-					   $entrypoint{NAME},
-					   $provenance->tostring())
+### DO NOT INCLUDE
+  # FIXME: Don't hard-code the 12
+### DO INCLUDE
+  $entrypoint{UUID} = &main::generate_uuid_from_values($self->{QUERY_ID}, $entrypoint{NAME}, $provenance->tostring(), 12)
     unless defined $entrypoint{UUID};
   push(@{$self->{ENTRYPOINTS}}, \%entrypoint);
   \%entrypoint;
@@ -691,7 +744,8 @@ sub duplicate {
   my $result = $class->new($self->{LOGGER});
   foreach my $key (keys %{$self}) {
     # Skip keys that are automatically generated
-    next if $key =~ /^(?:QUERY_ID_BASE|LASTSLOT|SLOT\d*|LOGGER)$/;
+#    next if $key =~ /^(?:QUERY_ID_BASE|LASTSLOT|SLOT\d*|LOGGER)$/;
+    next if $key =~ /^(?:LASTSLOT|SLOT\d*|LOGGER)$/;
     # Skip keys we were requested to skip (Note: this will not prevent automatic creation)
     next if $fields_to_omit{$key};
     $result->put($key, $self->get($key));
@@ -703,23 +757,23 @@ sub duplicate {
 # QuerySet of queries, each with a single entry point. Rename the
 # queries according to $query_base
 sub expand {
-  my ($self, $query_base, $new_queries) = @_;
-  $new_queries = QuerySet->new($self->{LOGGER}) unless defined $new_queries;
+  my ($self, $query_base, $queries) = @_;
+  $queries = QuerySet->new($self->{LOGGER}) unless defined $queries;
   my $entrypoints = $self->get("ENTRYPOINTS");
   foreach my $entrypoint (@{$entrypoints}) {
-    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS));
+    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE));
     $new_query->add_entrypoint(%{$entrypoint});
 ### DO NOT INCLUDE
 # FIXME: Why was SLOT being deleted?
 #    delete $new_query->{SLOT};
 ### DO INCLUDE
+    $new_query->put('QUERY_ID', $new_query->get_short_uuid());
     $new_query->put('QUERY_ID_BASE', $query_base);
-    $new_query->rename_query();
     $new_query->put('ORIGINAL_QUERY_ID', $self->get('QUERY_ID'));
     push(@{$self->{EXPANDED_QUERY_IDS}}, $new_query->get('QUERY_ID'));
-    $new_queries->add($new_query);
+    $queries->add($new_query);
   }
-  $new_queries;
+  $queries;
 }
 
 sub truncate_slots {
@@ -735,12 +789,18 @@ sub truncate_slots {
 # Create a follow-on query for a given reponse
 sub generate_query {
   my ($self, $value, $value_provenance) = @_;
+  $self->{LOGGER}->NIST_die("Attempt to execute method generate_query on query $self->{QUERY_ID}, which has multiple entrypoints")
+    if ($self->get_num_entrypoints() > 1);
   my $new_query = Query->new($self->{LOGGER});
   $new_query->{GENERATED} = 'true';
   # QUERY_ID
-  my $target_uuid = &main::uuid_generate($self->{QUERY_ID}, $value, $value_provenance->tostring());
-  my $new_queryid = "$self->{QUERY_ID_BASE}_$target_uuid";
-  $new_query->put('QUERY_ID', $new_queryid);
+### DO NOT INCLUDE
+  # FIXME: Don't hard-code the 12
+### DO INCLUDE
+  $new_query->put('QUERY_ID',
+		  $self->get('QUERY_ID') . "_" .
+		  &main::generate_uuid_from_values($self->{QUERY_ID}, $value, $value_provenance->tostring(), 12));
+  $new_query->put('QUERY_ID_BASE', $self->get('QUERY_ID_BASE'));
   # SLOTS, SLOTn, SLOT
   my @new_slots = @{$self->{SLOTS}};
   shift @new_slots;
@@ -771,18 +831,20 @@ sub populate_from_text {
   if ($text !~ /^\s*<query\s+id="(.*?)">\s*(.*?)\s*<\/query>\s*$/s) {
     $self->{LOGGER}->record_problem('MALFORMED_QUERY',
 				    "Query starting with \"" . substr($text, 0, 25) . "\"" .
-				    " in text beginning <<" . substr($text, 0, 25) . ">>");
+				    " in text beginning <<" . substr($text, 0, 25) . ">>",
+				    'In file $filename');
     return;
   }
   my $id = $1;
   my $body = $2;
-  $self->{QUERY_ID} = $id;
-  $self->{QUERY_ID_BASE} = &get_query_id_base($id);
+  # The Query ID is not a field, but comes from the <query> tag. So
+  # we add it to the result explicitly
+  $self->put('QUERY_ID', $id);
   my $where = {FILENAME => $self->{FILENAME}, LINENUM => "In query $id"};
 ### DO NOT INCLUDE
   # FIXME: We don't currently store LEVEL in the query file, so there's no easy way to determine LEVEL
+  # $self->{LEVEL} = 1 if $id ne $self->{QUERY_ID_BASE} && !$self->{LEVEL};
 ### DO INCLUDE
-  $self->{LEVEL} = 1 if $id ne $self->{QUERY_ID_BASE} && !$self->{LEVEL};
   my $entrypoint = {};
   # Find all tag pairs within the query
   while ($body =~ /<(.*?)>(.*?)<\/(.*?)>/gs) {
@@ -822,10 +884,6 @@ sub populate_from_text {
     }
   }
   $self->add_entrypoint(%{$entrypoint}, WHERE => $where) if keys %{$entrypoint};
-
-  # The Query ID is not a field, but comes from the <query> tag. So
-  # we add it to the result explicitly
-  $self->put('QUERY_ID', $id);
   $self;
 }
 
@@ -838,7 +896,7 @@ sub tostring {
   foreach my $field (@{$omit}) {
     $omit{$field}++;
   }
-  my $string = "$indent<query id=\"$self->{QUERY_ID}\">\n";
+  my $string = "$indent<query id=\"" . $self->get('FULL_QUERY_ID') . "\">\n";
   foreach my $field (sort {$tags{$a}{ORD} <=> $tags{$b}{ORD}}
 		     grep {$tags{$_}{TYPE} eq 'single'} keys %tags) {
     if ($field eq 'ENTRYPOINTS') {
@@ -884,12 +942,22 @@ sub tostring {
 
 package QuerySet;
 
+# QuerySets have the following fields
+#  CHILDREN ------------ Maps Query ID to list of child Queries
+#  FILENAMES ----------- List of filenames (if any) from which queries were read
+#  LOGGER -------------- Logs problems
+#  PARENTS ------------- Maps Query ID to parent Query
+#  QUERIES ------------- Maps Query ID to Query
+
 # Create a new QuerySet object
 sub new {
   my ($class, $logger, @filenames) = @_;
   my $self = {LOGGER => $logger, FILENAMES => \@filenames, QUERIES => {}};
   bless($self, $class);
   foreach my $filename (@filenames) {
+### DO NOT INCLUDE
+print STDERR "*** Populating from $filename\n";
+### DO INCLUDE
     # Slurp the entire text
     open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
     local($/);
@@ -910,6 +978,7 @@ sub populate_from_text {
   while ($text =~ /(<query .*?>.*?<\/query>)/gs) {
     my $querytext = $1;
     my $query = Query->new($self->{LOGGER}, $querytext);
+    $query->{FROM_FILE} = 'true';
 ### DO NOT INCLUDE
     # FIXME: Shahzad recommends adding the condition
     # <<&& !$query->get("LEVEL")>> for resolving queries
@@ -947,26 +1016,39 @@ sub add {
     $self->{PARENTS}{$query->{QUERY_ID}} = $parent_query;
     push(@{$self->{CHILDREN}{$parent_query->{QUERY_ID}}}, $query);
   }
+  # if ($query->{TYPE} eq 'ASSESSMENT' &&
+  #     ($query->{ASSESSMENT} eq 'CORRECT' || $entry->{ASSESSMENT} eq 'INEXACT')) {
+############################################################################################################################## FIXME
+
+  $query->expand("", $self) unless $query->{EXPANDED};
   $query;
 }
 
 sub expand {
   my ($self, $query_base) = @_;
-  my $new_query_set = QuerySet->new($self->{LOGGER});
+print STDERR "------- expand ---------\n";
   foreach my $query ($self->get_all_queries()) {
-    $query->expand($query_base, $new_query_set);
+print STDERR "     From QuerySet->expand Expanding query ", $query->get('QUERY_ID'), "\n";
+    $query->expand($query_base, $self);
   }
-  $new_query_set;
+  $self;
 }
 
 # Find the query with the provided query ID
 sub get {
   my ($self, $queryid) = @_;
+#print STDERR "get($queryid) from ", join(":", caller), "\n";
+
 ### DO NOT INCLUDE
 # FIXME: Shahzad just uses undef here
 ### DO INCLUDE
   $self->{LOGGER}->NIST_die("queryid undefined in QuerySet->get()") unless defined $queryid;
   $self->{QUERIES}{$queryid};
+}
+
+sub get_filenames {
+  my ($self) = @_;
+  @{$self->{FILENAMES}};
 }
 
 sub get_all_queries {
@@ -1640,8 +1722,8 @@ sub get_correct_submissions {
   my $correct_submissions = 0;
   my $subtree = $self->get($ec);
   foreach my $submission ( @{$subtree->{SUBMISSIONS} || []} ) {
-    $correct_submissions++ if $submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
-                              $self->is_path_correct($ec, $submission->{QUERY_ID});
+    $correct_submissions++ if $self->is_path_correct($ec, $submission->{QUERY_ID}) &&
+                              $submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT';
   }
   $correct_submissions;
 }
@@ -2129,8 +2211,10 @@ my %columns = (
       # Split the domain name from the slot name
       $entry->{SLOT_NAME} =~ /^(.*?):(.*)$/;
       my $shortname = $2;
-      my $predicates = PredicateSet->new($logger);
-      my @candidates = $predicates->lookup_predicate($shortname, $entry->{SLOT_TYPE});
+### SPEEDUP (Don't do this repeatedly)
+      $predicate_set = PredicateSet->new($logger) unless $predicate_set;
+### SPEEDUP
+      my @candidates = $predicate_set->lookup_predicate($shortname, $entry->{SLOT_TYPE});
       unless (@candidates) {
 	$logger->record_problem('UNKNOWN_SLOT_NAME', $entry->{SLOT_NAME}, $where);
 	return;
@@ -2148,8 +2232,10 @@ my %columns = (
       my ($logger, $where, $queries, $schema, $entry) = @_;
       my $query = $queries->get($entry->{QUERY_ID});
       unless ($query) {
+	# Generate the query if this is an assessment
+#&main::dump_structure($entry, 'Entry', [qw(LOGGER SCHEMA)]);
 	$logger->record_problem('UNLOADED_QUERY', $entry->{QUERY_ID}, $where);
-	$logger->NIST_die("Query $entry->{QUERY_ID} not loaded");
+	$logger->NIST_die("Query $entry->{QUERY_ID} not loaded; caller = " . join(":", caller) . "");
       }
       else {
 	$entry->{QUERY} = $query;
@@ -2176,8 +2262,12 @@ my %columns = (
     YEARS => [2014, 2015],
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
+#print STDERR "QUERY_ID generator: q&h is ", defined $entry->{QUERY_AND_HOP} ? "" : "NOT ", "defined. q&sl is ", defined $entry->{QUERY_AND_SLOT_NAME} ? "" : "NOT ", "defined. q is ", defined $entry->{QUERY} ? "" : "NOT ", "defined.\n";
       if (defined $entry->{QUERY_AND_HOP}) {
 	if ($entry->{QUERY_AND_HOP} =~ /^(.*)_PSEUDO_(\d+)$/) {
+### DO NOT INCLUDE
+	  # FIXME: Should eliminate PSEUDO
+### DO INCLUDE
 	  $entry->{QUERY_ID} = $entry->{QUERY_AND_HOP};
 	}
 	elsif ($entry->{QUERY_AND_HOP} =~ /^(.*)_(\d+)$/) {
@@ -2190,8 +2280,17 @@ my %columns = (
       }
       elsif (defined $entry->{QUERY_AND_SLOT_NAME}) {
 	$entry->{QUERY_AND_SLOT_NAME} =~ /^(.*?):(.*)$/;
-	$entry->{QUERY_ID} = $1;
 	$entry->{SLOT_NAME} = $2;
+	my $full_queryid = $1;
+### DO NOT INCLUDE
+# Eventually let's separate query_id_base from query_id completely
+	# my $query_id_num;
+	# ($entry->{QUERY_ID_BASE}, $query_id_num, $entry->{LEVEL}, $entry->{EXPANDED}) =
+	#   &Query::parse_queryid($full_queryid);
+	# $entry->{QUERY_ID} = "$entry->{QUERY_ID_BASE}_$query_id_num";
+### DO INCLUDE
+	($entry->{QUERY_ID_BASE}, $entry->{QUERY_ID}, $entry->{LEVEL}, $entry->{EXPANDED}) =
+	  &Query::parse_queryid($full_queryid);
       }
       elsif (defined $entry->{QUERY}) {
       	$entry->{QUERY_ID} = $entry->{QUERY}{QUERY_ID};
@@ -2206,7 +2305,7 @@ my %columns = (
     DESCRIPTION => "The query name stripped of any UUID (We may need to remove _PSEUDO (for 2013 queries) or a UUID (for 2014 queries) to get the base query name)",
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
-      $entry->{QUERY_ID_BASE} = &Query::get_query_id_base($entry->{QUERY_ID});
+      ($entry->{QUERY_ID_BASE}) = &Query::parse_queryid($entry->{QUERY_ID});
     },
     DEPENDENCIES => [qw(QUERY_ID)],
     REQUIRED => 'ALL',
@@ -2327,6 +2426,7 @@ my %columns = (
 	# FIXME: die here?
 ### DO INCLUDE
     	# Add the query corresponding to this entry to the set of queries
+#print STDERR "Generating target query for ", $entry->{QUERY}->get("QUERY_ID"), " with value = $entry->{VALUE} and provenance $entry->{VALUE_PROVENANCE}\n";
     	$query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
     	$queries->add($query, $entry->{QUERY});	
       }
@@ -2350,9 +2450,13 @@ my %columns = (
     DESCRIPTION => "UUID of query generated from this entry",
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
-      $entry->{TARGET_UUID} = &main::uuid_generate($entry->{QUERY_ID},
-						   $entry->{VALUE},
-						   $entry->{VALUE_PROVENANCE}->tostring());
+### DO NOT INCLUDE
+      # FIXME: Don't hard-code the 12
+### DO INCLUDE
+      $entry->{TARGET_UUID} = &main::generate_uuid_from_values($entry->{QUERY_ID},
+							       $entry->{VALUE},
+							       $entry->{VALUE_PROVENANCE}->tostring(),
+							       12);
     },
     DEPENDENCIES => [qw(QUERY_ID VALUE VALUE_PROVENANCE)],
   },
@@ -2568,6 +2672,7 @@ my %repairs = (
 # Generate a slot filler if the slot is required and does not currently have a value.
 sub generate_slot {
   my ($logger, $where, $queries, $schema, $entry, $slot) = @_;
+#print STDERR "gs($slot)\n";
   return if defined $entry->{$slot};
   my $spec = $columns{$slot};
   $logger->NIST_die("No information available for $slot column") unless defined $spec;
@@ -2582,13 +2687,18 @@ sub generate_slot {
   }
   my $generator = $spec->{GENERATOR};
   if (defined $generator) {
+#print STDERR "  calling generator for $slot\n";
     &{$generator}($logger, $where, $queries, $schema, $entry);
+#print STDERR "  DONE.\n";
   }
 }
 
 # Load an evaluation query output file or an assessment file
 sub load {
   my ($self, $logger, $queries, $filename, $schema) = @_;
+### DO NOT INCLUDE
+print STDERR ">>>>>>>>>>>>>>>>>> Loading $filename\n";
+### DO INCLUDE
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $columns = $schema->{COLUMNS};
   input_line:
@@ -2985,6 +3095,7 @@ print STDERR "score_query(", defined $original_query ? $original_query : 'undef'
     my $assessment_list = $self->{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id_base};
     my @submissions_for_query = grep {$_->{RUNID} eq $options{RUNID}} @{$self->{ENTRIES_BY_QUERY_ID_BASE}{SUBMISSION}{$query_id_base}};
     if ($options{COMBO} eq 'UNION') {
+print STDERR "UNION\n";
       # Make sure there's a single list of submissions, and a single ectree
       push(@submission_lists, []) unless @submission_lists;
       push(@{$submission_lists[0]}, @submissions_for_query);
@@ -2992,6 +3103,7 @@ print STDERR "score_query(", defined $original_query ? $original_query : 'undef'
       $ectrees[0]->add_assessments($self, @{$assessment_list});
     }
     else {
+print STDERR "non-UNION\n";
       push(@submission_lists, \@submissions_for_query);
       my $ectree = EquivalenceClassTree->new($self->{LOGGER}, $self);
       $ectree->add_assessments($self, @{$assessment_list});
@@ -3001,6 +3113,7 @@ print STDERR "score_query(", defined $original_query ? $original_query : 'undef'
   # @submission_lists now contains all the submissions to be scored,
   # and @ectrees contains a parallel set of ectrees
   $self->{LOGGER}->NIST_die("Mismatch in score_query") unless @submission_lists == @ectrees;
+print STDERR "submission_lists has ", 0 + @submission_lists, " entries\n";
   my @scores;
   foreach my $i (0..$#ectrees) {
     my $submission_list = $submission_lists[$i];
@@ -3374,9 +3487,12 @@ sub new {
   my ($class, $name, $description, @bins) = @_;
   my $self = {NAME => $name,
 	      COUNT => 0,
+	      SUM => 0,
+	      MIN => 0,
+	      MAX => 0,
 	      DESCRIPTION => $description,
-	      HISTOGRAM => Histogram->new($description, @bins),
 	     };
+  $self->{HISTOGRAM} = Histogram->new($description, @bins) if @bins;
   bless($self, $class);
   $self;
 }
@@ -3392,7 +3508,7 @@ sub add {
   $self->{SUM} += $value;
   $self->{MIN} = $value if $value < $self->{MIN};
   $self->{MAX} = $value if $value > $self->{MAX};
-  $self->{HISTOGRAM}->add($value);
+  $self->{HISTOGRAM}->add($value) if $self->{HISTOGRAM};
 }
 
 sub get_min {
@@ -3420,6 +3536,11 @@ sub get_mean {
   int(0.5 + $self->{SUM} / $self->{COUNT});
 }
 
+sub get_fractional_mean {
+  my ($self) = @_;
+  $self->{SUM} / $self->{COUNT};
+}
+
 sub get_histogram {
   my ($self) = @_;
   $self->{HISTOGRAM};
@@ -3432,11 +3553,32 @@ sub printstat {
   print "\tMin\tMean\tMax\tName\n" unless $headers_printed{$headerid}++;
   print
     "\t", $self->get_min(),
-    "\t", $self->get_mean(),
+    "\t", sprintf("%4.2f", $self->get_fractional_mean()),
     "\t", $self->get_max(),
-    "\t$self->{DESCRIPTION}",
+    "\t$headerid",
     "\n";
 }
+
+sub printcount {
+  my ($self, $headerid, $rev) = @_;
+  my $label = $self->{NAME};
+  $label = $headerid if $headerid;
+  print "$label\t" if $rev;
+  print $self->get_count();
+  print "\t$label" unless $rev;
+  print "\n";
+}
+
+sub printsum {
+  my ($self, $headerid, $rev) = @_;
+  my $label = $self->{NAME};
+  $label = $headerid if $headerid;
+  print "$label\t" if $rev;
+  print $self->get_sum();
+  print "\t$label" unless $rev;
+  print "\n";
+}
+  
 
 ### END INCLUDE Stats
 ### DO NOT INCLUDE
@@ -3594,35 +3736,50 @@ sub create_UUID_as_string {
 
 my $json = JSON->new->allow_nonref->utf8;
 
-sub uuid_generate {
-  my ($queryid, $value, $provenance_string) = @_;
+sub generate_uuid_from_values {
+  my ($queryid, $value, $provenance_string, $length) = @_;
   my $encoded_string = $json->encode("$queryid:$value:$provenance_string");
   $encoded_string =~ s/^"//;
   $encoded_string =~ s/"$//;
-### DO NOT INCLUDE
-# NOTE: this is the 2014 code, which special cased a query that had a funky character. I expect the patch is not backward compatible.  
-# # FIXME
-# my $glop = $value;
-# $glop =~ s/’/'/g;
-# #  create_UUID_as_string(UUID_V3, "$queryid:$value:$provenance_string");
-#  create_UUID_as_string(UUID_V3, "$queryid:$glop:$provenance_string");
-### DO INCLUDE
-  # We're shortening the uuid for 2015
-  my $long_uuid = create_UUID_as_string(UUID_V3, $encoded_string);
-  substr($long_uuid, -12, 12);
+  &generate_uuid_from_string($encoded_string, $length);
 }
 
-sub short_uuid_generate {
-  my ($string) = @_;
-  my $encoded_string = $json->encode($string);
-  $encoded_string =~ s/^"//;
-  $encoded_string =~ s/"$//;
-### DO NOT INCLUDE
-print STDERR "Original string = <<$string>>\n Encoded string = <<$encoded_string>>\n" unless $string eq $encoded_string;
-### DO INCLUDE
-  my $long_uuid = create_UUID_as_string(UUID_V3, $encoded_string);
-  substr($long_uuid, -10, 10);
+sub generate_uuid_from_string {
+  my ($string, $length) = @_;
+  my $long_uuid = create_UUID_as_string(UUID_V3, $string);
+  substr($long_uuid, -$length, $length);
 }
+### DO NOT INCLUDE
+# sub uuid_generate {
+#   my ($queryid, $value, $provenance_string) = @_;
+#   my $encoded_string = $json->encode("$queryid:$value:$provenance_string");
+#   $encoded_string =~ s/^"//;
+#   $encoded_string =~ s/"$//;
+# ### DO NOT INCLUDE
+# # NOTE: this is the 2014 code, which special cased a query that had a funky character. I expect the patch is not backward compatible.  
+# # # FIXME
+# # my $glop = $value;
+# # $glop =~ s/’/'/g;
+# # #  create_UUID_as_string(UUID_V3, "$queryid:$value:$provenance_string");
+# #  create_UUID_as_string(UUID_V3, "$queryid:$glop:$provenance_string");
+# ### DO INCLUDE
+#   # We're shortening the uuid for 2015
+#   my $long_uuid = create_UUID_as_string(UUID_V3, $encoded_string);
+#   substr($long_uuid, -12, 12);
+# }
+
+# sub short_uuid_generate {
+#   my ($string) = @_;
+#   my $encoded_string = $json->encode($string);
+#   $encoded_string =~ s/^"//;
+#   $encoded_string =~ s/"$//;
+# ### DO NOT INCLUDE
+# print STDERR "Original string = <<$string>>\n Encoded string = <<$encoded_string>>\n" unless $string eq $encoded_string;
+# ### DO INCLUDE
+#   my $long_uuid = create_UUID_as_string(UUID_V3, $encoded_string);
+#   substr($long_uuid, -10, 10);
+# }
+### DO INCLUDE
 
 sub min {
   my ($result, @values) = @_;

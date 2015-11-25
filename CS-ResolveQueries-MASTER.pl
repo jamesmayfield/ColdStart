@@ -107,7 +107,7 @@ package Task;
 
   sub new {
     my ($class, $query, $description, $parent) = @_;
-    my $self = {QUERY => $query, DESCRIPTION => $description, ID => $next_id++};
+    my $self = {QUERY => $query, DESCRIPTION => $description, ID => $next_id++, CLASS => $class};
     bless($self, $class);
     $self;
   }
@@ -267,6 +267,7 @@ sub execute {
     # name for the subsequent fill(s) is
     my $task = Entity2NameTask->new($self->{QUERY}, $self, $assertion->{object}, $assertion->{docid_0}, $assertion);
     $taskset->add_task($task);
+    $taskset->{STATS}{FILLS_FOUND}++;
   }
   else {
     # If this is not an entity, it is a regular slot fill; there is no
@@ -340,15 +341,6 @@ sub execute {
   }
 }
 
-# FIXME: These stats used to be above
-    # else {
-    #   $taskset->{STATS}{FILLS_FOUND}++;
-    #   $taskset->{STATS}{FINAL_ENTITY_FILLS_FOUND}++;
-    #   $taskset->{STATS}{FINAL_UNIQUE_ENTITY_FILLS_FOUND}++ unless $taskset->{DEDUP}{FINAL_UNIQUE_FILLS}{$self->{ID}}++;
-    #   $taskset->{STATS}{FINAL_TOTAL_FILLS_FOUND}++;
-    #   $taskset->{STATS}{FINAL_TOTAL_UNIQUE_FILLS_FOUND}++ unless $taskset->{DEDUP}{FINAL_UNIQUE_FILLS}{$self->{ID}}++;
-    # }
-
 ##################################################################################### 
 # TaskSet
 ##################################################################################### 
@@ -400,7 +392,8 @@ sub add_task {
   # file. Now we also index it according to the particular type of
   # task
   $task->add_to_index($self);
-  $self->{STATS}{TOTAL_TASKS}++;
+  $self->{STATS}{TASKS}{TOTAL}++;
+  $self->{STATS}{TASKS}{$task->{CLASS}}++;
 }
 
 sub get_all_entries {
@@ -687,10 +680,27 @@ sub process_runfile {
     }
   }
   close $infile;
-  print STDERR "$taskset->{RUNID}:\n";
-  foreach (sort keys %{$taskset->{STATS}}) {
-    print STDERR "\t$_ = ", $taskset->{STATS}{$_} || 0, "\n";
+  my @toprint = (
+		 {HEADER => "Entry points", FN => sub { $_[0]{ENTRYPOINTS_FOUND} }},
+		 {HEADER => "Fills", FN => sub { $_[0]{FILLS_FOUND} }},
+		 {HEADER => "String fills", FN => sub { $_[0]{FINAL_STRING_FILLS_FOUND} }},
+		 {HEADER => "ResolutionTasks", FN => sub {$_[0]{TASKS}{TOTAL} }},
+		 {HEADER => "Entity2NameTasks", FN => sub {$_[0]{TASKS}{Entity2NameTask} }},
+		 {HEADER => "FillSlotTasks", FN => sub {$_[0]{TASKS}{FillSlotTask} }},
+		 {HEADER => "FindEntrypointsTasks", FN => sub {$_[0]{TASKS}{FindEntrypointsTask} }},
+		);
+
+  foreach (@toprint) {
+    print STDERR "\t$_->{HEADER}";
   }
+  # Allow grep
+  print STDERR "\tRESOLUTION_STATISTICS\n";
+  print STDERR $taskset->{RUNID};
+  foreach (@toprint) {
+    print STDERR "\t", &{$_->{FN}}($taskset->{STATS});
+  }
+  # Allow grep
+  print STDERR "\tRESOLUTION_STATISTICS\n";
 }
 
 ##################################################################################### 

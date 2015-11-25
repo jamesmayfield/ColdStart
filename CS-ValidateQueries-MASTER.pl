@@ -9,8 +9,9 @@ binmode(STDOUT, ":utf8");
 use ColdStartLib;
 
 ### DO INCLUDE
-##################################################################################### 
-# This program converts from LDC’s original queries containing multiple entry points, 
+#####################################################################################
+# This program checks for a number of possible problems with a set of
+# queries. It then converts queries containing multiple entry points,
 # to multiple queries that can be distributed to CSSF teams.
 #
 # Author: James Mayfield
@@ -19,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.1";
+my $version = "1.2";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -203,17 +204,10 @@ sub generate_expanded_queries {
   my $new_queries = QuerySet->new($queries->{LOGGER});
 
   foreach my $query ($queries->get_all_queries()) {
-    my $entrypoints = $query->get("ENTRYPOINTS");
-    my $query_id = $query->get("QUERY_ID");
-    foreach my $entrypoint (@{$entrypoints}) {
-      my $new_query = $query->duplicate('ENTRYPOINTS');
-      $new_query->add_entrypoint(%{$entrypoint});
-      delete $new_query->{SLOT};
-      $new_query->put('QUERY_ID_BASE', $query_base);
-      $new_query->rename_query();
-      $new_queries->add($new_query);
-      print $index_file $new_query->get("QUERY_ID"), "\t$query_id\n" if defined $index_file;
-    }
+    $query->expand($query_base, $new_queries);
+  }
+  foreach my $query ($new_queries->get_all_queries()) {
+    print $index_file $query->get("QUERY_ID"), "\t", $query->get("ORIGINAL_QUERY_ID"), "\n" if defined $index_file;
   }
   $new_queries;
 }
@@ -300,5 +294,6 @@ exit 0;
 
 # 1.0 - Initial version
 # 1.1 - Added code to build index from expanded query_id to original LDC query_id
+# 1.2 - Refactored generate_expanded_queries to move expansion into ColdStartLib
 
 1;

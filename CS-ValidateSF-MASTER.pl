@@ -121,12 +121,13 @@ my $queries = QuerySet->new($logger, $queryfile);
 # FIXME: parameterize discipline
 my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $filename);
 
+print $program_output $sf_output->tostring() if defined $program_output;
+
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
 if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
-print $program_output $sf_output->tostring() if defined $program_output;
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;
 
@@ -142,6 +143,6 @@ exit 0;
 # 1.5 - Handle 2015 format changes
 # 1.6 - Incorporate updated libraries
 # 1.7 - Added switch to enable comments, defaulting to disabled
-# 1.8 - Enabled WRONG_SLOT_NAME warning
+# 1.8 - Enabled WRONG_SLOT_NAME and BAD_QUERY warnings
 
 1;
