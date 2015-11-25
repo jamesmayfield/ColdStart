@@ -1966,6 +1966,34 @@ my %schemas = (
     },
   },
 
+  '2014-2015-expanded-assessments' => {
+    YEAR => "2014:2015",
+    TYPE => 'ASSESSMENT',
+    SAMPLES => [],
+    COLUMNS => [qw(
+      ASSESSMENT_ID
+      LDC_QUERY_ID
+      QUERY_AND_SLOT_NAME
+      SUBJECT
+      SUBJECT_PROVENANCE_TRIPLE
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
+      VALUE_PROVENANCE_TRIPLES
+      VALUE_ASSESSMENT
+      PROVENANCE_ASSESSMENT
+      VALUE_EC
+    )],
+    COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
+    ASSESSMENT_CODES => {
+      C => 'CORRECT',
+      W => 'WRONG',
+      X => 'INEXACT',
+      I => 'IGNORE',
+      S => 'INEXACT_SHORT',
+      L => 'INEXACT_LONG',
+    },
+  },
+
   '2015SFsubmissions' => {
     YEAR => 2015,
     TYPE => 'SUBMISSION',
@@ -1997,6 +2025,7 @@ my $assessment_code_string = join("|", keys %all_assessment_codes);
 my $assessment_code_pattern = qr/$assessment_code_string/o;
 # Build other patterns that will be helpful in recognizing file types
 my $provenance_triples_pattern = qr/(?:[^:]+:\d+-\d+,){0,3}[^:]+:\d+-\d+/;
+my $provenance_triple_pattern = qr/[^:]+:\d+-\d+/;
 my $anything_pattern = qr/.+/;
 my $digits_pattern = qr/\d+/;
 
@@ -2114,6 +2143,11 @@ my %columns = (
     },
     DEPENDENCIES => [qw(ASSESSMENT)],
     REQUIRED => 'ASSESSMENT',
+  },
+
+  LDC_QUERY_ID => {
+    DESCRIPTION => "Name of the top-level (multi-entrypoint) query",
+    PATTERN => $anything_pattern
   },
 
   LINE => {
@@ -2395,6 +2429,14 @@ my %columns = (
     PATTERN => $assessment_code_pattern,
   },
 
+
+  SUBJECT => {
+    DESCRIPTION => "The query string",
+    YEARS => [2014, 2015],
+    PATTERN => $anything_pattern,
+  },
+
+
   SUBJECT_OFFSETS => {
     DESCRIPTION => "Provenance offsets for subject of relation",
     YEARS => [2013],
@@ -2413,6 +2455,11 @@ my %columns = (
       }
     },
     DEPENDENCIES => [qw()],
+  },
+
+  SUBJECT_PROVENANCE_TRIPLE => {
+    DESCRIPTION => "Provenance for subject of relation",
+    PATTERN => $provenance_triple_pattern,
   },
 
   TARGET_QUERY => {
