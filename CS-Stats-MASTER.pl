@@ -6,8 +6,6 @@ use strict;
 binmode(STDOUT, ":utf8");
 binmode(STDERR, ":utf8");
 
-use ColdStartLib;
-
 ##################################################################################### 
 # This program generates statistics over TAC Cold Start data files.
 #
@@ -24,6 +22,15 @@ my $version = "1.0";
 # Library inclusions
 ##################################################################################### 
 ### DO INCLUDE
+### DO INCLUDE Utils                  ColdStartLib.pm
+### DO INCLUDE Patterns               ColdStartLib.pm
+### DO INCLUDE Logger                 ColdStartLib.pm
+### DO INCLUDE Provenance             ColdStartLib.pm
+### DO INCLUDE Predicates             ColdStartLib.pm
+### DO INCLUDE Query                  ColdStartLib.pm
+### DO INCLUDE QuerySet               ColdStartLib.pm
+### DO INCLUDE EvaluationQueryOutput  ColdStartLib.pm
+### DO INCLUDE Stats                  ColdStartLib.pm
 ### DO INCLUDE Switches               ColdStartLib.pm
 
 ##################################################################################### 
