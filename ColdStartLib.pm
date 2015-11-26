@@ -2024,8 +2024,8 @@ foreach my $schema (values %schemas) {
 my $assessment_code_string = join("|", keys %all_assessment_codes);
 my $assessment_code_pattern = qr/$assessment_code_string/o;
 # Build other patterns that will be helpful in recognizing file types
-my $provenance_triples_pattern = qr/(?:[^:]+:\d+-\d+,){0,3}[^:]+:\d+-\d+/;
 my $provenance_triple_pattern = qr/[^:]+:\d+-\d+/;
+my $provenance_triples_pattern = qr/(?:[^:]+:\d+-\d+,){0,3}[^:]+:\d+-\d+/;
 my $anything_pattern = qr/.+/;
 my $digits_pattern = qr/\d+/;
 
@@ -2429,13 +2429,11 @@ my %columns = (
     PATTERN => $assessment_code_pattern,
   },
 
-
   SUBJECT => {
     DESCRIPTION => "The query string",
     YEARS => [2014, 2015],
     PATTERN => $anything_pattern,
   },
-
 
   SUBJECT_OFFSETS => {
     DESCRIPTION => "Provenance offsets for subject of relation",
@@ -2986,11 +2984,7 @@ my %matchers = (
 
 # Build a list of all the known disciplines; for documentation
 sub get_all_disciplines {
-  my $maxlen = 0;
-  foreach my $key (keys %matchers) {
-    $maxlen = main::max($maxlen, length($key));
-  }
-  join("\n", map {"  $_: " . " " x ($maxlen - length($_)) . $matchers{$_}{DESCRIPTION}} sort keys %matchers);
+  &main::build_documentation(\%matchers);
 }
 
 # Find the assessment that is appropriate for this
@@ -3072,17 +3066,13 @@ sub entry2parentec {
 ### DO INCLUDE
 
 my %combo_options = (
-  MICRO => "Micro-average scores across entrypoints",
-  MACRO => "Macro-average scores across entrypoints",
-  UNION => "Estimate performance if system took union of answers for all entrypoints",
+  MICRO => {DESCRIPTION => "Micro-average scores across entrypoints"},
+  MACRO => {DESCRIPTION => "Macro-average scores across entrypoints"},
+  UNION => {DESCRIPTION => "Estimate performance if system took union of answers for all entrypoints"},
 );
 
 sub get_combo_options_description {
-  my $maxlen = 0;
-  foreach my $key (keys %combo_options) {
-    $maxlen = main::max($maxlen, length($key));
-  }
-  join("\n", map {"  $_: " . " " x ($maxlen - length($_)) . $combo_options{$_}} sort keys %combo_options);
+  &main::build_documentation(\%combo_options);
 }
 
 # These are the keyword arguments that can be given to score_query
@@ -3101,11 +3091,7 @@ my %scoring_options = (
 
 # Build a list of all the known scoring options
 sub get_scoring_options_description {
-  my $maxlen = 0;
-  foreach my $key (keys %scoring_options) {
-    $maxlen = main::max($maxlen, length($key));
-  }
-  join("\n", map {"  $_: " . " " x ($maxlen - length($_)) . $scoring_options{$_}{DESCRIPTION}} sort keys %scoring_options);
+  &main::build_documentation(\%scoring_options);
 }
 
 # Score a query by building the equivalence class tree for that query,
@@ -3173,6 +3159,11 @@ print STDERR "submission_lists has ", 0 + @submission_lists, " entries\n";
     }
     $ectree->score($options{RUNID});
     my @subscores = $ectree->get_all_scores();
+### DO NOT INCLUDE
+    # Shahzad -- This is where we either return the entire list of result vectors (for micro averagering)
+    # or a single vector that averages the list (for macro averaging). It's probably more complicated to
+    # communicate the policy now.
+### DO INCLUDE
     if ($options{COMBO} eq 'UNION' || $options{COMBO} eq 'MICRO') {
       push(@scores, @subscores);
     }
@@ -3842,6 +3833,25 @@ sub max {
     $result = $_ if $_ > $result;
   }
   $result;
+}
+
+# Pull DOCUMENTATION strings out of a table and format for the help screen
+sub build_documentation {
+  my ($structure, $sort_key) = @_;
+  if (ref $structure eq 'HASH') {
+    my $max_len = &max(map {length} keys %{$structure});
+    "  " . join("\n  ", map {$_ . ": " . (' ' x ($max_len - length($_))) . $structure->{$_}{DESCRIPTION}}
+		sort keys %{$structure}) . "\n";
+  }
+  elsif (ref $structure eq 'ARRAY') {
+    $sort_key = 'TYPE' unless defined $sort_key;
+    my $max_len = &max(map {length($_->{$sort_key})}  @{$structure});
+    "  " . join("\n  ", map {$_->{$sort_key} . ": " . (' ' x ($max_len - length($_->{$sort_key}))) . $_->{DESCRIPTION}}
+		sort {$a->{$sort_key} cmp $b->{$sort_key}} @{$structure}) . "\n";
+  }
+  else {
+    "Internal error: Better call Saul.\n";
+  }
 }
 
 sub dump_structure {

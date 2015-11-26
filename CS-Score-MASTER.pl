@@ -26,11 +26,23 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
+### DO NOT INCLUDE
+# Shahzad: I have not upped any version numbers. We should up them all just prior to
+# the release of the new code
+### DO INCLUDE
 my $version = "2.2";
 
 # Filehandles for program and error output
 my $program_output;
 my $error_output;
+
+# The default sequence of output fields
+### DO NOT INCLUDE
+# Shahzad: I've omitted some of our agreed upon default fields just to get it working.
+# Something like the following is what we had discussed:
+#my $default_fields = "EC:GT:CORRECT:INCORRECT:INEXACT:RIGHT:WRONG:REDUNDANT:IGNORED:P:R:F";
+### DO INCLUDE
+my $default_fields = "EC:GT:CORRECT:INCORRECT:P:R:F";
 
 ### DO NOT INCLUDE
 ##################################################################################### 
@@ -49,10 +61,188 @@ my $error_output;
 ### DO INCLUDE Switches               ColdStartLib.pm
 
 ### DO NOT INCLUDE
-# Hush up perl worrywart module. Not sure this is still needed.
+# Hush up perl worrywart module. FIXME: Not sure this is still needed.
 my $pattern = $main::comment_pattern;
 
 ### DO INCLUDE
+
+package ScoresPrinter;
+
+# This package converts scoring output to printable form.
+
+### DO NOT INCLUDE
+# Shahzad: the FNs in the following need to be kept in sync with the output of
+# EvaluationQueryOutput::score_query(). Either the FIXMEs need to be replaced
+# with the appropriate field name, or if we can calculate the value from that
+# output, FN needs to do the calculation and return the appropriate string.
+### DO INCLUDE
+my %printable_fields = (
+  EC => {
+    DESCRIPTION => "Query or equivalence class name",
+    HEADER => 'QID/EC',
+    FORMAT => '%s',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{EC} },
+  },
+  RUNID => {
+    DESCRIPTION => "Run ID",
+    HEADER => 'Run ID',
+    FORMAT => '%s',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{RUNID} },
+  },
+  LEVEL => {
+    DESCRIPTION => "Hop level",
+    HEADER => 'Hop',
+    FORMAT => '%s',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{FIXME} },
+  },
+  GT => {
+    DESCRIPTION => "Number of ground truth values",
+    HEADER => 'GT',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
+    FN => sub { $_[0]{FIXME} },
+  },
+  CORRECT => {
+    DESCRIPTION => "Number of assessed correct submissions (pre-policy)",
+    HEADER => 'Right',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
+    FN => sub { $_[0]{CORRECT} },
+  },
+  INCORRECT => {
+    DESCRIPTION => "Number of assessed incorrect submissions (pre-policy)",
+    HEADER => 'Wrong',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
+    FN => sub { $_[0]{INCORRECT} },
+  },
+  INEXACT => {
+    DESCRIPTION => "Number of assessed inexact submissions (pre-policy)",
+    HEADER => 'Inexact',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
+    FN => sub { $_[0]{INEXACT} },
+  },
+  REDUNDANT => {
+    DESCRIPTION => "Number of duplicate submitted values in equivalence clase (post-policy)",
+    HEADER => 'Dup',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
+    FN => sub { $_[0]{REDUNDANT} },
+  },
+  RIGHT => {
+    DESCRIPTION => "Number of submitted values counted as right (post-policy)",
+    HEADER => 'Right',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
+    FN => sub { $_[0]{FIXME} },
+  },
+  WRONG => {
+    DESCRIPTION => "Number of submitted values counted as wrong (post-policy)",
+    HEADER => 'Wrong',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
+    FN => sub { $_[0]{FIXME} },
+  },
+  IGNORED => {
+    DESCRIPTION => "Number of submissions that were ignored (post-policy)",
+    FN => sub { $_[0]{FIXME} },
+  },
+  SUBMITTED => {
+    DESCRIPTION => "Total number of submitted entries",
+    FN => sub { $_[0]{FIXME} },
+  },
+  P => {
+    DESCRIPTION => "Precision",
+    HEADER => 'Prec',
+    FORMAT => '%6.4f',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{PRECISION} },
+  },
+  R => {
+    DESCRIPTION => "Recall",
+    HEADER => 'Recall',
+    FORMAT => '%6.4f',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{RECALL} },
+  },
+  F => {
+    DESCRIPTION => "F1 = 2PR/(P+R)",
+    HEADER => 'F1',
+    FORMAT => '%6.4f',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{F1} },
+  },
+);
+
+sub get_fields_to_print {
+  my ($spec, $logger) = @_;
+  [map {$printable_fields{$_} || $logger->NIST_die("Unknown field: $_")} split(/:/, $spec)];
+}
+
+sub new {
+  my ($class, $separator, $spec) = @_;
+  my $fields_to_print = &get_fields_to_print($spec);
+  my $self = {FIELDS_TO_PRINT => $fields_to_print,
+	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @{$fields_to_print}},
+	      HEADERS => [map {$_->{HEADER}} @{$fields_to_print}],
+	      LINES => [],
+	     };
+  $self->{SEPARATOR} = $separator if defined $separator;
+  bless($self, $class);
+  $self;
+}
+
+sub add_score {
+  my ($self, $score) = @_;
+  my %elements_to_print;
+  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+    my $value = &{$field->{FN}}($score);
+    # FIXME: Is this always the appropriate default value?
+    $value = 0 unless defined $value;
+    my $text = sprintf($field->{FORMAT}, $value);
+    $elements_to_print{$field->{NAME}} = $text;
+    $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
+  }
+  push(@{$self->{LINES}}, \%elements_to_print);
+}
+
+sub print_line {
+  my ($self, $line) = @_;
+  my $separator = "";
+  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+    my $value = (defined $line ? $line->{$field->{NAME}} : $field->{HEADER});
+    print $program_output $separator;
+    my $numspaces = defined $self->{SEPARATOR} ? 0 : $self->{WIDTHS}{$field->{NAME}} - length($value);
+    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'R' && !defined $self->{SEPARATOR};
+    print $program_output $value;
+    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'L' && !defined $self->{SEPARATOR};
+    $separator = defined $self->{SEPARATOR} ? $self->{SEPARATOR} : ' ';
+  }
+  print $program_output "\n";
+}
+  
+sub print_headers {
+  my ($self) = @_;
+  $self->print_line();
+}
+
+sub print_lines {
+  my ($self) = @_;
+  foreach my $line (@{$self->{LINES}}) {
+    $self->print_line($line);
+  }
+}
 
 # Determine which queries should be scored
 sub get_queries_to_score {
@@ -89,9 +279,12 @@ sub get_queries_to_score {
 }
 
 # Handle run-time switches
-my $switches = SwitchProcessor->new($0, "Score one or more TAC Cold Start runs",
-				    "Discipline is one of the following:\n" . EvaluationQueryOutput::get_all_disciplines() .
-				    "\nCombo is one of the following:\n" . EvaluationQueryOutput::get_combo_options_description());
+my $switches = SwitchProcessor->new($0,
+   "Score one or more TAC Cold Start runs",
+   "-discipline is one of the following:\n" . EvaluationQueryOutput::get_all_disciplines() .
+   "-combo is one of the following:\n" . EvaluationQueryOutput::get_combo_options_description() .
+   "-fields is a colon-separated list drawn from the following:\n" . &main::build_documentation(\%printable_fields) .
+   "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
 
@@ -108,6 +301,8 @@ $switches->put("combo", "MICRO");
 $switches->addVarSwitch("queries", "file (one query ID per line) or colon-separated list of query IDs to be scored " .
 			           "(if omitted, all query files in 'files' parameter will be scored)");
 $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored (if omitted, all runids will be scored)");
+$switches->addVarSwitch("fields", "Colon-separated list of output fields to print (see below for options)");
+$switches->put("fields", $default_fields);
 ### DO NOT INCLUDE
 # Shahzad: Which of thes switches do we want to keep?
 #$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
@@ -161,71 +356,6 @@ my $num_errors = $logger->get_num_errors();
 $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encountered")
   if $num_errors;
 
-package ScoresPrinter;
-
-my @fields_to_print = (
-  {NAME => 'EC',               HEADER => 'QID/EC',   FORMAT => '%s',     JUSTIFY => 'L'},
-  {NAME => 'RUNID',            HEADER => 'Run ID',   FORMAT => '%s',     JUSTIFY => 'L'},
-  {NAME => 'LEVEL',            HEADER => 'Hop',      FORMAT => '%s',     JUSTIFY => 'L'},
-  {NAME => 'NUM_GROUND_TRUTH', HEADER => 'GT',       FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
-  {NAME => 'NUM_CORRECT',      HEADER => 'Right',    FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
-  {NAME => 'NUM_INCORRECT',    HEADER => 'Wrong',    FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
-  {NAME => 'NUM_REDUNDANT',    HEADER => 'Dup',      FORMAT => '%4d',    JUSTIFY => 'R', MEAN_FORMAT => '%4.2f'},
-  {NAME => 'PRECISION',        HEADER => 'Prec',     FORMAT => '%6.4f',  JUSTIFY => 'L'},
-  {NAME => 'RECALL',           HEADER => 'Recall',   FORMAT => '%6.4f',  JUSTIFY => 'L'},
-  {NAME => 'F1',               HEADER => 'F1',       FORMAT => '%6.4f',  JUSTIFY => 'L'},
-);
-
-sub new {
-  my ($class, $separator) = @_;
-  my $self = {FIELDS_TO_PRINT => \@fields_to_print,
-	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @fields_to_print},
-	      HEADERS => [map {$_->{HEADER}} @fields_to_print],
-	      LINES => [],
-	     };
-  $self->{SEPARATOR} = $separator if defined $separator;
-  bless($self, $class);
-  $self;
-}
-
-sub add_score {
-  my ($self, $score) = @_;
-  my %elements_to_print;
-  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
-    my $text = sprintf($field->{FORMAT}, $score->get($field->{NAME}));
-    $elements_to_print{$field->{NAME}} = $text;
-    $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
-  }
-  push(@{$self->{LINES}}, \%elements_to_print);
-}
-
-sub print_line {
-  my ($self, $line) = @_;
-  my $separator = "";
-  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
-    my $value = (defined $line ? $line->{$field->{NAME}} : $field->{HEADER});
-    print $program_output $separator;
-    my $numspaces = defined $self->{SEPARATOR} ? 0 : $self->{WIDTHS}{$field->{NAME}} - length($value);
-    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'R' && !defined $self->{SEPARATOR};
-    print $program_output $value;
-    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'L' && !defined $self->{SEPARATOR};
-    $separator = defined $self->{SEPARATOR} ? $self->{SEPARATOR} : ' ';
-  }
-  print $program_output "\n";
-}
-  
-sub print_headers {
-  my ($self) = @_;
-  $self->print_line();
-}
-
-sub print_lines {
-  my ($self) = @_;
-  foreach my $line (@{$self->{LINES}}) {
-    $self->print_line($line);
-  }
-}
-
 package main;
 
 sub aggregate_score {
@@ -256,8 +386,8 @@ sub compare_ec_names {
 }
 
 sub score_runid {
-  my ($runid, $submissions_and_assessments, $aggregates, $queries, $queries_to_score, $use_tabs) = @_;
-  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef);
+  my ($runid, $submissions_and_assessments, $aggregates, $queries, $queries_to_score, $use_tabs, $spec) = @_;
+  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $spec);
   # Score each query, printing the query-by-query scores
   foreach my $query_id (sort @{$queries_to_score}) {
 #print STDERR "Processing query $query_id\n";
@@ -294,9 +424,10 @@ my $aggregates = {};
 
 my $runids = $switches->get("runids");
 my @runids = $runids ? split(/:/, $runids) : $submissions_and_assessments->get_all_runids();
+my $spec = $switches->get("fields");
 
 foreach my $runid (@runids) {
-  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $aggregates, $queries, \@queries_to_score, $use_tabs);
+  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $aggregates, $queries, \@queries_to_score, $use_tabs, $spec);
 
   # Only report on hops that are present in the run
   foreach my $level (sort keys %{$aggregates->{$runid}}) {
