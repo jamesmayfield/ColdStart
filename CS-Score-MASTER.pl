@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.2";
+my $version = "2.4";
 
 # Filehandles for program and error output
 my $program_output;
@@ -42,7 +42,10 @@ my $error_output;
 # Something like the following is what we had discussed:
 #my $default_fields = "EC:GT:CORRECT:INCORRECT:INEXACT:RIGHT:WRONG:REDUNDANT:IGNORED:P:R:F";
 ### DO INCLUDE
-my $default_fields = "EC:GT:CORRECT:INCORRECT:P:R:F";
+my $default_fields = "EC:RUNID:LEVEL:GT:SUBMITTED:CORRECT:INCORRECT:INEXACT:INCORRECT_PARENT:UNASSESSED:REDUNDANT:RIGHT:WRONG:IGNORED:P:R:F";
+my $default_right = "CORRECT";
+my $default_wrong = "INCORRECT:INCORRECT_PARENT:INEXACT:DUPLICATE:UNASSESSED";
+my $default_ignore = "";
 
 ### DO NOT INCLUDE
 ##################################################################################### 
@@ -63,7 +66,6 @@ my $default_fields = "EC:GT:CORRECT:INCORRECT:P:R:F";
 ### DO NOT INCLUDE
 # Hush up perl worrywart module. FIXME: Not sure this is still needed.
 my $pattern = $main::comment_pattern;
-
 ### DO INCLUDE
 
 package ScoresPrinter;
@@ -78,6 +80,7 @@ package ScoresPrinter;
 ### DO INCLUDE
 my %printable_fields = (
   EC => {
+  	NAME => 'EC',
     DESCRIPTION => "Query or equivalence class name",
     HEADER => 'QID/EC',
     FORMAT => '%s',
@@ -85,6 +88,7 @@ my %printable_fields = (
     FN => sub { $_[0]{EC} },
   },
   RUNID => {
+  	NAME => 'RUNID',
     DESCRIPTION => "Run ID",
     HEADER => 'Run ID',
     FORMAT => '%s',
@@ -92,96 +96,174 @@ my %printable_fields = (
     FN => sub { $_[0]{RUNID} },
   },
   LEVEL => {
+  	NAME => 'LEVEL',
     DESCRIPTION => "Hop level",
     HEADER => 'Hop',
     FORMAT => '%s',
     JUSTIFY => 'L',
-    FN => sub { $_[0]{FIXME} },
+    FN => sub { $_[0]{LEVEL} },
   },
   GT => {
+  	NAME => 'NUM_GROUND_TRUTH',
     DESCRIPTION => "Number of ground truth values",
     HEADER => 'GT',
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    FN => sub { $_[0]{FIXME} },
+    FN => sub { $_[0]{NUM_GROUND_TRUTH} },
   },
   CORRECT => {
+  	NAME => 'NUM_CORRECT_PRE_POLICY',
     DESCRIPTION => "Number of assessed correct submissions (pre-policy)",
-    HEADER => 'Right',
+    HEADER => 'Correct',
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    FN => sub { $_[0]{CORRECT} },
+    FN => sub { $_[0]{NUM_CORRECT} },
   },
   INCORRECT => {
+  	NAME => 'NUM_INCORRECT_PRE_POLICY',
     DESCRIPTION => "Number of assessed incorrect submissions (pre-policy)",
-    HEADER => 'Wrong',
+    HEADER => 'Incorrect',
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    FN => sub { $_[0]{INCORRECT} },
+    FN => sub { $_[0]{NUM_INCORRECT} },
   },
   INEXACT => {
+  	NAME => 'NUM_INEXACT_PRE_POLICY',
     DESCRIPTION => "Number of assessed inexact submissions (pre-policy)",
     HEADER => 'Inexact',
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    FN => sub { $_[0]{INEXACT} },
+    FN => sub { $_[0]{NUM_INEXACT} },
   },
   REDUNDANT => {
+  	NAME => 'NUM_REDUNDANT_POST_POLICY',
     DESCRIPTION => "Number of duplicate submitted values in equivalence clase (post-policy)",
     HEADER => 'Dup',
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    FN => sub { $_[0]{REDUNDANT} },
+    FN => sub { $_[0]{NUM_REDUNDANT} },
   },
   RIGHT => {
+  	NAME => 'NUM_CORRECT_POST_POLICY',
     DESCRIPTION => "Number of submitted values counted as right (post-policy)",
     HEADER => 'Right',
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    FN => sub { $_[0]{FIXME} },
+    FN => sub { $_[0]{NUM_RIGHT} },
   },
   WRONG => {
+  	NAME => 'NUM_INCORRECT_POST_POLICY',
     DESCRIPTION => "Number of submitted values counted as wrong (post-policy)",
     HEADER => 'Wrong',
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    FN => sub { $_[0]{FIXME} },
+    FN => sub { $_[0]{NUM_WRONG} },
   },
   IGNORED => {
+  	NAME => 'NUM_IGNORED_POST_POLICY',
+    HEADER => 'Ignored',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',
     DESCRIPTION => "Number of submissions that were ignored (post-policy)",
-    FN => sub { $_[0]{FIXME} },
+    FN => sub { $_[0]{NUM_IGNORED} },
   },
   SUBMITTED => {
+  	NAME => 'NUM_SUBMITTED',
     DESCRIPTION => "Total number of submitted entries",
-    FN => sub { $_[0]{FIXME} },
+    HEADER => 'Submitted',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',   
+    FN => sub { $_[0]{NUM_SUBMITTED} },
+  },
+  UNASSESSED => {
+  	NAME => 'NUM_UNASSESSED',
+    DESCRIPTION => "Total number of unassessed submitted entries",
+    HEADER => 'Unassessed',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',   
+    FN => sub { $_[0]{NUM_UNASSESSED} },
+  },
+  INCORRECT_PARENT => {
+  	NAME => 'INCORRECT_PARENT',
+    DESCRIPTION => "Total number of submitted entries with parents incorrect",
+    HEADER => 'PIncorrect',
+    FORMAT => '%4d',
+    JUSTIFY => 'R',
+    MEAN_FORMAT => '%4.2f',   
+    FN => sub { $_[0]{NUM_INCORRECT_PARENT} },
   },
   P => {
+  	NAME => 'PRECISION',
     DESCRIPTION => "Precision",
     HEADER => 'Prec',
     FORMAT => '%6.4f',
     JUSTIFY => 'L',
-    FN => sub { $_[0]{PRECISION} },
+    FN => sub { $_[0]->get('PRECISION') },
   },
   R => {
+  	NAME => 'RECALL',
     DESCRIPTION => "Recall",
     HEADER => 'Recall',
     FORMAT => '%6.4f',
     JUSTIFY => 'L',
-    FN => sub { $_[0]{RECALL} },
+    FN => sub { $_[0]->get('RECALL') },
   },
   F => {
+  	NAME => 'F1',
     DESCRIPTION => "F1 = 2PR/(P+R)",
     HEADER => 'F1',
     FORMAT => '%6.4f',
     JUSTIFY => 'L',
-    FN => sub { $_[0]{F1} },
+    FN => sub { $_[0]->get('F1') },
+  },
+);
+
+my %policy_options = (
+  CORRECT => {
+  	NAME => 'CORRECT',
+    DESCRIPTION => "Number of assessed correct submissions. Legal choice for -right.",
+    VALUE_MAP => 'NUM_CORRECT',
+    CHOICES => [qw(RIGHT)],
+  },
+  DUPLICATE=> {
+  	NAME => 'DUPLICATE',
+    DESCRIPTION => "Number of duplicate submissions. Legal choice for -right, -wrong and -ignore.",
+    VALUE_MAP => 'NUM_IGNORED',
+    CHOICES => [qw(RIGHT WRONG IGNORE)],
+  },
+  INCORRECT => {
+  	NAME => 'INCORRECT',
+    DESCRIPTION => "Number of assessed incorrect submissions. Legal choice for -wrong.",
+    VALUE_MAP => 'NUM_INCORRECT',
+    CHOICES => [qw(WRONG)],
+  },
+  INCORRECT_PARENT => {
+  	NAME => 'INCORRECT_PARENT',
+    DESCRIPTION => "Number of submissions that had incrorrect (grand-)parent. Legal choice for -wrong and -ignore.",
+    VALUE_MAP => 'NUM_INCORRECT_PARENT',
+    CHOICES => [qw(WRONG IGNORE)],
+  },
+  INEXACT => {
+  	NAME => 'INEXACT',
+    DESCRIPTION => "Number of assessed inexact submissions. Legal choice for -right, -wrong and -ignore.",
+    VALUE_MAP => 'NUM_INEXACT',
+    CHOICES => [qw(RIGHT WRONG IGNORE)],
+  },
+  UNASSESSED=> {
+  	NAME => 'UNASSESSED',
+    DESCRIPTION => "Number of unassessed submissions. Legal choice for -wrong and -ignore.",
+    VALUE_MAP => 'NUM_UNASSESSED',
+    CHOICES => [qw(WRONG IGNORE)],
   },
 );
 
@@ -191,8 +273,8 @@ sub get_fields_to_print {
 }
 
 sub new {
-  my ($class, $separator, $spec) = @_;
-  my $fields_to_print = &get_fields_to_print($spec);
+  my ($class, $separator, $spec, $logger) = @_;
+  my $fields_to_print = &get_fields_to_print($spec, $logger);
   my $self = {FIELDS_TO_PRINT => $fields_to_print,
 	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @{$fields_to_print}},
 	      HEADERS => [map {$_->{HEADER}} @{$fields_to_print}],
@@ -215,6 +297,8 @@ sub add_score {
     $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
   }
   push(@{$self->{LINES}}, \%elements_to_print);
+  $self->{CATEGORIZED_SUBMISSIONS}{$score->{EC}} = $score->{CATEGORIZED_SUBMISSIONS}
+  	if($score->{CATEGORIZED_SUBMISSIONS});
 }
 
 sub print_line {
@@ -244,6 +328,44 @@ sub print_lines {
   }
 }
 
+sub print_details {
+  my ($self) = @_;
+  foreach my $ec (sort keys %{$self->{CATEGORIZED_SUBMISSIONS}}) {
+  	my %summary;
+  	foreach my $label(grep {$_ ne "SUBMITTED"} keys %{$self->{CATEGORIZED_SUBMISSIONS}{$ec}}) {
+  		foreach my $submission(@{$self->{CATEGORIZED_SUBMISSIONS}{$ec}{$label}}) {
+  			my $assessment = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{ASSESSMENT} : "UNASSESSED";
+  			my $assessment_line = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{LINE} : "-";
+  			if($assessment ne $label) {
+	  			my $postpolicy_assessment = $label;
+	  			unless ($summary{$submission->{LINENUM}}) {
+		  			$summary{$submission->{LINENUM}} = {
+		  						LINE => $submission->{LINE},
+		  						ASSESSMENT_LINE => $assessment_line,
+		  						PREPOLICY_ASSESSMENT => $assessment,
+		  						POSTPOLICY_ASSESSMENT => [$label] ,
+		  					};
+	  			}
+	  			else {
+	  				push (@{$summary{$submission->{LINENUM}}{POSTPOLICY_ASSESSMENT}}, $label);
+	  			}
+  			}
+  		}
+  	}
+		
+		print "="x80, "\n";
+		print "$ec\n";
+		
+		foreach my $line_num(sort {$a<=>$b} keys %summary) {
+			print "\tSUBMISSION:\t", $summary{$line_num}{LINE}, "\n";
+			print "\tASSESSMENT:\t", $summary{$line_num}{ASSESSMENT_LINE}, "\n\n";
+			print "\tPREPOLICY ASSESSMENT:\t", $summary{$line_num}{PREPOLICY_ASSESSMENT}, "\n";
+			print "\tPOSTPOLICY ASSESSMENT:\t", join(",", sort @{$summary{$line_num}{POSTPOLICY_ASSESSMENT}}), "\n";
+			print "."x80, "\n";
+		}
+  }
+}
+
 # Determine which queries should be scored
 sub get_queries_to_score {
   my ($logger, $spec, $queries) = @_;
@@ -263,13 +385,14 @@ sub get_queries_to_score {
     @query_ids = split(/:/, $spec);
   }
   my %query_ids;
-  foreach my $query_id (@query_ids) {
+  foreach my $full_query_id (@query_ids) {
+  	my ($base, $query_id) = &Query::parse_queryid($full_query_id);
     unless ($queries->get($query_id)) {
       $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id, 'NO_SOURCE');
       next;
     }
     my $root = $queries->get_ancestor($query_id);
-    $query_ids{$root->get("QUERY_ID")}++;
+    $query_ids{$root->get("QUERY_ID")}++ unless @{$root->get("EXPANDED_QUERY_IDS")};
     # If we've requested an unexpanded query ID, we need to add each of the expanded queries
     foreach my $expanded_query_id (@{$root->get("EXPANDED_QUERY_IDS")}) {
       $query_ids{$expanded_query_id}++;
@@ -282,8 +405,15 @@ sub get_queries_to_score {
 my $switches = SwitchProcessor->new($0,
    "Score one or more TAC Cold Start runs",
    "-discipline is one of the following:\n" . EvaluationQueryOutput::get_all_disciplines() .
-   "-combo is one of the following:\n" . EvaluationQueryOutput::get_combo_options_description() .
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#   "-combo is one of the following:\n" . EvaluationQueryOutput::get_combo_options_description() .
+#
+### DO INCLUDE
    "-fields is a colon-separated list drawn from the following:\n" . &main::build_documentation(\%printable_fields) .
+   "policy options are a colon-separated list drawn from the following:\n" . &main::build_documentation(\%policy_options) .
    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
@@ -293,16 +423,31 @@ $switches->put('output_file', 'stdout');
 $switches->addVarSwitch("error_file", "Where should error output be sent? (filename, stdout or stderr)");
 $switches->put("error_file", "stderr");
 $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields instead of spaces (useful for export to spreadsheet)");
+$switches->addConstantSwitch("verbose", "true", "Print verbose output");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
 $switches->addVarSwitch("expand", "Expand multi-entrypoint queries, using string provided as base for expanded query names");
-$switches->addVarSwitch("combo", "How scores should be combined (see below for options)");
-$switches->put("combo", "MICRO");
+### DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#$switches->addVarSwitch("combo", "How scores should be combined (see below for options)");
+#$switches->put("combo", "MICRO");
+#
+### DO INCLUDE
+
 $switches->addVarSwitch("queries", "file (one query ID per line) or colon-separated list of query IDs to be scored " .
 			           "(if omitted, all query files in 'files' parameter will be scored)");
 $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored (if omitted, all runids will be scored)");
+$switches->addVarSwitch("right", "Colon-separated list of assessment codes, submitted value corresponding to which to be counted as right (post-policy) (see policy options below for legal choices)");
+$switches->put("right", $default_right);
+$switches->addVarSwitch("wrong", "Colon-separated list of assessment codes, submitted value corresponding to which to be counted as wrong (post-policy) (see policy options below for legal choices)");
+$switches->put("wrong", $default_wrong);
+$switches->addVarSwitch("ignore", "Colon-separated list of assessment codes, submitted value corresponding to which to be ignored (post-policy) (see policy options below for legal choices)");
+$switches->put("ignore", $default_ignore);
 $switches->addVarSwitch("fields", "Colon-separated list of output fields to print (see below for options)");
 $switches->put("fields", $default_fields);
+$switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 ### DO NOT INCLUDE
 # Shahzad: Which of thes switches do we want to keep?
 #$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
@@ -333,8 +478,29 @@ $error_output = $logger->get_error_output();
 
 my $discipline = $switches->get('discipline');
 my $use_tabs = $switches->get("tabs");
-my $combo = $switches->get('combo');
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#my $combo = $switches->get('combo');
+#
+### DO INCLUDE
 my $query_base = $switches->get('expand');
+my $verbose = $switches->get('verbose');
+my %policy_selected = (
+  RIGHT => $switches->get('right'),
+  WRONG => $switches->get('wrong'),
+  IGNORE => $switches->get('ignore'),
+);
+
+# Validate selected policy options
+foreach my $option(sort keys %policy_selected) {
+  my @choices = split(":", $policy_selected{$option});
+  foreach my $choice(@choices) {
+  	$logger->NIST_die("Unexpected choice $choice for $option")
+  	  if(!grep {$_ eq $option} @{$policy_options{$choice}{CHOICES}});
+  }
+}
 
 my @filenames = @{$switches->get("files")};
 my @queryfilenames = grep {/\.xml$/} @filenames;
@@ -386,18 +552,24 @@ sub compare_ec_names {
 }
 
 sub score_runid {
-  my ($runid, $submissions_and_assessments, $aggregates, $queries, $queries_to_score, $use_tabs, $spec) = @_;
-  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $spec);
+  my ($runid, $submissions_and_assessments, $aggregates, $queries, $queries_to_score, $use_tabs, $spec, $policy_options, $policy_selected, $logger) = @_;
+  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $spec, $logger);
   # Score each query, printing the query-by-query scores
   foreach my $query_id (sort @{$queries_to_score}) {
 #print STDERR "Processing query $query_id\n";
     my $query = $queries->get($query_id);
 #print STDERR "query is undef\n" unless defined $query;
     # Get the scores just for this query in this run
-    my @scores = $submissions_and_assessments->score_query($query,
+    my @scores = $submissions_and_assessments->score_query($query, $policy_options, $policy_selected,
 							   DISCIPLINE => $discipline,
 							   RUNID => $runid,
-							   COMBO => $combo,
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#							   COMBO => $combo,
+#
+### DO INCLUDE
 							   QUERY_BASE => $query_base);
 ### DO NOT INCLUDE
     # # Ignore any queries that don't have at least one ground truth correct answer
@@ -427,14 +599,15 @@ my @runids = $runids ? split(/:/, $runids) : $submissions_and_assessments->get_a
 my $spec = $switches->get("fields");
 
 foreach my $runid (@runids) {
-  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $aggregates, $queries, \@queries_to_score, $use_tabs, $spec);
+  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $aggregates, $queries, \@queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
 
   # Only report on hops that are present in the run
   foreach my $level (sort keys %{$aggregates->{$runid}}) {
     # Print the micro-averaged scores
     $scores_printer->add_score($aggregates->{$runid}{$level});
   }
-
+  
+  $scores_printer->print_details() if $verbose;
   $scores_printer->print_headers();
   $scores_printer->print_lines();
 ### DO NOT INCLUDE
@@ -470,6 +643,15 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2.4 - Added support for specifying policy (-right, -wrong, and -ignore)
+#     - Removed -combo because this is not needed and all variant should be 
+#       reported as part of the output, presently only CSSF-Micro being reported
+#     - queryid and full_queryid have been separated
+#     - Verbose output can be seen using -verbose
+#     - cleanup 
+# 2.3.1 - Fixed a bug that gave a warning when hop-1 answers were not assessed 
+#         because the parent was incorrect. The scores remain unchanged.
+# 2.3 - small modifications to implement SPEEDUP
 # 2.2 - Added -queries switch
 # 2.1j - Added -combo
 # 2.0 - Rewrite to operate off of ground truth tree
