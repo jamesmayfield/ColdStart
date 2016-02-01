@@ -793,7 +793,7 @@ sub expand {
     $new_query->put('PREFIX', $query_base);
     $new_query->put('ORIGINAL_QUERY_ID', $self->get('QUERY_ID'));
     push(@{$self->{EXPANDED_QUERY_IDS}}, $new_query->get('QUERY_ID'));
-    $new_query->{EXPANDED} = 'true';
+    $new_query->{EXPANDED} = 'false';
     $queries->add($new_query);
   }
   $self->{EXPANDED} = 'true';
@@ -1081,14 +1081,42 @@ sub get_all_queries {
   values %{$self->{QUERIES}};
 }
 
+sub get_original_query_ids {
+  my ($self) = @_;
+  grep {$self->{QUERIES}{$_}{"EXPANDED"} eq "true"} sort keys %{$self->{QUERIES}};
+}
+
+sub get_expanded_query_ids {
+  my ($self) = @_;
+  grep {$self->{QUERIES}{$_}{"EXPANDED"} eq "false"} sort keys %{$self->{QUERIES}};
+}
+
+sub get_index {
+  my ($self) = @_;
+  my %index;
+  my @original_query_ids = $self->get_original_query_ids();
+  foreach my $original_query_id (@original_query_ids) {
+  	foreach my $expanded_query_id (@{$self->{QUERIES}{$original_query_id}{"EXPANDED_QUERY_IDS"}}) {
+  	  $index{$expanded_query_id} = $original_query_id;
+  	}
+  }
+  %index;
+}
+
+
 sub get_all_query_ids {
   my ($self) = @_;
-  keys %{$self->{QUERIES}};
+  sort keys %{$self->{QUERIES}};
 }
 
 sub get_all_top_level_query_ids {
   my ($self) = @_;
   grep {!$self->get_parent_id($_)} $self->get_all_query_ids();
+}
+
+sub get_full_queryid {
+  my ($self, $queryid) = @_;
+  $self->get($queryid)->get_full_queryid();
 }
 
 sub get_parent_id {
@@ -3541,13 +3569,26 @@ use parent -norequire, 'Scorable';
 
 sub new {
   my ($class) = @_;
-  my $self = {NUM_CORRECT => 0,
-	      NUM_INCORRECT => 0,
-	      NUM_REDUNDANT => 0,
+  my $self = {NUM_RIGHT => 0,
+	      NUM_IGNORED => 0,
+	      NUM_SUBMITTED => 0,
 	      NUM_GROUND_TRUTH => 0,
 	     };
   bless($self, $class);
   $self;
+}
+
+sub duplicate {
+  my ($self, @fields_to_omit) = @_;
+  my %fields_to_omit = map {$_ => 'true'} @fields_to_omit;
+  my $class = ref $self;
+  my $result = $class->new($self->{LOGGER});
+  foreach my $key (keys %{$self}) {
+    # Skip keys we were requested to skip (Note: this will not prevent automatic creation)
+    next if $fields_to_omit{$key};
+    $result->put($key, $self->get($key));
+  }
+  $result;
 }
 
 sub increment {
@@ -3556,10 +3597,10 @@ sub increment {
   $self->{$field} += $value;
 }
 
-sub get_NUM_INCORRECT {
-  my ($self) = @_;
-  $self->get('NUM_WRONG') + $self->get('NUM_REDUNDANT');
-}
+#sub get_NUM_INCORRECT {
+#  my ($self) = @_;
+#  $self->get('NUM_WRONG') + $self->get('NUM_REDUNDANT');
+#}
 
 package ScoreSet;
 
