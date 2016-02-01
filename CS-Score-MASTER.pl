@@ -291,7 +291,7 @@ sub get_fields_to_print {
 }
 
 sub new {
-  my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $logger) = @_;
+  my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $verbose, $logger) = @_;
   my $fields_to_print = &get_fields_to_print($spec, $logger);
   my $ldc_mean_spec = "EC:RUNID:LEVEL:F";
   my $ldc_mean_fields_to_print = &get_fields_to_print($ldc_mean_spec, $logger);
@@ -304,6 +304,7 @@ sub new {
 	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @{$fields_to_print}},
 	      HEADERS => [map {$_->{HEADER}} @{$fields_to_print}],
 	      LINES => [],
+	      VERBOSE => $verbose,
 	     };
   $self->{SEPARATOR} = $separator if defined $separator;
   bless($self, $class);
@@ -355,8 +356,8 @@ sub get_line {
     $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
   }
 #  push(@{$self->{LINES}}, \%line);
-#  $self->{CATEGORIZED_SUBMISSIONS}{$score->{EC}} = $score->{CATEGORIZED_SUBMISSIONS}
-#  	if($score->{CATEGORIZED_SUBMISSIONS});
+  $self->{CATEGORIZED_SUBMISSIONS}{$score->{EC}} = $score->{CATEGORIZED_SUBMISSIONS}
+  	if($score->{CATEGORIZED_SUBMISSIONS});
   %line;
 }
 
@@ -577,7 +578,7 @@ sub print_headers {
 }
 
 sub print_lines {
-  my ($self, $verbose) = @_;
+  my ($self) = @_;
   foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
   	my $description = $metrices{$metric}{DESCRIPTION};
   	print $program_output "$description\n\n";
@@ -585,7 +586,7 @@ sub print_lines {
   	$fields_to_print = $self->{LDC_MEAN_FIELDS_TO_PRINT} 
   		if $metric eq "LDCMEAN"; 
 	$self->prepare_lines($metric);
-	$self->print_details() if $verbose;
+	$self->print_details() if $self->{VERBOSE} && $metric eq "SF";
 	$self->print_headers($fields_to_print) if @{$self->{LINES}};
 	foreach my $line (@{$self->{LINES}}) {
 	  $self->print_line($line, $fields_to_print);
@@ -620,15 +621,15 @@ sub print_details {
   		}
   	}
 		
-	print "="x80, "\n";
-	print "$ec\n";
+	print $program_output "="x80, "\n";
+	print $program_output "$ec\n";
 	
 	foreach my $line_num(sort {$a<=>$b} keys %summary) {
-		print "\tSUBMISSION:\t", $summary{$line_num}{LINE}, "\n";
-		print "\tASSESSMENT:\t", $summary{$line_num}{ASSESSMENT_LINE}, "\n\n";
-		print "\tPREPOLICY ASSESSMENT:\t", $summary{$line_num}{PREPOLICY_ASSESSMENT}, "\n";
-		print "\tPOSTPOLICY ASSESSMENT:\t", join(",", sort @{$summary{$line_num}{POSTPOLICY_ASSESSMENT}}), "\n";
-		print "."x80, "\n";
+		print $program_output "\tSUBMISSION:\t", $summary{$line_num}{LINE}, "\n";
+		print $program_output "\tASSESSMENT:\t", $summary{$line_num}{ASSESSMENT_LINE}, "\n\n";
+		print $program_output "\tPREPOLICY ASSESSMENT:\t", $summary{$line_num}{PREPOLICY_ASSESSMENT}, "\n";
+		print $program_output "\tPOSTPOLICY ASSESSMENT:\t", join(",", sort @{$summary{$line_num}{POSTPOLICY_ASSESSMENT}}), "\n";
+		print $program_output "."x80, "\n";
 	}
   }
 }
@@ -795,8 +796,8 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package main;
 
 sub score_runid {
-  my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $policy_options, $policy_selected, $logger) = @_;
-  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, $spec, $logger);
+  my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $verbose, $policy_options, $policy_selected, $logger) = @_;
+  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, $spec, $verbose, $logger);
   # Score each query, printing the query-by-query scores
   foreach my $query_id (sort @{$queries_to_score}) {
 #print STDERR "Processing query $query_id\n";
@@ -818,7 +819,7 @@ my @runids = $runids ? split(/:/, $runids) : $submissions_and_assessments->get_a
 my $spec = $switches->get("fields");
 
 foreach my $runid (@runids) {
-  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \@queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
+  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \@queries_to_score, $use_tabs, $spec, $verbose, \%policy_options, \%policy_selected, $logger);
   $scores_printer->print_lines();
 }
 
