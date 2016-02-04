@@ -270,16 +270,19 @@ my %policy_options = (
 my %metrices = (
   SF => {
   	ORDER => 1,
+  	NAME => "SF",
   	DESCRIPTION => "SF: Slot-filling score variant considering all entrypoints as a separate query",
   	AGGREGATES => [qw(MICRO MACRO)],
   },
   LDCMAX => {
   	ORDER => 2,
+  	NAME => "LDC-MAX",
   	DESCRIPTION => "LDC-MAX: LDC level score variant considering the run's best entrypoint per LDC query",
   	AGGREGATES => [qw(MICRO MACRO)],
   },
   LDCMEAN => {
   	ORDER => 3,
+  	NAME => "LDC-MEAN",
   	DESCRIPTION => "LDC-MEAN: LDC level score variant considering averaging scores for all coressponding entrypoints",
   	AGGREGATES => [qw(MACRO)],
   },
@@ -362,11 +365,12 @@ sub get_line {
 }
 
 sub print_line {
-  my ($self, $line, $fields) = @_;
+  my ($self, $line, $fields, $metric_name) = @_;
   my $separator = "";
   $fields = $self->{FIELDS_TO_PRINT} unless $fields;
   foreach my $field (@{$fields}) {
     my $value = (defined $line ? $line->{$field->{NAME}} : $field->{HEADER});
+    $value = "$metric_name-$value" if $field->{NAME} eq "EC" && $metric_name;
     print $program_output $separator;
     my $numspaces = defined $self->{SEPARATOR} ? 0 : $self->{WIDTHS}{$field->{NAME}} - length($value);
     print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'R' && !defined $self->{SEPARATOR};
@@ -378,7 +382,7 @@ sub print_line {
 }
 
 sub add_micro_average {
-  my ($self, @scores) = @_;
+  my ($self, $metric, @scores) = @_;
   my $aggregates = {};	
   foreach my $score(sort compare_ec_names @scores ) {
   	&aggregate_score($aggregates, $score->{RUNID}, $score->{LEVEL}, $score);
@@ -387,11 +391,12 @@ sub add_micro_average {
   foreach my $level (sort keys %{$aggregates->{$self->{RUNID}}}) {
   	my %line = $self->get_line($aggregates->{$self->{RUNID}}{$level});
   	push(@{$self->{LINES}}, \%line);
+  	push(@{$self->{SUMMARY}{$metric}}, \%line);
   }
 }
 
 sub add_macro_average {
-  my ($self, @scores) = @_;
+  my ($self, $metric, @scores) = @_;
   my $aggregates = {};
   foreach my $score(sort compare_ec_names @scores ) {
   	&aggregate_score($aggregates, $score->{RUNID}, $score->{LEVEL}, $score);
@@ -419,6 +424,7 @@ sub add_macro_average {
 	  $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
   	}
   	push(@{$self->{LINES}}, \%line);
+  	push(@{$self->{SUMMARY}{$metric}}, \%line);
   }
 }
 
@@ -453,12 +459,6 @@ sub projectLDCMEAN {
   	  	  $combined_scores->put('EC', $csldc_query_ec);
   	  	  $combined_scores->put('RUNID', $scores->get('RUNID'));
   	  	  $combined_scores->put('LEVEL', $scores->get('LEVEL'));
-  	  	  foreach my $key( grep {$_ =~ /^NUM_/} keys %{$scores} ) { 
-	  	    $combined_scores->put($key, "");
-	  	  }
-  	  	  $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'));
-  	  	  $combined_scores->put('PRECISION', "");
-  	  	  $combined_scores->put('RECALL', "");	  	  	
   	  	  $combined_scores->put('F1', $scores->get('F1'));
   	    }
   	    else{
@@ -488,6 +488,7 @@ sub projectLDCMAX {
 	  my ($query_id_base, $cssf_queryid, $level, $expanded) 
   		= &Query::parse_queryid($full_cssf_queryid);  
 	  my $csldc_queryid = $index{$cssf_queryid};
+	  	  
 	  my $csldc_query_ec = "$csldc_queryid";
 	  $csldc_query_ec .= ":$cssf_ec" if(defined $cssf_ec);
 	  
@@ -553,7 +554,7 @@ sub projectLDCMAX {
 sub get_projected_scores {
   my ($self, $metric) = @_;
   return $self->projectLDCMAX() if($metric eq "LDCMAX");
-  return $self->projectLDCMEAN() if($metric eq "LDCMEAN");  
+  return $self->projectLDCMEAN() if($metric eq "LDCMEAN");
 }
 
 sub prepare_lines {
@@ -566,9 +567,9 @@ sub prepare_lines {
   	my %line = $self->get_line($score);
   	push(@{$self->{LINES}}, \%line);
   }
-  $self->add_micro_average(@scores) 
+  $self->add_micro_average($metric, @scores) 
   	if(grep {$_ =~ /MICRO/} @{$metrices{$metric}{AGGREGATES}});
-  $self->add_macro_average(@scores)
+  $self->add_macro_average($metric, @scores)
   	if(grep {$_ =~ /MACRO/} @{$metrices{$metric}{AGGREGATES}});
 }
   
@@ -580,20 +581,27 @@ sub print_headers {
 sub print_lines {
   my ($self) = @_;
   foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
+  	
+  	# Skip over if the sf-queries file passed as argument
+  	# This is determined by looking up keys in %{$self->{INDEX}}
+  	# which stores a mapping between LDC and SF query ids
+  	next if( (($metric eq "LDCMAX")||($metric eq "LDCMEAN")) && (scalar keys %{$self->{INDEX}} == 0) );
   	my $description = $metrices{$metric}{DESCRIPTION};
-  	print $program_output "$description\n\n";
   	my $fields_to_print;
   	$fields_to_print = $self->{LDC_MEAN_FIELDS_TO_PRINT} 
   		if $metric eq "LDCMEAN"; 
 	$self->prepare_lines($metric);
 	$self->print_details() if $self->{VERBOSE} && $metric eq "SF";
+  	print $program_output "$description\n\n";
 	$self->print_headers($fields_to_print) if @{$self->{LINES}};
 	foreach my $line (@{$self->{LINES}}) {
 	  $self->print_line($line, $fields_to_print);
 	}
 	@{$self->{LINES}} = ();
-	print "\n";
+	print $program_output "\n";
   }
+  print $program_output "SUMMARY: Summary of scores\n\n";
+  $self->print_summary();
 }
 
 sub print_details {
@@ -631,6 +639,19 @@ sub print_details {
 		print $program_output "\tPOSTPOLICY ASSESSMENT:\t", join(",", sort @{$summary{$line_num}{POSTPOLICY_ASSESSMENT}}), "\n";
 		print $program_output "."x80, "\n";
 	}
+  }
+  print $program_output "\n";
+}
+
+sub print_summary {
+  my ($self) = @_;
+  my $fields_to_print = $self->{LDC_MEAN_FIELDS_TO_PRINT};
+  $self->print_headers($fields_to_print);
+  foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
+  	my $metric_name = $metrices{$metric}{NAME};
+    foreach my $line (@{$self->{SUMMARY}{$metric}}) {
+      $self->print_line($line, $fields_to_print, $metric_name);
+    }
   }
 }
 
