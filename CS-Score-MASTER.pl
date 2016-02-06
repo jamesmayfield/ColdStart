@@ -44,8 +44,8 @@ my $error_output;
 ### DO INCLUDE
 my $default_fields = "EC:RUNID:LEVEL:GT:SUBMITTED:CORRECT:INCORRECT:INEXACT:INCORRECT_PARENT:UNASSESSED:REDUNDANT:RIGHT:WRONG:IGNORED:P:R:F";
 my $default_right = "CORRECT";
-my $default_wrong = "INCORRECT:INCORRECT_PARENT:INEXACT:DUPLICATE:UNASSESSED";
-my $default_ignore = "";
+my $default_wrong = "INCORRECT:INCORRECT_PARENT:INEXACT:DUPLICATE";
+my $default_ignore = "UNASSESSED";
 
 ### DO NOT INCLUDE
 ##################################################################################### 
