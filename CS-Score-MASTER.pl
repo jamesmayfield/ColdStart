@@ -414,7 +414,7 @@ sub add_macro_average {
 		  $value = $aggregates->{$self->{RUNID}}{$level}->get($field->{NAME});
 	  }
 	  elsif ($field->{NAME} eq 'F1') {
-	  	$value = $aggregates->{$self->{RUNID}}{$level}->getmean($field->{NAME});
+	  	$value = $aggregates->{$self->{RUNID}}{$level}->getadjustedmean($field->{NAME});
 	  }
 	  $value = 'ALL-Macro' if $value eq 'ALL-Micro' && $field->{NAME} eq 'EC';
 	  my $format = $field->{FORMAT};
@@ -459,6 +459,7 @@ sub projectLDCMEAN {
   	  	  $combined_scores->put('EC', $csldc_query_ec);
   	  	  $combined_scores->put('RUNID', $scores->get('RUNID'));
   	  	  $combined_scores->put('LEVEL', $scores->get('LEVEL'));
+  	  	  $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'));
   	  	  $combined_scores->put('F1', $scores->get('F1'));
   	    }
   	    else{

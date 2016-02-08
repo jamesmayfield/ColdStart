@@ -17,7 +17,6 @@ You are provided the following scripts:
 4. CS-ValidateSF.pl (v1.9)
 5. CS-ValidateSF-QueryIDCorrector.pl (v1.6)
 6. CS-Score.pl (v2.3.1)
-7. CS-ProjectSFScoreToLDCScores.pl (v1.2)
 
 ## 2.1 Scripts usage
 
@@ -216,34 +215,6 @@ Combo is one of the following:
   UNION: Estimate performance if system took union of answers for all entrypoints (UNTESTED - do not exercise this option)
 ~~~
 
-### 2.1.7 Usage of CS-ProjectSFScoreToLDCScores.pl
-~~~
-CS-ProjectSFScoreToLDCScores.pl:  Score one TAC Cold Start runs
-
-Usage: CS-ProjectSFScoreToLDCScores.pl {-switch {-switch ...}} index_file score_file
-
-Legal switches are:
-  -error_file <value>   Where should error output be sent? (filename, stdout or
-                          stderr) (Default = stdout).
-  -help                 Show help
-  -mapping <value>      File containing one SF queryid mapped to an LDC queryid.
-                          This option is required when using the RANDOM scoring
-                          option.
-  -output_file <value>  Where should program output be sent? (filename, stdout
-                          or stderr) (Default = stdout).
-  -queries <value>      File containing list of LDC queryids that should be
-                          reported in the evaluation
-  -score <value>        Specify scoring option. Legal values are: MAX (Pick the
-                          highest scoring entrypoint), MEAN (Pick the mean
-                          across all entrypoints), RANDOM (Pick a random
-                          entrypoint). (Default = MAX).
-  -tabs                 Use tabs to separate output fields instead of spaces
-parameters are:
-  index_file  Filename which contains mapping from output query name to original
-                LDC query name (Required).
-  score_file  CSSF Score file to be converted (Required).
-~~~
-
 # 3 Generating the official scores
 
 The scorer runs over submission in SF format. For participants of KB variant of ColdStart, the KB would need to be transformed to the SF format which would then be used by the scorer. 
@@ -330,51 +301,6 @@ perl CS-Score.pl -output_file CSrun.score.csldc.combo.txt -queries csldc_queryid
 ~~~
 
 The scores will be produced in `CSrun.score.csldc.combo.txt`.
-
-#### 3.4.3 Producing the CS-LDC level scores (CS-ProjectSFScoreToLDCScores.pl)
-
-The following variants of CS-LDC level scores are supported by the CS-ProjectSFScoreToLDCScores.pl scorer. Please note that the CS-SF level scores must have already been computed before creating the projected scores at the CS-LDC level.
-
-##### 3.4.3.1 MAX Score
-
-The MAX score considers only one entry point (SF query) per LDC query.  The entry point that is selected for a given LDC query as the entrypoint for which F1 combined over both hops is maximal for that LDC query.  Following command may be run to compute micro-average and macro-average MAX scores for the submission.  
-
-~~~
-perl CS-ProjectSFScoreToLDCScores.pl -score MAX -output_file CSrun.score.csldc.max.txt queries.index CSrun.score.cssf.txt
-~~~
-
-The scores will be produced in `CSrun.score.csldc.max.txt`.
-
-##### 3.4.3.2 RANDOM Score
-
-The RANDOM score considers only one entry point (SF query) per LDC query.  The entry point that is (possibly randomly) selected for each LDC query must be specified in a separate mapping file.  Following command may be run to compute micro-average and macro-average RANDOM scores for the submission.
-
-
-~~~
-perl CS-ProjectSFScoreToLDCScores.pl -score RANDOM -mapping sample-mapping.txt -output_file CSrun.score.csldc.random.txt queries.index CSrun.score.cssf.txt
-~~~
-
-This requires a file which contains information about which entrypoint was selected for a given LDC query at random. This file contains LDC-QueryID, SF-QueryID pair perl line separated by a space as shown below:
-
-~~~
-CS15_ENG_0001 CSSF15_ENG_811cc7bb37
-CS15_ENG_0002 CSSF15_ENG_2891c91dfa
-... ...
-~~~
-
-The scores will be produced in `CSrun.score.csldc.random.txt`.
-
-##### 3.4.3.3 MEAN Score
-
-The MEAN score is a macro-average score that considers all entry points for each LDC query.  The LDC query-level F1 is the mean of the F1 of its entry points, and the macro-average MEAN score is the mean of the LDC query-level F1.  Following command may be run to compute the macro-average MEAN score for the submission.
-
-~~~
-perl CS-ProjectSFScoreToLDCScores.pl -score MEAN -output_file CSrun.score.csldc.mean.txt queries.index CSrun.score.cssf.txt
-~~~
-
-The scores will be produced in `CSrun.score.csldc.mean.txt`. 
-
-It is important to note that only macro-average is reported in this case.
 
 # 4 Understanding the output
 
