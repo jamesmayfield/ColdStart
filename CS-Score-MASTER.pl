@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.4.1";
+my $version = "2.4.2";
 
 # Filehandles for program and error output
 my $program_output;
@@ -851,6 +851,7 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2.4.2 - LDC-MEAN Macro-averaging over only NON-NIL queries
 # 2.4.1 - Reporting LDC level scores
 # 2.4 - Added support for specifying policy (-right, -wrong, and -ignore)
 #     - Removed -combo because this is not needed and all variant should be 
