@@ -1,6 +1,6 @@
 # 1 Introduction
 
-November 25, 2015
+February 8, 2016
 
 This document describes:
 
@@ -16,8 +16,7 @@ You are provided the following scripts:
 3. CS-ValidateKB.pl (v4.9)
 4. CS-ValidateSF.pl (v1.9)
 5. CS-ValidateSF-QueryIDCorrector.pl (v1.6)
-6. CS-Score.pl (v2.3.1)
-7. CS-ProjectSFScoreToLDCScores.pl (v1.2)
+6. CS-Score.pl (v2.4.2)
 
 ## 2.1 Scripts usage
 
@@ -164,12 +163,12 @@ Usage: CS-ValidateSF-QueryIDCorrector.pl {-switch {-switch ...}} queryfile filen
 Legal switches are:
   -docs <value>         Tab-separated file containing docids and document
                           lengths, measured in unnormalized Unicode characters
-  -error_file <value>   Specify a file to which error output should be
+  -error\_file <value>   Specify a file to which error output should be
                           redirected (Default = STDERR).
   -groundtruth          Treat input file as ground truth (so don't, e.g.,
                           enforce single-valued slots)
   -help                 Show help
-  -output_file <value>  Specify an output file with warnings repaired. Omit for
+  -output\_file <value>  Specify an output file with warnings repaired. Omit for
                           validation only (Default = none).
   -version              Print version number and exit
 parameters are:
@@ -185,68 +184,78 @@ CS-Score.pl:  Score one or more TAC Cold Start runs
 Usage: CS-Score.pl {-switch {-switch ...}} files...
 
 Legal switches are:
-  -combo <value>        How scores should be combined (see below for options)
-                          (Default = MICRO).
   -discipline <value>   Discipline for identifying ground truth (see below for
                           options) (Default = ASSESSED).
   -error_file <value>   Where should error output be sent? (filename, stdout or
                           stderr) (Default = stderr).
   -expand <value>       Expand multi-entrypoint queries, using string provided
                           as base for expanded query names
+  -fields <value>       Colon-separated list of output fields to print (see
+                          below for options) (Default =
+                          EC:RUNID:LEVEL:GT:SUBMITTED:CORRECT:INCORRECT:INEXACT:INCOR/
+                          RECT_PARENT:UNASSESSED:REDUNDANT:RIGHT:WRONG:IGNORED:P:R:F).
   -help                 Show help
+  -ignore <value>       Colon-separated list of assessment codes, submitted
+                          value corresponding to which to be ignored
+                          (post-policy) (see policy options below for legal
+                          choices) (Default = UNASSESSED).
   -output_file <value>  Where should program output be sent? (filename, stdout
                           or stderr) (Default = stdout).
   -queries <value>      file (one query ID per line) or colon-separated list of
                           query IDs to be scored (if omitted, all query files in
                           'files' parameter will be scored)
+  -right <value>        Colon-separated list of assessment codes, submitted
+                          value corresponding to which to be counted as right
+                          (post-policy) (see policy options below for legal
+                          choices) (Default = CORRECT).
   -runids <value>       Colon-separated list of run IDs to be scored (if
                           omitted, all runids will be scored)
   -tabs                 Use tabs to separate output fields instead of spaces
                           (useful for export to spreadsheet)
+  -verbose              Print verbose output
+  -version              Print version number and exit
+  -wrong <value>        Colon-separated list of assessment codes, submitted
+                          value corresponding to which to be counted as wrong
+                          (post-policy) (see policy options below for legal
+                          choices) (Default =
+                          INCORRECT:INCORRECT_PARENT:INEXACT:DUPLICATE).
 parameters are:
   files  Query files, submission files and judgment files (Required).
 
-Discipline is one of the following:
+-discipline is one of the following:
   ASSESSED:     No match unless this exact entry appears in the assessments
   STRING_CASE:  String matches modulo case differences; provenance need not match
   STRING_EXACT: Exact string match, but provenance need not match
-Combo is one of the following:
-  MACRO: Macro-average scores across entrypoints  (UNTESTED - do not exercise this option)
-  MICRO: Micro-average scores across entrypoints
-  UNION: Estimate performance if system took union of answers for all entrypoints (UNTESTED - do not exercise this option)
-~~~
-
-### 2.1.7 Usage of CS-ProjectSFScoreToLDCScores.pl
-~~~
-CS-ProjectSFScoreToLDCScores.pl:  Score one TAC Cold Start runs
-
-Usage: CS-ProjectSFScoreToLDCScores.pl {-switch {-switch ...}} index_file score_file
-
-Legal switches are:
-  -error_file <value>   Where should error output be sent? (filename, stdout or
-                          stderr) (Default = stdout).
-  -help                 Show help
-  -mapping <value>      File containing one SF queryid mapped to an LDC queryid.
-                          This option is required when using the RANDOM scoring
-                          option.
-  -output_file <value>  Where should program output be sent? (filename, stdout
-                          or stderr) (Default = stdout).
-  -queries <value>      File containing list of LDC queryids that should be
-                          reported in the evaluation
-  -score <value>        Specify scoring option. Legal values are: MAX (Pick the
-                          highest scoring entrypoint), MEAN (Pick the mean
-                          across all entrypoints), RANDOM (Pick a random
-                          entrypoint). (Default = MAX).
-  -tabs                 Use tabs to separate output fields instead of spaces
-parameters are:
-  index_file  Filename which contains mapping from output query name to original
-                LDC query name (Required).
-  score_file  CSSF Score file to be converted (Required).
+-fields is a colon-separated list drawn from the following:
+  CORRECT:          Number of assessed correct submissions (pre-policy)
+  EC:               Query or equivalence class name
+  F:                F1 = 2PR/(P+R)
+  GT:               Number of ground truth values
+  IGNORED:          Number of submissions that were ignored (post-policy)
+  INCORRECT:        Number of assessed incorrect submissions (pre-policy)
+  INCORRECT_PARENT: Total number of submitted entries with parents incorrect
+  INEXACT:          Number of assessed inexact submissions (pre-policy)
+  LEVEL:            Hop level
+  P:                Precision
+  R:                Recall
+  REDUNDANT:        Number of duplicate submitted values in equivalence clase (post-policy)
+  RIGHT:            Number of submitted values counted as right (post-policy)
+  RUNID:            Run ID
+  SUBMITTED:        Total number of submitted entries
+  UNASSESSED:       Total number of unassessed submitted entries
+  WRONG:            Number of submitted values counted as wrong (post-policy)
+policy options are a colon-separated list drawn from the following:
+  CORRECT:          Number of assessed correct submissions. Legal choice for -right.
+  DUPLICATE:        Number of duplicate submissions. Legal choice for -right, -wrong and -ignore.
+  INCORRECT:        Number of assessed incorrect submissions. Legal choice for -wrong.
+  INCORRECT_PARENT: Number of submissions that had incrorrect (grand-)parent. Legal choice for -wrong and -ignore.
+  INEXACT:          Number of assessed inexact submissions. Legal choice for -right, -wrong and -ignore.
+  UNASSESSED:       Number of unassessed submissions. Legal choice for -wrong and -ignore.
 ~~~
 
 # 3 Generating the official scores
 
-The scorer runs over submission in SF format. For participants of KB variant of ColdStart, the KB would need to be transformed to the SF format which would then be used by the scorer. 
+The scorer runs over submission in SF format. For participants of KB variant of ColdStart, the KB would need to be transformed to SF format which would then be used by the scorer. 
 
 In order to generate scores for an SF submission, please skip to Section # 3.2 of this README. For transforming the KB submission to SF format, please move on to the next section.
 
@@ -283,7 +292,7 @@ This will produce the transformed SF output in `CSrun.SF`.
 
 If round # 2 (or hop-1) query IDs were generated from the scripts generated from the ColdStartLib.pm that contained a bug in how these query IDs were generated, you would need to apply a patch to the SF submission or SF output transformed from validated KB as produced in Section # 3.1.2 in this README.
 
-This bug was present in all the scripts released to TAC participants at this year submission time.
+This bug was present in all the scripts released to TAC participants at the submission time for year 2015.
 
 In order to apply the patch, you may run the following command:
 
@@ -291,11 +300,11 @@ In order to apply the patch, you may run the following command:
 perl CS-ValidateSF-QueryIDCorrector.pl -docs tac_2015_kbp_english_cold_start_evaluation_source_corpus.doclengths.txt -error_file CSrun.errlog -output_file CSrun.SF.corrected tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml CSrun.SF
 ~~~
 
-This would created a patched file `CSrun.SF.corrected`.
+This would create a patched file `CSrun.SF.corrected`.
 
 If you needed to apply the patch, you would need to rename the file `CSrun.SF.corrected` as `CSrun.SF` before moving on to the next section.
 
-### 3.3 Validate SF output
+## 3.3 Validate SF output
 
 The next step is to validate SF output produced in the previous step. This may be done by runing the following command:
 
@@ -305,105 +314,96 @@ perl CS-ValidateSF.pl -docs tac_2015_kbp_english_cold_start_evaluation_source_co
 
 This will produce validated SF output in `CSrun.valid.ldc.tab.txt`.
 
-### 3.4 Score SF output 
+## 3.4 Score output 
 
 Finally, the last step is to produce scores for the submission. The micro-average score computes a single P/R/F1 by summing counts across all selected queries. The macro-average score computes P/R/F1 for each query, and finally takes the mean of the query-level F1 scores for queries that have a known answer.  (Note that because the macro-average score ignores queries that have no known answer, a separate metric is needed to evaluate queries with no known answer.)
 
-#### 3.4.1 Producing the CS-SF level scores
+### 3.4.1 Producing the Scores
 
-Following command may be run to produce the micro average scores at the CS-SF level.
+Following command may be run to produce the CS-SF scores.
 
 ~~~
-perl CS-Score.pl -output_file CSrun.score.cssf.txt -queries cssf_queryids.txt -combo MICRO tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml CSrun.valid.ldc.tab.txt pool.assessed.fqec
+perl CS-Score.pl -output_file CSrun.score.cssf.txt -queries cssf_queryids.txt tac_kbp_2015_english_cold_start_slot_filling_evaluation_queries_v2.xml CSrun.valid.ldc.tab.txt pool.assessed.fqec
+~~~
+
+In order to produce CS-LDC level scores in addition to CS-SF score, you may run the following command:
+
+~~~
+perl CS-Score.pl -output_file CSrun.score.all.txt -queries cssf_queryids.txt -expand CSSF15_ENG tac_kbp_2015_english_cold_start_evaluation_queries_v2.xml CSrun.valid.ldc.tab.txt pool.assessed.fqec
 ~~~
 
 Notice that we have used the -queries switch to score selected queries. Also, note that our is assumption is that the assessment are placed in `pool.assessed.fqec`.
 
-The scores will be produced in `CSrun.score.cssf.txt`.
+The difference between the above examples is that the later one uses LDC queries file requiring the scorer to convert these queries to SF queries for scoring. The scorer does this by using an expansion string specified through the switch `-expand CSSF15_ENG`.
 
-#### 3.4.2 Producing the CS-LDC level scores (COMBO)  (UNTESTED - do not exercise this option)
-
-Following command may be run to produce the micro average scores at the CS-LDC level.
-
-~~~
-perl CS-Score.pl -output_file CSrun.score.csldc.combo.txt -queries csldc_queryids.txt -combo UNION -expand CSSF15_ENG tac_kbp_2015_english_cold_start_evaluation_queries_v2.xml CSrun.valid.ldc.tab.txt pool.assessed.fqec
-~~~
-
-The scores will be produced in `CSrun.score.csldc.combo.txt`.
-
-#### 3.4.3 Producing the CS-LDC level scores (CS-ProjectSFScoreToLDCScores.pl)
-
-The following variants of CS-LDC level scores are supported by the CS-ProjectSFScoreToLDCScores.pl scorer. Please note that the CS-SF level scores must have already been computed before creating the projected scores at the CS-LDC level.
-
-##### 3.4.3.1 MAX Score
-
-The MAX score considers only one entry point (SF query) per LDC query.  The entry point that is selected for a given LDC query as the entrypoint for which F1 combined over both hops is maximal for that LDC query.  Following command may be run to compute micro-average and macro-average MAX scores for the submission.  
-
-~~~
-perl CS-ProjectSFScoreToLDCScores.pl -score MAX -output_file CSrun.score.csldc.max.txt queries.index CSrun.score.cssf.txt
-~~~
-
-The scores will be produced in `CSrun.score.csldc.max.txt`.
-
-##### 3.4.3.2 RANDOM Score
-
-The RANDOM score considers only one entry point (SF query) per LDC query.  The entry point that is (possibly randomly) selected for each LDC query must be specified in a separate mapping file.  Following command may be run to compute micro-average and macro-average RANDOM scores for the submission.
-
-
-~~~
-perl CS-ProjectSFScoreToLDCScores.pl -score RANDOM -mapping sample-mapping.txt -output_file CSrun.score.csldc.random.txt queries.index CSrun.score.cssf.txt
-~~~
-
-This requires a file which contains information about which entrypoint was selected for a given LDC query at random. This file contains LDC-QueryID, SF-QueryID pair perl line separated by a space as shown below:
-
-~~~
-CS15_ENG_0001 CSSF15_ENG_811cc7bb37
-CS15_ENG_0002 CSSF15_ENG_2891c91dfa
-... ...
-~~~
-
-The scores will be produced in `CSrun.score.csldc.random.txt`.
-
-##### 3.4.3.3 MEAN Score
-
-The MEAN score is a macro-average score that considers all entry points for each LDC query.  The LDC query-level F1 is the mean of the F1 of its entry points, and the macro-average MEAN score is the mean of the LDC query-level F1.  Following command may be run to compute the macro-average MEAN score for the submission.
-
-~~~
-perl CS-ProjectSFScoreToLDCScores.pl -score MEAN -output_file CSrun.score.csldc.mean.txt queries.index CSrun.score.cssf.txt
-~~~
-
-The scores will be produced in `CSrun.score.csldc.mean.txt`. 
-
-It is important to note that only macro-average is reported in this case.
+The scores will be produced in the file specified through the `-output_file` switch.
 
 # 4 Understanding the output
 
-## 4.1 CS-SF level scores - MICRO AVERAGE
+## 4.1 Aggregates
 
-For each query and hop level, the CS-Score.pl scorer outputs the following counts:
-    GT	       Total number of ground truth answers (equivalence classes) as found by the assessors,
-    Right      Number of correct answers (equivalence classes) found in the submission,
-    Wrong      Number of responses in the submission counted as Wrong, 
-    Dup	       Number of responses counted as Wrong because they were assessed as Correct but found to be duplicate of another Correct in the same submission, 
+The scorer may produce more than one score variant depending on the options selected. Aggregates reported for the variants are:
 
-For each query and hop level, Precision, Recall and F1 are computed as:
-	Precision	= Right / (Right + Wrong)
-	Recall		= Right / GT
-	F1			= 2 * Precision * Recall / (Precision + Recall)
+    |               |   Aggregates Reported         |
+	| Score Variant | Micro-average | Macro-average |
+	|---------------|---------------|---------------|
+	| SF            |      Yes      |      Yes      |
+	|---------------|---------------|---------------|
+	| LDC-MAX       |      Yes      |      Yes      |
+	|---------------|---------------|---------------|
+	| LDC-MEAN      |      No       |      Yes      |
+	
 
-Note that scores for round # 2 (or hop-1) are reported at the equivalence class (EC) level and not at the generated query level. For example, the scores given for `CSSF15_ENG_0458206f71:2` are the scores corresponding to the entity found as answer for round # 1 (or hop-0) query `CSSF15_ENG_0458206f71` which was placed by assessors in equivalence class 2. Similarly, the scores given for `CSSF15_ENG_0458206f71:0` are the scores corresponding to all hop-1 answers which correspond to incorrect hop-0 fillers. 
+Aggregates are computed for the hops individually and as combined.
 
-Final scores are micro averages and are computed for both hops separately and combined. 
-These final scores are computed as:
+### 4.1.1 Computation of Micro-Average 
+
+Micro-averages are computed as:
 
 	Total_Precision = Total_Right / (Total_Right + Total_Wrong)
 	Total_Recall = Total_Right / Total_GT
 	Total_F1 = 2 * Total_Precision * Total_Recall / (Total_Precision + Total_Recall)
+	
+### 4.1.2 Computation of Macro-Average 
+	
+Macro-averages are computed as the mean of all F1.
 
-## 4.2 CS-LDC level MAX scores - MICRO AVERAGE
+## 4.2 Score Variants
 
-These scores are computed from the SF level scores as described in Section # 4.1 of this README. In this case, the LDC level scores and counts are the same as the SF level scores and counts corresponding to the entry point for the LDC query that has maximal F1 combined over both hops.
+The scorer may produce the following score variant depending on the query file used for scoring:
 
-## 4.3 CS-LDC level RANDOM scores - MICRO AVERAGE
+	1. SF        Slot-filling score variant considering all entrypoints as a separate query,
+	2. LDC-MAX   LDC level score variant considering the run's best entrypoint per LDC query,
+	3. LDC-MEAN  LDC level score variant considering averaging scores for all corresponding entrypoints, and
 
-These scores are computed from the SF level scores as described in Section # 4.1 of this README. In this case, the LDC level scores and counts are the same as the SF level scores and counts corresponding to the entry point for the LDC query that is specified in the mapping file.
+In order to have the scorer produce LDC-MAX and LDC-MEAN score variants, the scorer must use: 
+
+	a. LDC queries file (for example, `tac_kbp_2015_english_cold_start_evaluation_queries_v2.xml`), and 
+	b. -expand switch with correct expansion string (for example, `-expand CSSF15_ENG`).
+
+Summary of scores is presented towards the end of the scorer output.
+
+## 4.3 Output fields
+
+By default, for each query and hop level, the scorer outputs the following counts:
+
+    GT	        Total number of ground truth answers (equivalence classes) as found by the assessors,
+    Submitted   Number of responses in the submission
+    Correct     Number of correct answers (equivalence classes) found in the submission,
+    Incorrect   Number of incorrect responses found in the submission, 
+    Inexact     Number of inexact responses found in the submission, 
+    PIncorrect  Number of responses in the submission that had incorrect ancestor,
+    Unassessed  Number of responses in the submission that were not assessed,
+    Dup         Number of responses that were assessed as Correct but found to be duplicate of another Correct in the same submission, 
+    Right       Number of responses in the submission counted as Right, as specified by argument to swtich `-right`,
+    Wrong       Number of responses in the submission counted as Wrong, as specified by argument to swtich `-wrong`, 
+    Ignored	    Number of responses in the submission that were ignored for the purpose of score computation, as specified by argument to swtich `-ignore`,
+    Precision   Computed as: Right / (Right + Wrong),
+    Recall      Computed as: Right / GT,
+    F1          Computed as: 2 * Precision * Recall / (Precision + Recall).
+    
+where Right, Wrong, and Ignored are computed based on selected post-policy decision, specified using switches `-right, -wrong, and -ignore` (See the usage for detail). 
+    
+Note that for the score variant LDC-MEAN, for each query and hop level, the scorer only outputs the F1 field.
+
+Also note that scores for round # 2 (or hop-1) are reported at the equivalence class (EC) level and not at the generated query level. For example, the scores given for `CSSF15_ENG_0458206f71:2` are the scores corresponding to the entity found as answer for round # 1 (or hop-0) query `CSSF15_ENG_0458206f71` which was placed by assessors in equivalence class 2. Similarly, the scores given for `CSSF15_ENG_0458206f71:0` are the scores corresponding to all hop-1 answers which correspond to incorrect hop-0 fillers. 
