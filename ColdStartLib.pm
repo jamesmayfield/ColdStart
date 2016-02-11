@@ -981,7 +981,7 @@ sub new {
   bless($self, $class);
   foreach my $filename (@filenames) {
 ### DO NOT INCLUDE
-print STDERR "*** Populating from $filename\n";
+#print STDERR "*** Populating from $filename\n";
 ### DO INCLUDE
     # Slurp the entire text
     open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
@@ -1051,9 +1051,9 @@ sub add {
 
 sub expand {
   my ($self, $query_base) = @_;
-print STDERR "------- expand ---------\n";
+#print STDERR "------- expand ---------\n";
   foreach my $query ($self->get_all_queries()) {
-print STDERR "     From QuerySet->expand Expanding query ", $query->get('QUERY_ID'), "\n";
+#print STDERR "     From QuerySet->expand Expanding query ", $query->get('QUERY_ID'), "\n";
     $query->expand($query_base, $self);
   }
   $self;
@@ -2901,7 +2901,7 @@ sub generate_slot {
 sub load {
   my ($self, $logger, $queries, $filename, $schema) = @_;
 ### DO NOT INCLUDE
-print STDERR ">>>>>>>>>>>>>>>>>> Loading $filename\n";
+#print STDERR ">>>>>>>>>>>>>>>>>> Loading $filename\n";
 ### DO INCLUDE
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $columns = $schema->{COLUMNS};

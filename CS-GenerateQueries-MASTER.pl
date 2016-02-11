@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.7";
+my $version = "1.9";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -70,6 +70,7 @@ sub generate_round2_query {
   $name =~ s/([<&>'"])/$rewrites{$1}/ge if $valid;
   $new_query->add_entrypoint(NAME => $name,
 			     PROVENANCE => $submission->{VALUE_PROVENANCE});
+  $new_query->put('PREFIX', $original_query->get('PREFIX'));
   foreach my $key (keys %{$original_query}) {
     $new_query->put('slot' . ($1 - 1), $original_query->get($key)) if $key =~ /^slot(\d+)$/i;
   }
@@ -232,5 +233,6 @@ else {
 # 1.5 - Added -valid option for quoting ampersands etc. so as to produce compliant XML
 # 1.6 - Removed requirement to run GenerateQueries on the LDC queries (We are running CS-ExpandQueries instead)
 # 1.7 - Reverted to requirement to maintain consistency with documentation; bug fixes
-
+# 1.8 - General Release
+# 1.9 - Code modified to work with new library
 1;
