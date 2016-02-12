@@ -432,7 +432,7 @@ sub projectLDCMEAN {
 	my ($self) = @_;
 	my %index = %{$self->{INDEX}};
 	my @scores = @{$self->{SCORES}};
-	my %evaluation_queries = map {$_=>1} @{$self->{QUERIES_TO_SCORE}};
+	my %evaluation_queries = map {$_=>1} keys %{$self->{QUERIES_TO_SCORE}};
 	my %new_scores;
 	foreach my $scores(@scores){
 	  my $cssf_query_ec = $scores->{EC};
@@ -480,7 +480,7 @@ sub projectLDCMAX {
 	my ($self) = @_;
 	my %index = %{$self->{INDEX}};
 	my @scores = @{$self->{SCORES}};
-	my %evaluation_queries = map {$_=>1} @{$self->{QUERIES_TO_SCORE}};
+	my %evaluation_queries = map {$_=>1} keys %{$self->{QUERIES_TO_SCORE}};
 	# Get the max as the new score for the main query
 	my %new_scores;
 	foreach my $scores(@scores){
@@ -659,36 +659,52 @@ sub print_summary {
 # Determine which queries should be scored
 sub get_queries_to_score {
   my ($logger, $spec, $queries) = @_;
-  my @query_ids;
+  my %query_slots;
   # Spec can be empty (meaning score all queries), a colon-separated
   # list of IDs, or a filename
   if (!defined $spec) {
-    @query_ids = $queries->get_all_top_level_query_ids();
+    my @query_ids = $queries->get_all_top_level_query_ids();
+    %query_slots = map {$_=>scalar @{$queries->get($_)->{SLOTS}}-1} @query_ids;
   }
   elsif (-f $spec) {
     open(my $infile, "<:utf8", $spec) or $logger->NIST_die("Could not open $spec: $!");
-    @query_ids = <$infile>;
-    chomp @query_ids;
+    while(<$infile>) {
+    	chomp;
+    	my ($full_query_id, $num_slots) = split(/\s+/, $_);
+    	my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+    	unless ($queries->get($query_id)) {
+		  $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id, 'NO_SOURCE');
+		  next;
+    	}
+    	$num_slots = scalar @{$queries->get($query_id)->{SLOTS}}-1 unless defined $num_slots;
+    	$query_slots{$query_id} = $num_slots;
+    }
     close $infile;
   }
   else {
-    @query_ids = split(/:/, $spec);
-  }
-  my %query_ids;
-  foreach my $full_query_id (@query_ids) {
-  	my ($base, $query_id) = &Query::parse_queryid($full_query_id);
-    unless ($queries->get($query_id)) {
-      $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id, 'NO_SOURCE');
-      next;
+    my @query_ids = split(/:/, $spec);
+    foreach my $full_query_id(@query_ids) {
+      my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+      unless ($queries->get($query_id)) {
+      	$logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id, 'NO_SOURCE');
+      	next;
+      }
+      my $num_slots = scalar @{$queries->get($query_id)->{SLOTS}}-1;
+      $query_slots{$query_id} = $num_slots;
     }
+  }
+  my %query_ids_to_score;
+  foreach my $query_id (keys %query_slots) {
     my $root = $queries->get_ancestor($query_id);
-    $query_ids{$root->get("QUERY_ID")}++ unless @{$root->get("EXPANDED_QUERY_IDS")};
+    my $num_slots = $query_slots{$query_id}; 
+    $query_ids_to_score{$root->get("QUERY_ID")} = $num_slots unless @{$root->get("EXPANDED_QUERY_IDS")};
     # If we've requested an unexpanded query ID, we need to add each of the expanded queries
     foreach my $expanded_query_id (@{$root->get("EXPANDED_QUERY_IDS")}) {
-      $query_ids{$expanded_query_id}++;
+      $num_slots = $query_slots{$expanded_query_id}; 
+      $query_ids_to_score{$expanded_query_id} = $num_slots;
     }
   }
-  keys %query_ids;
+  %query_ids_to_score;
 }
 
 # Handle run-time switches
@@ -804,7 +820,7 @@ my %index = $queries->get_index();
 #print STDERR "Expanded queries\n  ", join("\n  ", $queries->get_expanded_query_ids()), "\n";
 #print STDERR "All queries\n  ", join("\n  ", $queries->get_all_query_ids()), "\n";
 
-my @queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $queries);
+my %queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $queries);
 
 my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, @runfilenames);
 
@@ -821,7 +837,7 @@ sub score_runid {
   my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $verbose, $policy_options, $policy_selected, $logger) = @_;
   my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, $spec, $verbose, $logger);
   # Score each query, printing the query-by-query scores
-  foreach my $query_id (sort @{$queries_to_score}) {
+ foreach my $query_id (sort keys %{$queries_to_score}) {
 #print STDERR "Processing query $query_id\n";
     my $query = $queries->get($query_id);
 #print STDERR "query is undef\n" unless defined $query;
@@ -830,8 +846,15 @@ sub score_runid {
 							   DISCIPLINE => $discipline,
 							   RUNID => $runid,
 							   QUERY_BASE => $query_base);
-
-	$scores_printer->add_scores(@scores);
+	foreach my $score(@scores) {
+	  my $full_query_id = $score->{EC};
+	  if($full_query_id =~ /^(.*?):/) {
+	  	$full_query_id = $1;
+	  }
+	  my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+	 $scores_printer->add_scores($score) 
+	 		if($score->{LEVEL} <= $queries_to_score->{$query_id});
+	}
   }
   $scores_printer;
 }
@@ -841,7 +864,7 @@ my @runids = $runids ? split(/:/, $runids) : $submissions_and_assessments->get_a
 my $spec = $switches->get("fields");
 
 foreach my $runid (@runids) {
-  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \@queries_to_score, $use_tabs, $spec, $verbose, \%policy_options, \%policy_selected, $logger);
+  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, $verbose, \%policy_options, \%policy_selected, $logger);
   $scores_printer->print_lines();
 }
 

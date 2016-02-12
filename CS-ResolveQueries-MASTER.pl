@@ -9,7 +9,7 @@ use ColdStartLib;
 
 # ResolveQueries.pl
 # Author: James Mayfield (jamesmayfield "at" gmail "dot" com)
-my $version = "2015.1.0";
+my $version = "2016.1.0";
 
 binmode(STDOUT, ":utf8");
 
