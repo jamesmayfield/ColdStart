@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.8";
+my $version = "1.9";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -144,5 +144,6 @@ exit 0;
 # 1.6 - Incorporate updated libraries
 # 1.7 - Added switch to enable comments, defaulting to disabled
 # 1.8 - Enabled WRONG_SLOT_NAME and BAD_QUERY warnings
+# 1.9 - Verion upped due to change in library.
 
 1;
