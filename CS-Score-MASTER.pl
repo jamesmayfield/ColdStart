@@ -742,7 +742,9 @@ $switches->addVarSwitch("expand", "Expand multi-entrypoint queries, using string
 #
 ### DO INCLUDE
 
-$switches->addVarSwitch("queries", "file (one query ID per line) or colon-separated list of query IDs to be scored " .
+$switches->addVarSwitch("queries", "file (one query ID per line with an optional number separated " .
+					 	"by space representing the hop upto which evaluation is to be performed) " .
+					 	"or colon-separated list of query IDs to be scored " .
 			           "(if omitted, all query files in 'files' parameter will be scored)");
 $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored (if omitted, all runids will be scored)");
 $switches->addVarSwitch("right", "Colon-separated list of assessment codes, submitted value corresponding to which to be counted as right (post-policy) (see policy options below for legal choices)");

@@ -1,6 +1,6 @@
 # 1 Introduction
 
-February 8, 2016
+February 19, 2016
 
 This document describes:
 
@@ -16,7 +16,7 @@ You are provided the following scripts:
 3. CS-ValidateKB.pl (v4.9)
 4. CS-ValidateSF.pl (v1.9)
 5. CS-ValidateSF-QueryIDCorrector.pl (v1.6)
-6. CS-Score.pl (v2.4.2)
+6. CS-Score.pl (v2.4.3)
 
 ## 2.1 Scripts usage
 
@@ -201,9 +201,11 @@ Legal switches are:
                           choices) (Default = UNASSESSED).
   -output_file <value>  Where should program output be sent? (filename, stdout
                           or stderr) (Default = stdout).
-  -queries <value>      file (one query ID per line) or colon-separated list of
-                          query IDs to be scored (if omitted, all query files in
-                          'files' parameter will be scored)
+  -queries <value>      file (one query ID per line with an optional number
+                          separated by space representing the hop upto which
+                          evaluation is to be performed) or colon-separated list
+                          of query IDs to be scored (if omitted, all query files
+                          in 'files' parameter will be scored)
   -right <value>        Colon-separated list of assessment codes, submitted
                           value corresponding to which to be counted as right
                           (post-policy) (see policy options below for legal
@@ -389,9 +391,9 @@ By default, for each query and hop level, the scorer outputs the following count
 
     GT	        Total number of ground truth answers (equivalence classes) as found by the assessors,
     Submitted   Number of responses in the submission
-    Correct     Number of correct answers (equivalence classes) found in the submission,
-    Incorrect   Number of incorrect responses found in the submission, 
-    Inexact     Number of inexact responses found in the submission, 
+    Correct     Number of responses in the submission that were assessed as Correct,
+    Incorrect   Number of responses in the submission that were assessed as Wrong,
+    Inexact     Number of responses in the submission that were assessed as Inexact,
     PIncorrect  Number of responses in the submission that had incorrect ancestor,
     Unassessed  Number of responses in the submission that were not assessed,
     Dup         Number of responses that were assessed as Correct but found to be duplicate of another Correct in the same submission, 
