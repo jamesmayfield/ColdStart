@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.2";
+my $version = "1.3";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -207,7 +207,7 @@ sub generate_expanded_queries {
     $query->expand($query_base, $new_queries);
   }
   foreach my $query ($new_queries->get_all_queries()) {
-    print $index_file $query->get("QUERY_ID"), "\t", $query->get("ORIGINAL_QUERY_ID"), "\n" if defined $index_file;
+    print $index_file $query->get("FULL_QUERY_ID"), "\t", $query->get("ORIGINAL_QUERY_ID"), "\n" if defined $index_file;
   }
   $new_queries;
 }
@@ -295,5 +295,5 @@ exit 0;
 # 1.0 - Initial version
 # 1.1 - Added code to build index from expanded query_id to original LDC query_id
 # 1.2 - Refactored generate_expanded_queries to move expansion into ColdStartLib
-
+# 2.0 - Verion upped to make the code work with new ColdStartLib
 1;

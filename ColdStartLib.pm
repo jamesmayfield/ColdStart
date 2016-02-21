@@ -791,7 +791,7 @@ sub expand {
     #$new_query->put('QUERY_ID_BASE', $query_base);
 ### DO INCLUDE
     $new_query->put('PREFIX', $query_base);
-    $new_query->put('ORIGINAL_QUERY_ID', $self->get('QUERY_ID'));
+    $new_query->put('ORIGINAL_QUERY_ID', $self->get('FULL_QUERY_ID'));
     push(@{$self->{EXPANDED_QUERY_IDS}}, $new_query->get('QUERY_ID'));
     $new_query->{EXPANDED} = 'false';
     $queries->add($new_query);
