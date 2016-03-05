@@ -19,7 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2.9";		# Added UNION support; cleanup
+my $version = "3.0";		# Removed UNION support; cleanup
 
 ### BEGIN INCLUDE Switches
 
@@ -565,26 +565,34 @@ my %tags = (
 
 sub parse_queryid {
   my ($full) = @_;
-  my ($base, $query_id, $level, $expanded);
-  if (my ($prefix, $initial, $remainder) = $full =~ /^(?:(.+)_)?([0-9A-F]{10})(_[0-9A-F]{12})*$/i) {
-    $base = $prefix || "";
+  my ($base, $query_id, $level, $expanded, $prefix, $initial, $remainder, @components);
+  if (($prefix, $initial, $remainder) = $full =~ /^(?:(.+)_)?([0-9A-F]{10})(_[0-9A-F]{12})*$/i) {
     $remainder ||= "";
-    my @remainder = $remainder =~ /(_[0-9A-F]{12})/gi;
+    my @remainder = $remainder =~ /_([0-9A-F]{12})/gi;
     $level = scalar @remainder;
-    $query_id = "$initial$remainder";
+    $query_id = $level ? pop @remainder : $initial;
     $expanded = 'true';
+   	@components = @remainder;
+   	unshift(@components, $initial);
+   	push(@components, $query_id) if($level);
+   	$base = $components[0];
+  }
+  # If this function is invoked over LDC queryid
+  elsif(($prefix, $initial) = $full =~ /^(?:(.+)_)?(\d+)$/i) {
+  	$level = 1;
+  	$query_id = $initial;
+  	push(@components, $query_id);
+  	$base = $query_id;
+  }
+  else {
+  	die "unexpected argument: \"$full\" sent to parse_queryid\n";
   }
 ### DO NOT INCLUDE
     # FIXME: Handle PSEUDO, etc., as used to be in &get_query_id_base
 ### DO INCLUDE
-  else {
-    $base = "";
-    $level = 0;
-    $query_id = $full;
-  }
   # FIXME: Eventually, let's completely separate base from query_id (by eliminating the following line)
-  $query_id = "${base}_$query_id" if $base;
-  ($base, $query_id, $level, $expanded);
+  #$query_id = "${base}_$query_id" if $base;
+  ($base, $query_id, $level, $expanded, $prefix, @components); 
 }
 
 sub put {
@@ -595,7 +603,7 @@ sub put {
   # FIXME: Can generalize to more than two levels, set LEVEL
 ### DO INCLUDE
   if ($fieldname eq 'QUERY_ID') {
-    ($self->{QUERY_ID_BASE}, $self->{QUERY_ID}, $self->{LEVEL}, $self->{EXPANDED}) =
+    ($self->{QUERY_ID_BASE}, $self->{QUERY_ID}, $self->{LEVEL}, $self->{EXPANDED}, $self->{PREFIX}, @{$self->{COMPONENTS}}) =
       &Query::parse_queryid($value);
   }
   elsif ($fieldname eq 'SLOTS') {
@@ -642,11 +650,19 @@ sub put {
 
 sub get {
   my ($self, $fieldname) = @_;
-  if (uc $fieldname eq 'FULL_QUERY_ID') {
-    return $self->{QUERY_ID_BASE} ? "$self->{QUERY_ID_BASE}_$self->{QUERY_ID}" : $self->{QUERY_ID};
-  }
+  return $self->get_full_queryid() if(uc $fieldname eq 'FULL_QUERY_ID');
   $self->{uc $fieldname};
 }
+
+# Recursively get the complete QUERYID
+sub get_full_queryid {
+	my ($self) = @_;
+	
+	return "$self->{PREFIX}_$self->{QUERY_ID}" if(!$self->{PARENTQUERY});
+	
+	return $self->{PARENTQUERY}->get_full_queryid()."_".$self->{QUERY_ID};
+}
+
 ### DO NOT INCLUDE
 # sub get_query_id_base {
 #   my ($query_id) = @_;
@@ -761,18 +777,26 @@ sub expand {
   $queries = QuerySet->new($self->{LOGGER}) unless defined $queries;
   my $entrypoints = $self->get("ENTRYPOINTS");
   foreach my $entrypoint (@{$entrypoints}) {
-    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE));
+    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE PREFIX));
     $new_query->add_entrypoint(%{$entrypoint});
 ### DO NOT INCLUDE
 # FIXME: Why was SLOT being deleted?
 #    delete $new_query->{SLOT};
 ### DO INCLUDE
     $new_query->put('QUERY_ID', $new_query->get_short_uuid());
-    $new_query->put('QUERY_ID_BASE', $query_base);
-    $new_query->put('ORIGINAL_QUERY_ID', $self->get('QUERY_ID'));
+    
+### DO NOT INCLUDE
+# FIXME: Jim, I have commented this because I think we are confusing query_base with 
+# prefix.
+    #$new_query->put('QUERY_ID_BASE', $query_base);
+### DO INCLUDE
+    $new_query->put('PREFIX', $query_base);
+    $new_query->put('ORIGINAL_QUERY_ID', $self->get('FULL_QUERY_ID'));
     push(@{$self->{EXPANDED_QUERY_IDS}}, $new_query->get('QUERY_ID'));
+    $new_query->{EXPANDED} = 'false';
     $queries->add($new_query);
   }
+  $self->{EXPANDED} = 'true';
   $queries;
 }
 
@@ -798,19 +822,19 @@ sub generate_query {
   # FIXME: Don't hard-code the 12
 ### DO INCLUDE
   $new_query->put('QUERY_ID',
-		  $self->get('QUERY_ID') . "_" .
-		  &main::generate_uuid_from_values($self->{QUERY_ID}, $value, $value_provenance->tostring(), 12));
-  $new_query->put('QUERY_ID_BASE', $self->get('QUERY_ID_BASE'));
+  		$self->get('FULL_QUERY_ID').'_'.
+		  &main::generate_uuid_from_values($self->get('FULL_QUERY_ID'), $value, $value_provenance->tostring(), 12));
   # SLOTS, SLOTn, SLOT
   my @new_slots = @{$self->{SLOTS}};
   shift @new_slots;
   # If there are no slots left to fill, don't generate a query
-  return unless @new_slots;
-  $new_query->put('SLOTS', \@new_slots);
+  #return unless @new_slots;
+  $new_query->put('SLOTS', \@new_slots) if @new_slots;
   # ENTRYPOINTS
   $new_query->add_entrypoint(NAME => $value, PROVENANCE => $value_provenance);
   # LEVEL
   $new_query->put('LEVEL', $self->{LEVEL} + 1);
+  $new_query->put('PARENTQUERY', $self);
   $new_query;
 }
 
@@ -837,9 +861,10 @@ sub populate_from_text {
   }
   my $id = $1;
   my $body = $2;
-  # The Query ID is not a field, but comes from the <query> tag. So
+  # The (Full) Query ID is not a field, but comes from the <query> tag. So
   # we add it to the result explicitly
-  $self->put('QUERY_ID', $id);
+  ($self->{QUERY_ID_BASE}, $self->{QUERY_ID}, $self->{LEVEL}, $self->{EXPANDED}, $self->{PREFIX}, @{$self->{COMPONENTS}}) =
+      &Query::parse_queryid($id);
   my $where = {FILENAME => $self->{FILENAME}, LINENUM => "In query $id"};
 ### DO NOT INCLUDE
   # FIXME: We don't currently store LEVEL in the query file, so there's no easy way to determine LEVEL
@@ -956,7 +981,7 @@ sub new {
   bless($self, $class);
   foreach my $filename (@filenames) {
 ### DO NOT INCLUDE
-print STDERR "*** Populating from $filename\n";
+#print STDERR "*** Populating from $filename\n";
 ### DO INCLUDE
     # Slurp the entire text
     open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
@@ -1020,15 +1045,15 @@ sub add {
   #     ($query->{ASSESSMENT} eq 'CORRECT' || $entry->{ASSESSMENT} eq 'INEXACT')) {
 ############################################################################################################################## FIXME
 
-  $query->expand("", $self) unless $query->{EXPANDED};
+  #$query->expand("", $self) unless $query->{EXPANDED};
   $query;
 }
 
 sub expand {
   my ($self, $query_base) = @_;
-print STDERR "------- expand ---------\n";
+#print STDERR "------- expand ---------\n";
   foreach my $query ($self->get_all_queries()) {
-print STDERR "     From QuerySet->expand Expanding query ", $query->get('QUERY_ID'), "\n";
+#print STDERR "     From QuerySet->expand Expanding query ", $query->get('QUERY_ID'), "\n";
     $query->expand($query_base, $self);
   }
   $self;
@@ -1056,14 +1081,42 @@ sub get_all_queries {
   values %{$self->{QUERIES}};
 }
 
+sub get_original_query_ids {
+  my ($self) = @_;
+  grep {$self->{QUERIES}{$_}{"EXPANDED"} eq "true"} sort keys %{$self->{QUERIES}};
+}
+
+sub get_expanded_query_ids {
+  my ($self) = @_;
+  grep {$self->{QUERIES}{$_}{"EXPANDED"} eq "false"} sort keys %{$self->{QUERIES}};
+}
+
+sub get_index {
+  my ($self) = @_;
+  my %index;
+  my @original_query_ids = $self->get_original_query_ids();
+  foreach my $original_query_id (@original_query_ids) {
+  	foreach my $expanded_query_id (@{$self->{QUERIES}{$original_query_id}{"EXPANDED_QUERY_IDS"}}) {
+  	  $index{$expanded_query_id} = $original_query_id;
+  	}
+  }
+  %index;
+}
+
+
 sub get_all_query_ids {
   my ($self) = @_;
-  keys %{$self->{QUERIES}};
+  sort keys %{$self->{QUERIES}};
 }
 
 sub get_all_top_level_query_ids {
   my ($self) = @_;
   grep {!$self->get_parent_id($_)} $self->get_all_query_ids();
+}
+
+sub get_full_queryid {
+  my ($self, $queryid) = @_;
+  $self->get($queryid)->get_full_queryid();
 }
 
 sub get_parent_id {
@@ -1507,9 +1560,10 @@ sub get_node_for_assessment {
   # If the EC is not 0, then it contains all the information necessary to identify the correct node
   return $self->get($ec, $assessment->{QUANTITY}) unless $ec eq '0';
   # A 0 at the top level is handled directly
-  return $self->get("$assessment->{QUERY_ID}:0", $assessment->{QUANTITY}) if $assessment->{QUERY}{LEVEL} == 0;
+  return $self->get("$assessment->{FULL_QUERY_ID}:0", $assessment->{QUANTITY}) if $assessment->{QUERY}{LEVEL} == 0;
   # If this is not a top level 0, we need to recreate the entire path
   # down to this zero. First, find the parent assessment
+  
   my $parent_assessment = $assessments->get_parent_assessment($assessment->{QUERY_ID});
   # Recursively identify the node corresponding to the parent assessment
   my $parent_node = $self->get_node_for_assessment($parent_assessment, $assessments);
@@ -1517,19 +1571,26 @@ sub get_node_for_assessment {
   $self->get("$parent_node->{NAME}:0", $assessment->{QUANTITY});
 }
 
-sub already_contains {
-  my ($list, $entry) = @_;
-  foreach my $existing (@{$list}) {
-### DO NOT INCLUDE
-    # FIXME: We could use %matchers here
-    # FIXME: Should we require match on RELATION_PROVENANCE?
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#sub already_contains {
+#  my ($list, $entry) = @_;
+#  foreach my $existing (@{$list}) {
+#### DO-NOT INCLUDE
+#    # FIXME: We could use %matchers here
+#    # FIXME: Should we require match on RELATION_PROVENANCE?
+#### DO-INCLUDE
+#    return 'true' if $existing->{VALUE} eq $entry->{VALUE} &&
+#                     $existing->{RELATION_PROVENANCE}->tostring() eq $entry->{RELATION_PROVENANCE}->tostring() &&
+#		     $existing->{VALUE_PROVENANCE}->tostring() eq $entry->{RELATION_PROVENANCE}->tostring();
+#  }
+#  return;
+#}
+#
 ### DO INCLUDE
-    return 'true' if $existing->{VALUE} eq $entry->{VALUE} &&
-                     $existing->{RELATION_PROVENANCE}->tostring() eq $entry->{RELATION_PROVENANCE}->tostring() &&
-		     $existing->{VALUE_PROVENANCE}->tostring() eq $entry->{RELATION_PROVENANCE}->tostring();
-  }
-  return;
-}
+
 
 # This routine adds a list of assessments to the tree, building out
 # the tree as new nodes are required
@@ -1544,7 +1605,14 @@ sub add_assessments {
 ### DO INCLUDE
     # Lookup (or create) the correct node
     my $node = $self->get_node_for_assessment($assessment, $assessments);
-    next if  &already_contains($node->{ASSESSMENTS}, $assessment);
+    
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#    next if  &already_contains($node->{ASSESSMENTS}, $assessment);
+#
+### DO INCLUDE
+
     # Add this assessment to that node
     push(@{$node->{ASSESSMENTS}}, $assessment);
     # Add the quantity
@@ -1557,12 +1625,12 @@ sub add_assessments {
       my @ec_components = split(/:/, $ec);
       my $base_query_id = shift @ec_components;
       if (@ec_components > 1) {
-	my $parent_ec = $base_query_id;
-	pop @ec_components;
-	$parent_ec .= ":". join( ":", @ec_components) if @ec_components;
-	my $parent_ectree = $self->get($parent_ec);
-	$self->{LOGGER}->NIST_die("Equivalence class without correct parent entry:\n\t$assessment->{LINE}\n")
-	  unless grep {$_->{ASSESSMENT} eq "CORRECT" || $_->{ASSESSMENT} eq "INEXACT"} @{$parent_ectree->{ASSESSMENTS}};
+		my $parent_ec = $base_query_id;
+		pop @ec_components;
+		$parent_ec .= ":". join( ":", @ec_components) if @ec_components;
+		my $parent_ectree = $self->get($parent_ec);
+		$self->{LOGGER}->NIST_die("Equivalence class without correct parent entry:\n\t$assessment->{LINE}\n")
+		  unless grep {$_->{ASSESSMENT} eq "CORRECT" || $_->{ASSESSMENT} eq "INEXACT"} @{$parent_ectree->{ASSESSMENTS}};
       }
     }
   }
@@ -1583,13 +1651,29 @@ sub add_submission {
     my $ec_tree = $assessment->{EC_TREE};
     if ($ec_tree) {
       # Added &already_contains throughout to support UNION scoring
-      push(@{$ec_tree->{SUBMISSIONS}}, $submission) unless &already_contains($ec_tree->{SUBMISSIONS}, $submission);
+      push(@{$ec_tree->{SUBMISSIONS}}, $submission) 
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#      		unless &already_contains($ec_tree->{SUBMISSIONS}, $submission)
+#
+### DO INCLUDE
+      ;
     }
     else {
       # An assessment with no associated ec_tree has no equivalence class, and is
       # therefore incorrect
       my $node = $self->get($ec, $assessment->{QUANTITY});
-      push(@{$node->{SUBMISSIONS}}, $submission) unless &already_contains($node->{SUBMISSIONS}, $submission);
+      push(@{$node->{SUBMISSIONS}}, $submission) 
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#      		unless &already_contains($node->{SUBMISSIONS}, $submission)
+#
+### DO INCLUDE
+      ;
     }
   }
   else {
@@ -1598,7 +1682,15 @@ sub add_submission {
     # in &get_ground_truth_for_submission rather than here
     $self->{STATS}{NUM_UNASSESSED}++;
     my $node = $self->get($ec, $submission->{QUANTITY});
-    push(@{$node->{SUBMISSIONS}}, $submission) unless &already_contains($node->{SUBMISSIONS}, $submission);
+    push(@{$node->{SUBMISSIONS}}, $submission) 
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#      		unless &already_contains($node->{SUBMISSIONS}, $submission)
+#
+### DO INCLUDE
+    ;
   }
 }
 
@@ -1612,13 +1704,16 @@ sub get {
 ### DO INCLUDE
   # The equivalence class name encodes the path to the correct node
   my @ec_components = split(/:/, $ec);
-  my $query_id = shift @ec_components;
+  my $full_queryid = shift @ec_components;  
+  my ($query_id_base, $query_id, $level, $expanded) 
+  		= &Query::parse_queryid($full_queryid);  
   # Look up or create the node for this top level query
-  my $result = $self->{QUERIES}{$query_id} || {QUANTITY => $quantity};
-  $self->{QUERIES}{$query_id} = $result;
+  my $result = $self->{QUERIES}{$full_queryid} || {QUANTITY => $quantity};
+  $self->{QUERIES}{$full_queryid} = $result;
   # At each step down through the tree we add one component to the
   # current equivalence class name
-  my $name = $query_id;
+  my $name = $full_queryid;
+#  my $name = $query_id;
   # Keep track of whether this node represents incorrect entries (and
   # thus is not truly an equivalence class, but rather a set of
   # unrelated incorrect answers)
@@ -1640,15 +1735,15 @@ sub get {
 
 # Calculate all scores for a portion of the ground truth tree
 sub score_subtree {
-  my ($self, $name, $subtree, $runid) = @_;
+  my ($self, $name, $subtree, $runid, $policy_options, $policy_selected) = @_;
   # This is a bit of a cheesy hack to get the level
   my @colons = $name =~ /(:)/g;
   my $level = @colons;
   # Score each subtree rooted here
   while (my ($child_name, $child_tree) = each %{$subtree->{ECS}}) {
-    $self->score_subtree($child_name, $child_tree, $runid);
+    $self->score_subtree($child_name, $child_tree, $runid, $policy_options, $policy_selected);
   }
-  # Build a score for this node  
+  # Build a score for this node
   my $score = Score->new();
   $score->put('EC', $name);
   $score->put('RUNID', $runid);
@@ -1658,74 +1753,125 @@ sub score_subtree {
 ### DO NOT INCLUDE
   # FIXME: Why whouldn't QUANTITY be defined?
 ### DO INCLUDE
-  $num_ground_truth = 1 if defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_ground_truth > 1;
-  my $num_wrong = 0;
-  my $num_correct = 0;
-  my $num_redundant = 0;
+  $num_ground_truth = 1 
+  		if defined $subtree->{QUANTITY} 
+  			&& $subtree->{QUANTITY} eq 'single' && $num_ground_truth > 1;
+  			
+  my ($num_incorrect, $num_correct, $num_redundant, $num_submitted, $num_inexact, 
+  		$num_unassessed, $num_incorrect_parent, $num_right, $num_wrong, $num_ignored)
+  			= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   # Look through the submissions for this node
+  my %categorized_submissions;
   foreach my $ec (keys %{$subtree->{ECS}}) {
     # Gather stats for this EC independently in case we want to report stats by EC
-    my $ec_num_wrong = 0;
-    my $ec_num_correct = 0;
-    my $ec_num_redundant = 0;
-    my $num_submissions = @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
-    # If this bin represents incorrect entries, they're all incorrect
-    if ($subtree->{ECS}{$ec}{BIN_IS_INCORRECT}) {
-      $ec_num_wrong += $num_submissions;
-    }
-    # Otherwise the first submission is correct, and the rest are redundant
-    elsif ($num_submissions) {
-### DO NOT INCLUDE
-      # FIXME: Aren't these guaranteed to be correct if the bin is correct?
-### DO INCLUDE
-      # Check for correctness of path in addition to simply checking corresponding assessment for correctness
-### DO NOT INCLUDE
-      # Count only those with correct chain all the way up, in case a submission is corrupted. Here is the old way:
-      # my $num_correct_submissions = grep {$_->{ASSESSMENT}{JUDGMENT} eq 'CORRECT'} @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
-### DO INCLUDE
-      my $num_correct_submissions = $self->get_correct_submissions($ec); 
-         
-      $ec_num_wrong += $num_submissions - $num_correct_submissions;
-      if ($num_correct_submissions > 1) {
-	$ec_num_redundant += $num_correct_submissions - 1;
-	$num_correct_submissions = 1;
-      }
-      $ec_num_correct += $num_correct_submissions;
-    }
-    $num_wrong += $ec_num_wrong;
-    $num_correct += $ec_num_correct;
-    $num_redundant += $ec_num_redundant;
-### DO NOT INCLUDE
-#print STDERR "EC $ec: correct = $ec_num_correct; wrong = $ec_num_wrong; redundant = $ec_num_redundant\n";
-### DO INCLUDE
+    my %ec_categorized_submissions = $self->categorize_submissions($ec, $policy_options, $policy_selected);
+	push(@{$ec_categorized_submissions{'SUBMITTED'}}, @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []});
+    
+    foreach my $key(keys %ec_categorized_submissions) {
+    	push(@{$categorized_submissions{$key}}, @{$ec_categorized_submissions{$key}});
+    } 
   }
-  # A correct answer from a different equivalence class still counts
-  # as redundant if this query is single-valued
-### DO NOT INCLUDE
-  # FIXME: Why whouldn't QUANTITY be defined?
-### DO INCLUDE
-  if (defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_correct) {
-    $num_redundant += $num_correct - 1;
-    $num_correct = 1;
+  if (defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && @{$categorized_submissions{'RIGHT'} || []}) {
+  	my $right_submission = pop @{$categorized_submissions{RIGHT}};
+  	push(@{$categorized_submissions{REDUNDANT}}, @{$categorized_submissions{RIGHT}});
+  	
+  	delete $categorized_submissions{RIGHT};
+  	push (@{$categorized_submissions{RIGHT}}, $right_submission);
+  	
+  	# Categorize RIGHT, WRONG and IGNORED 
+  	my @post_policy_metrics = qw(RIGHT WRONG IGNORE);
+  
+  	# Categorize REDUNDANT into RIGHT, WRONG and IGNORED
+  	my $selected_duplicate_category;
+  	foreach my $post_policy_metric(@post_policy_metrics) {
+  	  if($policy_selected->{$post_policy_metric} =~ /DUPLICATE/) {
+  	  	$selected_duplicate_category = $post_policy_metric;
+  	  }
+  	}
+  	push(@{$categorized_submissions{$selected_duplicate_category}}, @{$categorized_submissions{REDUNDANT}});
   }
+
+  $num_correct = @{$categorized_submissions{'CORRECT'} || []};
+  $num_ignored = @{$categorized_submissions{'IGNORE'} || []};
+  $num_incorrect = @{$categorized_submissions{'INCORRECT'} || []};
+  $num_incorrect_parent = @{$categorized_submissions{'INCORRECT_PARENT'} || []};
+  $num_inexact = @{$categorized_submissions{'INEXACT'} || []};
+  $num_redundant = @{$categorized_submissions{'REDUNDANT'} || []};
+  $num_right = @{$categorized_submissions{'RIGHT'} || []};
+  $num_submitted = @{$categorized_submissions{'SUBMITTED'} || []};
+  $num_unassessed = @{$categorized_submissions{'UNASSESSED'} || []};
+  $num_wrong = @{$categorized_submissions{'WRONG'} || []};
+
   # Add the counts to the Score, and store it in the tree
-  $score->put('NUM_GROUND_TRUTH', $num_ground_truth);
+  $score->put('CATEGORIZED_SUBMISSIONS', \%categorized_submissions);
   $score->put('NUM_CORRECT', $num_correct);
-  $score->put('NUM_WRONG', $num_wrong);
+  $score->put('NUM_GROUND_TRUTH', $num_ground_truth);
+  $score->put('NUM_IGNORED', $num_ignored);
+  $score->put('NUM_INCORRECT', $num_incorrect);
+  $score->put('NUM_INCORRECT_PARENT', $num_incorrect_parent);
+  $score->put('NUM_INEXACT', $num_inexact);
   $score->put('NUM_REDUNDANT', $num_redundant);
+  $score->put('NUM_RIGHT', $num_right);
+  $score->put('NUM_SUBMITTED', $num_submitted);
+  $score->put('NUM_WRONG', $num_wrong);
+  $score->put('NUM_UNASSESSED', $num_unassessed);
+  $score->put('QUANTITY', $subtree->{QUANTITY});
   $subtree->{SCORE} = $score;
 }
 
-# To get the number of correct submission of the ec
-sub get_correct_submissions {
-  my ($self, $ec) = @_;
-  my $correct_submissions = 0;
+# To categorize submissions
+# In addition to keeping count of various categories the output of this 
+# function would help in verbose output.
+
+sub categorize_submissions {
+  my ($self, $ec, $policy_options, $policy_selected) = @_;
+  my %retVal;
   my $subtree = $self->get($ec);
   foreach my $submission ( @{$subtree->{SUBMISSIONS} || []} ) {
-    $correct_submissions++ if $self->is_path_correct($ec, $submission->{QUERY_ID}) &&
-                              $submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT';
+    if(!$self->is_path_correct($ec, $submission->{QUERY_ID})) {
+      # record that the (grand-)parent is incorrect
+      push(@{$retVal{INCORRECT_PARENT}}, $submission);
+    }
+    else{
+      if(not exists $submission->{ASSESSMENT}) {
+      	# record that the entry is unassessed
+      	push(@{$retVal{UNASSESSED}}, $submission);
+      }
+      else{
+      	# record the entry with its assessment
+      	push(@{$retVal{$submission->{ASSESSMENT}{ASSESSMENT}}}, $submission);
+      }    	
+    }
   }
-  $correct_submissions;
+  
+  # Categorize RIGHT, WRONG and IGNORED 
+  my @post_policy_metrics = qw(RIGHT WRONG IGNORE);
+  foreach my $post_policy_metric(@post_policy_metrics) {
+  	my @selected_options = split(":", $policy_selected->{$post_policy_metric});
+  	foreach my $selected_option(@selected_options) {
+  	  push(@{$retVal{$post_policy_metric}}, @{$retVal{$selected_option}}) 
+  	  	if $retVal{$selected_option};
+  	}
+  }
+  
+  # Categorize REDUNDANT based on post-policy RIGHT submissions
+  if($retVal{RIGHT} && @{$retVal{RIGHT}} > 1) {
+  	push(@{$retVal{REDUNDANT}}, @{$retVal{RIGHT}});
+  	$retVal{RIGHT} = [shift @{$retVal{REDUNDANT}}];
+  }
+  
+  # Categorize REDUNDANT into RIGHT, WRONG and IGNORED
+  if($retVal{REDUNDANT}) {
+  	my $selected_duplicate_category;
+  	foreach my $post_policy_metric(@post_policy_metrics) {
+  	  if($policy_selected->{$post_policy_metric} =~ /DUPLICATE/) {
+  	    $selected_duplicate_category = $post_policy_metric;
+  	  }
+  	}
+  	push(@{$retVal{$selected_duplicate_category}}, @{$retVal{REDUNDANT}});
+  }
+  
+  %retVal;
 }
 
 # To determine correctness of the path of a submission
@@ -1754,9 +1900,9 @@ sub is_path_correct {
 
 # To score a set of queries, score the subtree for each query
 sub score {
-  my ($self, $runid) = @_;
+  my ($self, $runid, $policy_options, $policy_selected) = @_;
   foreach my $query_id (keys %{$self->{QUERIES}}) {
-    $self->score_subtree($query_id, $self->{QUERIES}{$query_id}, $runid);
+    $self->score_subtree($query_id, $self->{QUERIES}{$query_id}, $runid, $policy_options, $policy_selected);
   }
 }
 
@@ -1812,7 +1958,7 @@ sub disable_comments {
 # Maps LDC judgments to one of {CORRECT, INCORRECT, IGNORE, NOT_ASSESSED}
 my %correctness_map = (
   CORRECT =>       'CORRECT',
-  WRONG =>         'INCORRECT',
+  INCORRECT =>     'INCORRECT',
   INEXACT =>       'INCORRECT',
   INEXACT_SHORT => 'INCORRECT',
   INEXACT_LONG =>  'INCORRECT',
@@ -1958,7 +2104,7 @@ my %schemas = (
     COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
     ASSESSMENT_CODES => {
       C => 'CORRECT',
-      W => 'WRONG',
+      W => 'INCORRECT',
       X => 'INEXACT',
       I => 'IGNORE',
       S => 'INEXACT_SHORT',
@@ -1986,7 +2132,7 @@ my %schemas = (
     COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
     ASSESSMENT_CODES => {
       C => 'CORRECT',
-      W => 'WRONG',
+      W => 'INCORRECT',
       X => 'INEXACT',
       I => 'IGNORE',
       S => 'INEXACT_SHORT',
@@ -1999,7 +2145,7 @@ my %schemas = (
     TYPE => 'SUBMISSION',
     SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	PER	NYT_ENG_20101103.0024:815-833	1.0"],
     COLUMNS => [qw(
-      QUERY_ID
+      FULL_QUERY_ID
       SLOT_NAME
       RUNID
       RELATION_PROVENANCE_TRIPLES
@@ -2063,7 +2209,7 @@ my %columns = (
   ASSESSMENT => {
     # Note: ASSESSMENT is a normalized LDC conclusion; JUDGMENT maps
     # ASSESSMENT onto {CORRECT, INCORRECT, IGNORE, NOT_ASSESSED}
-    DESCRIPTION => "{CORRECT, WRONG, INEXACT, IGNORE, INEXACT_SHORT, INEXACT_LONG}",
+    DESCRIPTION => "{CORRECT, INCORRECT, INEXACT, IGNORE, INEXACT_SHORT, INEXACT_LONG}",
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
       if ($schema->{COLUMN_TO_JUDGE}) {
@@ -2122,6 +2268,11 @@ my %columns = (
 
   FILENAME => {
     DESCRIPTION => "The name of the file from which the description of the entry was read; added by load",
+  },
+  
+  FULL_QUERY_ID => {
+  	DESCRIPTION => "Complete Query ID",
+  	PATTERN => $anything_pattern,
   },
 
   ID => {
@@ -2316,6 +2467,7 @@ my %columns = (
 	$entry->{QUERY_AND_SLOT_NAME} =~ /^(.*?):(.*)$/;
 	$entry->{SLOT_NAME} = $2;
 	my $full_queryid = $1;
+	$entry->{FULL_QUERY_ID} = $full_queryid;
 ### DO NOT INCLUDE
 # Eventually let's separate query_id_base from query_id completely
 	# my $query_id_num;
@@ -2325,6 +2477,10 @@ my %columns = (
 ### DO INCLUDE
 	($entry->{QUERY_ID_BASE}, $entry->{QUERY_ID}, $entry->{LEVEL}, $entry->{EXPANDED}) =
 	  &Query::parse_queryid($full_queryid);
+      }
+      elsif (defined $entry->{FULL_QUERY_ID}) {
+      	($entry->{QUERY_ID_BASE}, $entry->{QUERY_ID}, $entry->{LEVEL}, $entry->{EXPANDED}) =
+	  &Query::parse_queryid($entry->{FULL_QUERY_ID});
       }
       elsif (defined $entry->{QUERY}) {
       	$entry->{QUERY_ID} = $entry->{QUERY}{QUERY_ID};
@@ -2339,9 +2495,10 @@ my %columns = (
     DESCRIPTION => "The query name stripped of any UUID (We may need to remove _PSEUDO (for 2013 queries) or a UUID (for 2014 queries) to get the base query name)",
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
-      ($entry->{QUERY_ID_BASE}) = &Query::parse_queryid($entry->{QUERY_ID});
+      my $full_queryid = $queries->get($entry->{QUERY_ID})->get('FULL_QUERY_ID');
+      ($entry->{QUERY_ID_BASE}) = &Query::parse_queryid($full_queryid);
     },
-    DEPENDENCIES => [qw(QUERY_ID)],
+    DEPENDENCIES => [qw(QUERY_ID QUERY)],
     REQUIRED => 'ALL',
   },
 
@@ -2397,7 +2554,7 @@ my %columns = (
       my ($logger, $where, $queries, $schema, $entry) = @_;
       if (defined $entry->{QUERY_AND_SLOT_NAME}) {
 	$entry->{QUERY_AND_SLOT_NAME} =~ /^(.*?):(.*)$/;
-	$entry->{QUERY_ID} = $1;
+	$entry->{FULL_QUERY_ID} = $1;
 	$entry->{SLOT_NAME} = $2;
       }
       else {
@@ -2485,7 +2642,8 @@ my %columns = (
     DESCRIPTION => "Query ID of query generated from this entry",
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
-      $entry->{TARGET_QUERY_ID} = "$entry->{QUERY_ID_BASE}_$entry->{TARGET_UUID}";
+      #$entry->{TARGET_QUERY_ID} = "$entry->{QUERY_ID_BASE}_$entry->{TARGET_UUID}";
+      $entry->{TARGET_QUERY_ID} = "$entry->{TARGET_UUID}";
     },
     DEPENDENCIES => [qw(QUERY_ID_BASE TARGET_UUID)],
     REQUIRED => 'ALL',
@@ -2498,12 +2656,13 @@ my %columns = (
 ### DO NOT INCLUDE
       # FIXME: Don't hard-code the 12
 ### DO INCLUDE
-      $entry->{TARGET_UUID} = &main::generate_uuid_from_values($entry->{QUERY_ID},
+	  my $full_queryid = $queries->get($entry->{QUERY_ID})->get('FULL_QUERY_ID');
+      $entry->{TARGET_UUID} = &main::generate_uuid_from_values($full_queryid,
 							       $entry->{VALUE},
 							       $entry->{VALUE_PROVENANCE}->tostring(),
 							       12);
     },
-    DEPENDENCIES => [qw(QUERY_ID VALUE VALUE_PROVENANCE)],
+    DEPENDENCIES => [qw(QUERY_ID QUERY VALUE VALUE_PROVENANCE)],
   },
 
   TYPE => {
@@ -2742,7 +2901,7 @@ sub generate_slot {
 sub load {
   my ($self, $logger, $queries, $filename, $schema) = @_;
 ### DO NOT INCLUDE
-print STDERR ">>>>>>>>>>>>>>>>>> Loading $filename\n";
+#print STDERR ">>>>>>>>>>>>>>>>>> Loading $filename\n";
 ### DO INCLUDE
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $columns = $schema->{COLUMNS};
@@ -2795,7 +2954,7 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     $entry->{LINENUM} = $.;
     $entry->{SCHEMA} = $schema;
     $entry->{COMMENT} = $comment;
-
+    
 ### DO NOT INCLUDE
 #    my $replacement = $fix_utf8{$entry->{VALUE}};
 #    $entry->{VALUE} = $replacement if defined $replacement;
@@ -3031,10 +3190,12 @@ sub get_ground_truth_for_submission {
 
 # Return the name of the equivalence class for this query ID
 sub query_id2ec {
-  my ($self, $query_id) = @_;
+  my ($self, $full_queryid) = @_;
+  my ($query_id_base, $query_id, $level, $expanded) 
+  		= &Query::parse_queryid($full_queryid); 
   my $query = $self->{QUERIES}->get($query_id);
   if (defined $query->{LEVEL}) {
-  return $query_id if $query->{LEVEL} == 0;
+  return $full_queryid if $query->{LEVEL} == 0;
 }
   my $parent_assessment = $self->get_parent_assessment($query_id);
   if ($parent_assessment) {
@@ -3042,7 +3203,7 @@ sub query_id2ec {
   }
   else {
     # Parent assessment is incorrect, so EC component is 0
-    my $parent_query_id = $self->get_parent_query_id($query_id);
+    my $parent_query_id = $self->{QUERIES}->get($self->get_parent_query_id($query_id))->get("FULL_QUERY_ID");
     return $self->query_id2ec($parent_query_id) . ":0";
   }
 }
@@ -3050,13 +3211,13 @@ sub query_id2ec {
 # Return the name of the equivalence class for this entry
 sub entry2ec {
   my ($self, $entry) = @_;
-  $self->query_id2ec($entry->{TARGET_QUERY_ID});
+  $self->query_id2ec($entry->{TARGET_QUERY}->get("FULL_QUERY_ID"));
 }
 
 # Return the name of the equivalence class for the parent of this entry
 sub entry2parentec {
   my ($self, $entry) = @_;
-  $self->query_id2ec($entry->{QUERY_ID});
+  $self->query_id2ec($entry->{FULL_QUERY_ID});
 }
 ### DO NOT INCLUDE
 
@@ -3065,15 +3226,27 @@ sub entry2parentec {
 # exit 0;
 ### DO INCLUDE
 
-my %combo_options = (
-  MICRO => {DESCRIPTION => "Micro-average scores across entrypoints"},
-  MACRO => {DESCRIPTION => "Macro-average scores across entrypoints"},
-  UNION => {DESCRIPTION => "Estimate performance if system took union of answers for all entrypoints"},
-);
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#my %combo_options = (
+#  MICRO => {DESCRIPTION => "Micro-average scores across entrypoints"},
+#  MACRO => {DESCRIPTION => "Macro-average scores across entrypoints"},
+#  UNION => {DESCRIPTION => "Estimate performance if system took union of answers for all entrypoints"},
+#);
+#
+### DO INCLUDE
 
-sub get_combo_options_description {
-  &main::build_documentation(\%combo_options);
-}
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#sub get_combo_options_description {
+#  &main::build_documentation(\%combo_options);
+#}
+#
+### DO INCLUDE
 
 # These are the keyword arguments that can be given to score_query
 my %scoring_options = (
@@ -3084,9 +3257,15 @@ my %scoring_options = (
 		 DEFAULT =>     'ASSESSED',
 		},
   QUERY_BASE => {DESCRIPTION => "Multiple entrypoints are expanded to use this as the base name"},
-  COMBO =>      {DESCRIPTION => "{" . join(", ", sort keys %combo_options) . "} - controls how multiple entry point entries are scored",
-		 DEFAULT =>     'MICRO',
-		},
+### DO NOT INCLUDE
+# Removing COMBO
+#
+#
+#  COMBO =>      {DESCRIPTION => "{" . join(", ", sort keys %combo_options) . "} - controls how multiple entry point entries are scored",
+#		 DEFAULT =>     'MICRO',
+#		},
+#
+### DO INCLUDE
 );
 
 # Build a list of all the known scoring options
@@ -3098,8 +3277,8 @@ sub get_scoring_options_description {
 # placing each submission at the correct point in the tree, scoring
 # each node of the tree, and collecting the resulting scores
 sub score_query {
-  my ($self, $original_query, %options) = @_;
-print STDERR "score_query(", defined $original_query ? $original_query : 'undef', ") from ", join(":", caller), "\n";
+  my ($self, $original_query, $policy_options, $policy_selected, %options) = @_;
+#print STDERR "score_query(", defined $original_query ? $original_query : 'undef', ") from ", join(":", caller), "\n";
   # Validate the scoring options
   foreach my $key (keys %options) {
     $self->NIST_die("Unknown scoring option: $key") unless $scoring_options{$key};
@@ -3124,29 +3303,44 @@ print STDERR "score_query(", defined $original_query ? $original_query : 'undef'
   my @ectrees;
   foreach my $query (@queries_to_score) {
     my $query_id = $query->{QUERY_ID};
-    my $query_id_base = &Query::get_query_id_base($query_id);
+    my $query_id_base = $query->get('QUERY_ID_BASE');
     my $assessment_list = $self->{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id_base};
     my @submissions_for_query = grep {$_->{RUNID} eq $options{RUNID}} @{$self->{ENTRIES_BY_QUERY_ID_BASE}{SUBMISSION}{$query_id_base}};
-    if ($options{COMBO} eq 'UNION') {
-print STDERR "UNION\n";
-      # Make sure there's a single list of submissions, and a single ectree
-      push(@submission_lists, []) unless @submission_lists;
-      push(@{$submission_lists[0]}, @submissions_for_query);
-      push(@ectrees, EquivalenceClassTree->new($self->{LOGGER}, $self)) unless @ectrees;
-      $ectrees[0]->add_assessments($self, @{$assessment_list});
-    }
-    else {
-print STDERR "non-UNION\n";
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#    if ($options{COMBO} eq 'UNION') {
+#print STDERR "UNION\n";
+#      # Make sure there's a single list of submissions, and a single ectree
+#      push(@submission_lists, []) unless @submission_lists;
+#      push(@{$submission_lists[0]}, @submissions_for_query);
+#      push(@ectrees, EquivalenceClassTree->new($self->{LOGGER}, $self)) unless @ectrees;
+#      $ectrees[0]->add_assessments($self, @{$assessment_list});
+#    }
+#    else {
+#
+### DO INCLUDE
+    
+#print STDERR "non-UNION\n";
       push(@submission_lists, \@submissions_for_query);
       my $ectree = EquivalenceClassTree->new($self->{LOGGER}, $self);
       $ectree->add_assessments($self, @{$assessment_list});
       push(@ectrees, $ectree);
+
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#  }
+#
+### DO INCLUDE
+
     }
-  }
+
+
   # @submission_lists now contains all the submissions to be scored,
   # and @ectrees contains a parallel set of ectrees
   $self->{LOGGER}->NIST_die("Mismatch in score_query") unless @submission_lists == @ectrees;
-print STDERR "submission_lists has ", 0 + @submission_lists, " entries\n";
+#print STDERR "submission_lists has ", 0 + @submission_lists, " entries\n";
   my @scores;
   foreach my $i (0..$#ectrees) {
     my $submission_list = $submission_lists[$i];
@@ -3157,22 +3351,35 @@ print STDERR "submission_lists has ", 0 + @submission_lists, " entries\n";
 			      $self->entry2ec($submission),
 			      $ground_truth);
     }
-    $ectree->score($options{RUNID});
+    $ectree->score($options{RUNID}, $policy_options, $policy_selected);
     my @subscores = $ectree->get_all_scores();
 ### DO NOT INCLUDE
     # Shahzad -- This is where we either return the entire list of result vectors (for micro averagering)
     # or a single vector that averages the list (for macro averaging). It's probably more complicated to
     # communicate the policy now.
 ### DO INCLUDE
-    if ($options{COMBO} eq 'UNION' || $options{COMBO} eq 'MICRO') {
+
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#    if ($options{COMBO} eq 'UNION' || $options{COMBO} eq 'MICRO') {
+#
+### DO INCLUDE
+
       push(@scores, @subscores);
-    }
-    elsif ($options{COMBO} eq 'MACRO') {
-      push(@scores, ScoreSet->new(@subscores)->toscore());
-    }
-    else {
-      $self->{LOGGER}->NIST_die("Unknown Scoring COMBO type: $options{COMBO}");
-    }
+
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#    }
+#    elsif ($options{COMBO} eq 'MACRO') {
+#      push(@scores, ScoreSet->new(@subscores)->toscore());
+#    }
+#    else {
+#      $self->{LOGGER}->NIST_die("Unknown Scoring COMBO type: $options{COMBO}");
+#    }
+#
+### DO INCLUDE
   }
   @scores;
 }
@@ -3322,25 +3529,25 @@ sub put {
   $self->{$field} = $value;
 }
 
-# A Scorable object must define NUM_CORRECT, NUM_INCORRECT and
-# NUM_GROUND_TRUTH, or implement get_NUM_CORRECT, get_NUM_INCORRECT
+# A Scorable object must define NUM_RIGHT, NUM_IGNORED and
+# NUM_GROUND_TRUTH, or implement get_NUM_RIGHT, get_NUM_IGNORED
 # and get_NUM_GROUND_TRUTH
 
 sub get_PRECISION {
   my ($self) = @_;
-  my $num_correct = $self->get('NUM_CORRECT');
-  my $num_incorrect = $self->get('NUM_INCORRECT');
-  my $num_responses = $num_correct + $num_incorrect;
-  return 0.0 unless $num_responses;
-  return $num_correct / $num_responses;
+  my $num_right = $self->get('NUM_RIGHT');
+  my $num_ignored = $self->get('NUM_IGNORED');
+  my $num_responses = $self->get('NUM_SUBMITTED');
+  return 0.0 unless ($num_responses-$num_ignored);
+  return $num_right/($num_responses-$num_ignored);
 }
 
 sub get_RECALL {
   my ($self) = @_;
-  my $num_correct = $self->get('NUM_CORRECT');
+  my $num_right = $self->get('NUM_RIGHT');
   my $num_ground_truth = $self->get('NUM_GROUND_TRUTH');
   return 0.0 unless $num_ground_truth;
-  return $num_correct / $num_ground_truth;
+  return $num_right / $num_ground_truth;
 }
 
 sub get_F1 {
@@ -3362,13 +3569,26 @@ use parent -norequire, 'Scorable';
 
 sub new {
   my ($class) = @_;
-  my $self = {NUM_CORRECT => 0,
-	      NUM_WRONG => 0,
-	      NUM_REDUNDANT => 0,
+  my $self = {NUM_RIGHT => 0,
+	      NUM_IGNORED => 0,
+	      NUM_SUBMITTED => 0,
 	      NUM_GROUND_TRUTH => 0,
 	     };
   bless($self, $class);
   $self;
+}
+
+sub duplicate {
+  my ($self, @fields_to_omit) = @_;
+  my %fields_to_omit = map {$_ => 'true'} @fields_to_omit;
+  my $class = ref $self;
+  my $result = $class->new($self->{LOGGER});
+  foreach my $key (keys %{$self}) {
+    # Skip keys we were requested to skip (Note: this will not prevent automatic creation)
+    next if $fields_to_omit{$key};
+    $result->put($key, $self->get($key));
+  }
+  $result;
 }
 
 sub increment {
@@ -3377,10 +3597,10 @@ sub increment {
   $self->{$field} += $value;
 }
 
-sub get_NUM_INCORRECT {
-  my ($self) = @_;
-  $self->get('NUM_WRONG') + $self->get('NUM_REDUNDANT');
-}
+#sub get_NUM_INCORRECT {
+#  my ($self) = @_;
+#  $self->get('NUM_WRONG') + $self->get('NUM_REDUNDANT');
+#}
 
 package ScoreSet;
 
@@ -3402,6 +3622,12 @@ sub new {
 
 sub add {
   my ($self, @components) = @_;
+  foreach my $component(@components) {
+  	foreach my $key (grep {$_ =~ /^NUM_/} keys %{$component}) {
+  		$self->{$key} += $component->{$key};
+  	}
+  }
+  
   push(@{$self->{'COMPONENTS'}}, @components);
 }
 
@@ -3414,6 +3640,23 @@ sub add_boson {
   $self->{NUM_BOSONS}++;
 }
 ### DO INCLUDE
+
+sub get_NON_NIL_NUM_COMPONENTS {
+  my ($self) = @_;
+  my $result = 0;
+  foreach my $component (@{$self->{COMPONENTS}}) {
+  	my $num_ground_truth = $component->get("NUM_GROUND_TRUTH");
+  	next if($num_ground_truth == 0);
+    my $method = $component->can("get_NUM_COMPONENTS");
+    if ($method) {
+      $result += $method->($component);
+    }
+    else {
+      $result++;
+    }
+  }
+  $result - $self->{NUM_BOSONS};
+}
 
 sub get_NUM_COMPONENTS {
   my ($self) = @_;
@@ -3456,14 +3699,27 @@ sub getmean {
   $self->getsum($field) / $self->get('NUM_COMPONENTS');
 }
 
-sub toscore {
-  my ($self) = @_;
-  my $result = Score->new();
-  foreach (qw(NUM_GROUND_TRUTH NUM_CORRECT NUM_WRONG NUM_REDUNDANT)) {
-    $result->put($_, $self->getmean($_));
-  }
-  $result;
+sub getadjustedmean {
+  my ($self, $field) = @_;
+  my $retVal = 0;
+  $retVal = $self->getsum($field) / $self->get('NON_NIL_NUM_COMPONENTS')
+		if $self->get('NON_NIL_NUM_COMPONENTS') > 0;
+  $retVal;
 }
+
+## DO NOT INCLUDE
+# Removing COMBO
+#
+#sub toscore {
+#  my ($self) = @_;
+#  my $result = Score->new();
+#  foreach (qw(NUM_GROUND_TRUTH NUM_CORRECT NUM_INCORRECT NUM_REDUNDANT)) {
+#    $result->put($_, $self->getmean($_));
+#  }
+#  $result;
+#}
+#
+### DO INCLUDE
 
 ### END INCLUDE Scoring
 
@@ -4004,9 +4260,29 @@ sub _fill {
 	    $thisline .= $word;
 	}
 	else {
-	    $result .= "$thisline\n";
-	    $thisline = "$leader2$word";
-	    $spaceOK = "TRUE";
+			if(length($word) > $width) {
+				my @chars = split("", $word);
+				my $numsplits = int((scalar @chars/$width)) + 1;
+				my $start  =  0;
+				my $length =  @chars / $numsplits;
+
+				foreach my $i (0 .. $numsplits-1)
+				{
+				    my $end = ($i == $numsplits-1) ? $#chars : $start + $length - 1;
+				    my $splitword = join("", @chars[$start .. $end]);
+				    $start += $length;
+				    $result .= "$thisline\n";
+				    $thisline = "$leader2$splitword";
+				    $thisline .= "/" if $i < $numsplits-1;
+				    $spaceOK = "TRUE";
+				}
+				
+			}
+			else {
+		    $result .= "$thisline\n";
+		    $thisline = "$leader2$word";
+		    $spaceOK = "TRUE";
+			}
 	}
     }
     "$result$thisline\n";

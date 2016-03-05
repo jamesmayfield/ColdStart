@@ -9,7 +9,7 @@ use ColdStartLib;
 
 # ResolveQueries.pl
 # Author: James Mayfield (jamesmayfield "at" gmail "dot" com)
-my $version = "2015.1.0";
+my $version = "2016.1.0";
 
 binmode(STDOUT, ":utf8");
 
@@ -221,8 +221,8 @@ use parent -norequire, 'Task';
 
 sub new {
   my ($class, $query, $predecessor_task, $entity, $predecessor_assertion) = @_;
+  return unless $query->{SLOTS};
   my @slots = @{$query->{SLOTS}};
-  return unless @slots;
 #  die "Attempt to create $class with no slot list" unless @slots;
   my $slot = shift @slots;
   my $self = $class->SUPER::new($query, "$class--$slot($predecessor_assertion->{object}) from " . join(", ", caller), $predecessor_task);
@@ -496,7 +496,7 @@ sub add_fill {
   my ($self, $task, $assertion, $name_task, $name_assertion) = @_;
   # First, we construct each of the output column values
   # Column 1: Query ID
-  my $query_id = $task->{QUERY}{QUERY_ID};
+  my $query_id = $task->{QUERY}->get('FULL_QUERY_ID');
   # Column 2: Slot name
   my $slot_name = $task->{SLOT};
   # Column 3: Run ID
@@ -767,3 +767,5 @@ close $outfile if $outfile_opened;
 # 2014.1.0: Original resolver based on 2013 model
 # 2014.1.1: Fixed incorrect self-documentation
 # 2015.1.0: Added type column to output
+# 2016.1.0: Add FULL_QUERY_ID and another minor change to make the code work
+#			with new library
