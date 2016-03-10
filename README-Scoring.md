@@ -201,11 +201,12 @@ Legal switches are:
                           choices) (Default = UNASSESSED).
   -output_file <value>  Where should program output be sent? (filename, stdout
                           or stderr) (Default = stdout).
-  -queries <value>      file (one query ID per line with an optional number
-                          separated by space representing the hop upto which
-                          evaluation is to be performed) or colon-separated list
-                          of query IDs to be scored (if omitted, all query files
-                          in 'files' parameter will be scored)
+  -queries <value>      file (one LDC query ID, SF query ID pair, separated by
+                          space, per line with an optional number separated by
+                          space representing the hop upto which evaluation is to
+                          be performed) or colon-separated list of SF query IDs
+                          to be scored (if omitted, all query files in 'files'
+                          parameter will be scored)
   -right <value>        Colon-separated list of assessment codes, submitted
                           value corresponding to which to be counted as right
                           (post-policy) (see policy options below for legal

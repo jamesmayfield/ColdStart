@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.4.3";
+my $version = "2.4.4";
 
 # Filehandles for program and error output
 my $program_output;
@@ -668,16 +668,30 @@ sub get_queries_to_score {
   }
   elsif (-f $spec) {
     open(my $infile, "<:utf8", $spec) or $logger->NIST_die("Could not open $spec: $!");
+    my %index;
     while(<$infile>) {
     	chomp;
-    	my ($full_query_id, $num_slots) = split(/\s+/, $_);
-    	my ($base, $query_id) = &Query::parse_queryid($full_query_id);
-    	unless ($queries->get($query_id)) {
-		  $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id, 'NO_SOURCE');
+    	my ($csldc_query_id, $cssf_query_id_full, $num_slots) = split(/\s+/, $_);
+    	if (not exists $index{$csldc_query_id}) {
+    		$index{$csldc_query_id} = defined $num_slots ? $num_slots : -1; 
+    	}
+    	else {
+    		my $target_value = defined $num_slots ? $num_slots : -1;
+    		$logger->NIST_die("$csldc_query_id has multiple/conflicting num_slots in $spec")
+    			if($target_value != $index{$csldc_query_id});
+    	}
+    	my ($base, $cssf_query_id) = &Query::parse_queryid($cssf_query_id_full);
+    	unless ($queries->get($cssf_query_id)) {
+		  $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $cssf_query_id, 'NO_SOURCE');
 		  next;
     	}
-    	$num_slots = scalar @{$queries->get($query_id)->{SLOTS}}-1 unless defined $num_slots;
-    	$query_slots{$query_id} = $num_slots;
+    	my $max_num_slot = scalar @{$queries->get($cssf_query_id)->{SLOTS}}-1;
+    	$num_slots = $max_num_slot unless defined $num_slots;
+    	
+    	$logger->NIST_die("Unexpected num_slots value $num_slots for $csldc_query_id in $spec")
+    		if $num_slots > $max_num_slot || $num_slots < 0;
+    	
+    	$query_slots{$cssf_query_id} = $num_slots;
     }
     close $infile;
   }
@@ -742,9 +756,9 @@ $switches->addVarSwitch("expand", "Expand multi-entrypoint queries, using string
 #
 ### DO INCLUDE
 
-$switches->addVarSwitch("queries", "file (one query ID per line with an optional number separated " .
+$switches->addVarSwitch("queries", "file (one LDC query ID, SF query ID pair, separated by space, per line with an optional number separated " .
 					 	"by space representing the hop upto which evaluation is to be performed) " .
-					 	"or colon-separated list of query IDs to be scored " .
+					 	"or colon-separated list of SF query IDs to be scored " .
 			           "(if omitted, all query files in 'files' parameter will be scored)");
 $switches->addVarSwitch("runids", "Colon-separated list of run IDs to be scored (if omitted, all runids will be scored)");
 $switches->addVarSwitch("right", "Colon-separated list of assessment codes, submitted value corresponding to which to be counted as right (post-policy) (see policy options below for legal choices)");
@@ -876,6 +890,9 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2.4.4 - -queries file format changed. Additional mandatory first column added 
+#		  containing CSLDC queryid corresponding to the CSSF queryid mentioned on 
+#		  that line, required for sanity checking. 
 # 2.4.3 - -queries file format changed. Allows one to add an additional column 
 #         per query id specifying the hop number upto which evaluation is performed
 # 2.4.2 - LDC-MEAN Macro-averaging over only NON-NIL queries
