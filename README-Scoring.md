@@ -204,8 +204,8 @@ Legal switches are:
   -queries <value>      file (one LDC query ID, SF query ID pair, separated by
                           space, per line with an optional number separated by
                           space representing the hop upto which evaluation is to
-                          be performed) or colon-separated list of SF query IDs to
-                          be scored (if omitted, all query files in 'files'
+                          be performed) or colon-separated list of SF query IDs
+                          to be scored (if omitted, all query files in 'files'
                           parameter will be scored)
   -right <value>        Colon-separated list of assessment codes, submitted
                           value corresponding to which to be counted as right
