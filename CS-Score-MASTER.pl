@@ -756,7 +756,7 @@ $switches->addVarSwitch("expand", "Expand multi-entrypoint queries, using string
 #
 ### DO INCLUDE
 
-$switches->addVarSwitch("queries", "file (one query ID per line with an optional number separated " .
+$switches->addVarSwitch("queries", "file (one LDC query ID, SF query ID pair, separated by space, per line with an optional number separated " .
 					 	"by space representing the hop upto which evaluation is to be performed) " .
 					 	"or colon-separated list of query IDs to be scored " .
 			           "(if omitted, all query files in 'files' parameter will be scored)");
