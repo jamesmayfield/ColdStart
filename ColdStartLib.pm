@@ -62,6 +62,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   COLON_OMITTED                 WARNING  Initial colon omitted from name of entity %s
   DUPLICATE_ASSERTION           WARNING  The same assertion is made more than once (%s)
   ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
+  IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s 
   ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s
   ILLEGAL_ENTITY_TYPE           ERROR    Illegal entity type: %s
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
@@ -2245,12 +2246,16 @@ my %columns = (
     YEARS => [2014, 2015],
     # We're lenient here. Guidelines state there must be a decimal
     # point, but we want a warning only for a missing decimal point
-    PATTERN => qr/\d+(?:\.\d+)?/,
+    PATTERN => qr/\d+(?:\.\d+(e-?\d\d)?)?/,
     NORMALIZE => sub {
       my ($logger, $where, $value) = @_;
       if ($value eq '1') {
 	$logger->record_problem('MISSING_DECIMAL_POINT', $value, $where);
 	$value = '1.0';
+      }
+      elsif($value =~ /^\d+\.\d+e-?\d\d$/) {
+     logger->record_problem('IMPROPER_CONFIDENCE_VALUE', $value, $where);
+     	$value = sprintf("%.12f", $value);
       }
       unless ($value =~ /^(?:1\.0*)$|^(?:0?\.[0-9]*[1-9][0-9]*)$/) {
 	$logger->record_problem('ILLEGAL_CONFIDENCE_VALUE', $value, $where);
@@ -3429,7 +3434,14 @@ sub column2string {
   }
   elsif ($column eq 'CONFIDENCE') {
     return $self->{CONFIDENCE} if defined $self->{CONFIDENCE};
-    return $entry->{$column};
+    my $confidence = $entry->{$column};
+    if($entry->{$column} =~ /^\d+\.\d+e-?\d\d$/) {
+    	$self->{LOGGER}->record_problem('IMPROPER_CONFIDENCE_VALUE', $confidence, 
+    				{FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}}
+    			);
+    	$confidence = sprintf("%0.12f", $confidence);
+    }
+    return $confidence;
   }
   elsif ($column =~ /_ASSESSMENT$/) {
 ### DO NOT INCLUDE
