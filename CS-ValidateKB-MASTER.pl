@@ -815,6 +815,7 @@ sub export_tac {
     if ($predicate_string ne 'type' &&
 	$predicate_string ne 'mention' &&
 	$predicate_string ne 'canonical_mention' &&
+	$predicate_string ne 'nominal_mention' &&
 	$predicate_string ne 'link') {
       $domain_string = $kb->get_entity_type($assertion->{SUBJECT_ENTITY});
       next if $domain_string eq 'unknown';
