@@ -66,6 +66,7 @@ sub generate_round2_query {
   my $new_queryid = "$submission->{QUERY_ID_BASE}_$submission->{TARGET_UUID}";
   my $new_query = Query->new($logger);
   $new_query->put('QUERY_ID', $new_queryid);
+  $new_query->put('PARENTQUERY', $original_query);
   my $name = $submission->{VALUE};
   $name =~ s/([<&>'"])/$rewrites{$1}/ge if $valid;
   $new_query->add_entrypoint(NAME => $name,

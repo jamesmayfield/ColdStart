@@ -69,6 +69,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
   ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
   MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
+  MISSING_MENTION               WARNING  Entity %s has no mention in document %s
   # This is the WARNING version of ILLEGAL_CONFIDENCE_VALUE:
   MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
@@ -658,7 +659,7 @@ sub get {
 # Recursively get the complete QUERYID
 sub get_full_queryid {
 	my ($self) = @_;
-	
+		
 	return "$self->{PREFIX}_$self->{QUERY_ID}" if(!$self->{PARENTQUERY});
 	
 	return $self->{PARENTQUERY}->get_full_queryid()."_".$self->{QUERY_ID};
@@ -2246,14 +2247,14 @@ my %columns = (
     YEARS => [2014, 2015],
     # We're lenient here. Guidelines state there must be a decimal
     # point, but we want a warning only for a missing decimal point
-    PATTERN => qr/\d+(?:\.\d+(e-?\d\d)?)?/,
+    PATTERN => qr/\d+(?:\.\d+(e[-+]?\d\d)?)?/,
     NORMALIZE => sub {
       my ($logger, $where, $value) = @_;
       if ($value eq '1') {
 	$logger->record_problem('MISSING_DECIMAL_POINT', $value, $where);
 	$value = '1.0';
       }
-      elsif($value =~ /^\d+\.\d+e-?\d\d$/) {
+      elsif($value =~ /^\d+\.\d+e[-+]?\d\d$/) {
      logger->record_problem('IMPROPER_CONFIDENCE_VALUE', $value, $where);
      	$value = sprintf("%.12f", $value);
       }

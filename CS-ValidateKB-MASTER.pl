@@ -376,7 +376,7 @@ sub add_assertion {
   push(@{$kb->{MENTIONS}{$provenance->get_docid()}}, $assertion)
     if defined $predicate && ($predicate->{NAME} eq 'mention');
   push(@{$kb->{DOCIDS}{$subject}{$verb}{$provenance->get_docid()}}, $assertion)
-    if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention');
+    if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention' || $predicate->{NAME} eq 'nominal_mention');
   if ($predicate->{NAME} eq 'link') {
     $assertion->{OBJECT} =~ /^(.*?):(.*)$/;
     push(@{$kb->{LINKS}{$subject}{$1}}, $2);
@@ -502,6 +502,7 @@ sub assert_mentions {
   foreach my $subject ($kb->get_subjects()) {
     my %docids;
     foreach my $docid ($kb->get_docids($subject, 'mention'),
+    		   $kb->get_docids($subject, 'nominal_mention'),
 		       $kb->get_docids($subject, 'canonical_mention')) {
       $docids{$docid}++;
     }
@@ -511,25 +512,42 @@ sub assert_mentions {
     }
     foreach my $docid (keys %docids) {
       my %mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'mention', undef, $docid);
+      my %nominal_mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'nominal_mention', undef, $docid);
       my %canonical_mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'canonical_mention', undef, $docid);
       if ($canonical_mentions_allowed && !keys %canonical_mentions && keys %mentions) {
-	$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
-	# Pick a mention at random to serve as the canonical
-	# mention. This makes the validator non-deterministic, but
-	# it's hard to see how that will be a problem (& ya shoulda
-	# selected a canonical mention)
-	my ($mention) = values %mentions;
-	my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
-					   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
-	$assertion->{INFERRED} = 'true';
+		$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
+		# Pick a mention at random to serve as the canonical
+		# mention. This makes the validator non-deterministic, but
+		# it's hard to see how that will be a problem (& ya shoulda
+		# selected a canonical mention)
+		my ($mention) = values %mentions;
+		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
+						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
+		$assertion->{INFERRED} = 'true';
+      }
+      elsif ($canonical_mentions_allowed && !keys %canonical_mentions && keys %nominal_mentions) {
+		$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
+		$kb->{LOGGER}->record_problem('MISSING_MENTION', $subject, $docid, 'NO_SOURCE');
+		# Pick a nominal_mention at random to serve as the canonical
+		# mention. This makes the validator non-deterministic, but
+		# it's hard to see how that will be a problem (& ya shoulda
+		# selected a canonical mention)
+		my ($mention) = values %nominal_mentions;
+		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
+						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
+		$assertion->{INFERRED} = 'true';
       }
       elsif ($canonical_mentions_allowed && keys %canonical_mentions > 1) {
 	$kb->{LOGGER}->record_problem('MULTIPLE_CANONICAL', $subject, $docid, 'NO_SOURCE');
       }
+      elsif($canonical_mentions_allowed && keys %canonical_mentions && !keys %mentions && keys %nominal_mentions) {
+      	$kb->{LOGGER}->record_problem('MISSING_MENTION', $subject, $docid, 'NO_SOURCE');
+      }
       while (my ($string, $canonical_mention) = each %canonical_mentions) {
 	# Find the mention that matches this canonical mention, if any
 	my $mention = $mentions{$string};
-	unless ($mention) {
+	my $nominal_mention = $nominal_mentions{$string};
+	unless ($mention || $nominal_mention) {
 	  # Canonical mention without a corresponding mention
 	  $kb->{LOGGER}->record_problem('UNASSERTED_MENTION', $canonical_mention->{PRINT_STRING}, $docid, $canonical_mention->{SOURCE});
 	  my $assertion = $kb->add_assertion($canonical_mention->{SUBJECT}, 'mention', $canonical_mention->{OBJECT},
@@ -585,6 +603,8 @@ sub check_relation_endpoints {
 	my $docid = $assertion->{PROVENANCE}->get_docid($i);
 	unless(@subject_mentions) {
 	  @subject_mentions = $kb->get_assertions($assertion->{SUBJECT_ENTITY}, 'mention', undef, $docid);
+	  @subject_mentions = $kb->get_assertions($assertion->{SUBJECT_ENTITY}, 'nominal_mention', undef, $docid) 
+	  	unless @subject_mentions;
 	}
       }
       $kb->{LOGGER}->record_problem('UNATTESTED_RELATION_ENTITY',
@@ -600,6 +620,8 @@ sub check_relation_endpoints {
 	my $docid = $assertion->{PROVENANCE}->get_docid($i);
 	unless(@object_mentions) {
 	  @object_mentions = $kb->get_assertions($assertion->{OBJECT_ENTITY}, 'mention', undef, $docid);
+	  @object_mentions = $kb->get_assertions($assertion->{OBJECT_ENTITY}, 'nominal_mention', undef, $docid)
+	  	unless @object_mentions;
 	}
       }
       $kb->{LOGGER}->record_problem('UNATTESTED_RELATION_ENTITY',
@@ -744,6 +766,12 @@ sub load_tac {
     my @entries = map {&trim($_)} split(/\t/);
     # Get the confidence out of the way if it is provided
     $confidence = pop(@entries) if @entries && $entries[-1] =~ /^\d+\.\d+$/;
+   
+    if(@entries && $entries[-1] =~ /^\d+\.\d+e[-+]?\d\d$/) {
+     $kb->{LOGGER}->record_problem('IMPROPER_CONFIDENCE_VALUE', $entries[-1], $source);
+     $confidence = pop(@entries);
+     $confidence = sprintf("%.12f", $confidence);
+    }
     # Now assign the entries to the appropriate fields
     my ($subject, $predicate, $object, $provenance_string) = @entries;
     if (defined $predicate_constraints && !$predicate_constraints->{lc $predicate}) {
