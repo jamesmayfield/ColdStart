@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.9";
+my $version = "2.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -66,6 +66,7 @@ sub generate_round2_query {
   my $new_queryid = "$submission->{QUERY_ID_BASE}_$submission->{TARGET_UUID}";
   my $new_query = Query->new($logger);
   $new_query->put('QUERY_ID', $new_queryid);
+  $new_query->put('PARENTQUERY', $original_query);
   my $name = $submission->{VALUE};
   $name =~ s/([<&>'"])/$rewrites{$1}/ge if $valid;
   $new_query->add_entrypoint(NAME => $name,
@@ -235,4 +236,5 @@ else {
 # 1.7 - Reverted to requirement to maintain consistency with documentation; bug fixes
 # 1.8 - General Release
 # 1.9 - Code modified to work with new library
+# 2.0 - ParentQuery pointer added to newly created round#2 query
 1;

@@ -18,7 +18,6 @@ The following MASTER scripts are available:
 | CS-GenerateQueries       | Generate first and second round CSSF queries.              |
 | CS-LDC2TAC               | Convert an LDC ground truth file to CSSF submission format |
 | CS-PackageOutput         | Put CSSF output files together into a valid submission     |
-| CS-Pool                  | Combine CSSF runs into a single anonymized file            |
 | CS-ResolveQueries        | Apply evaluation queries to a KB                           |
 | CS-Score                 | Score a CSKB or CSSF run                                   |
 | CS-Stats                 | Generate various statistics about queries, runs, etc.      |
