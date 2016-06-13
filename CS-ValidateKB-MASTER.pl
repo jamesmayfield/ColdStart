@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "5.0";
+my $version = "5.1";
 
 my $statsfile;
 
@@ -1121,4 +1121,5 @@ exit 0;
 # 4.8 - Added FAC and LOC as legal entity types; restored links and export_edl options; added nominal_mention links
 # 4.9 - General Release
 # 5.0 - Version upped due to change in library
+# 5.1 - nominal_mention error reporting updated; minor bug fixes
 1;

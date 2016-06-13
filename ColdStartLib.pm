@@ -19,7 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.0";		# Removed UNION support; cleanup
+my $version = "3.1";		# Minor edits
 
 ### BEGIN INCLUDE Switches
 
