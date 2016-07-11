@@ -514,12 +514,14 @@ sub assert_mentions {
       my %mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'mention', undef, $docid);
       my %nominal_mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'nominal_mention', undef, $docid);
       my %canonical_mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'canonical_mention', undef, $docid);
-      if ($canonical_mentions_allowed && !keys %canonical_mentions && keys %mentions) {
+      
+      if($canonical_mentions_allowed && !keys %canonical_mentions && ( (scalar keys %mentions) + (scalar keys %nominal_mentions) > 1)) {
+      	$kb->{LOGGER}->record_problem('MULTIPLE_MENTIONS_NO_CANONICAL', $subject, $docid, 'NO_SOURCE');
+      	# There are multiple named/nominal mentions but no canonical. 
+      }
+      elsif ($canonical_mentions_allowed && !keys %canonical_mentions && keys %mentions) {
 		$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
-		# Pick a mention at random to serve as the canonical
-		# mention. This makes the validator non-deterministic, but
-		# it's hard to see how that will be a problem (& ya shoulda
-		# selected a canonical mention)
+		# Pick the only named mention as the canonical mention. 
 		my ($mention) = values %mentions;
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
 						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
@@ -527,11 +529,7 @@ sub assert_mentions {
       }
       elsif ($canonical_mentions_allowed && !keys %canonical_mentions && keys %nominal_mentions) {
 		$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
-		$kb->{LOGGER}->record_problem('MISSING_MENTION', $subject, $docid, 'NO_SOURCE');
-		# Pick a nominal_mention at random to serve as the canonical
-		# mention. This makes the validator non-deterministic, but
-		# it's hard to see how that will be a problem (& ya shoulda
-		# selected a canonical mention)
+		# Pick the only nominal mention as the canonical mention. 
 		my ($mention) = values %nominal_mentions;
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
 						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
@@ -539,9 +537,6 @@ sub assert_mentions {
       }
       elsif ($canonical_mentions_allowed && keys %canonical_mentions > 1) {
 	$kb->{LOGGER}->record_problem('MULTIPLE_CANONICAL', $subject, $docid, 'NO_SOURCE');
-      }
-      elsif($canonical_mentions_allowed && keys %canonical_mentions && !keys %mentions && keys %nominal_mentions) {
-      	$kb->{LOGGER}->record_problem('MISSING_MENTION', $subject, $docid, 'NO_SOURCE');
       }
       while (my ($string, $canonical_mention) = each %canonical_mentions) {
 	# Find the mention that matches this canonical mention, if any

@@ -78,6 +78,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
   MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
   MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
+  MULTIPLE_MENTIONS_NO_CANONICAL ERROR   Entity %s has more than one named/nominal mention in document %s but has no canonical mention
   MULTITYPED_ENTITY             ERROR    Entity %s has more than one type: %s
   NO_MENTIONS                   WARNING  Entity %s has no mentions
   PREDICATE_ALIAS               WARNING  Use of %s predicate; %s replaced with %s
