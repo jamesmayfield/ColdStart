@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "5.1";
+my $version = "5.2";
 
 my $statsfile;
 
@@ -1117,4 +1117,5 @@ exit 0;
 # 4.9 - General Release
 # 5.0 - Version upped due to change in library
 # 5.1 - nominal_mention error reporting updated; minor bug fixes
+# 5.2 - MULTIPLE_MENTIONS_NO_CANONICAL error handling added. named-mention missing warnings removed when nominal and canonical are both present.
 1;
