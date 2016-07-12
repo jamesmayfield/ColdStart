@@ -75,7 +75,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
   MISSING_RUNID                 ERROR    The first line of the file does not contain a legal runid
-  MISSING_TYPEDEF               WARNING  No type asserted for Entity %s
+  MISSING_TYPEDEF               ERROR    No type asserted for Entity %s
   MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
   MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
   MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
