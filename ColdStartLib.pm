@@ -19,7 +19,8 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.2";		# MULTIPLE_MENTIONS_NO_CANONICAL error handling added. named-mention missing warnings removed when nominal and canonical are both present.
+my $version = "3.3";        # (1) IMPROPER_CONFIDENCE_VALUE error handling added.
+                            # (2) ILLEGAL_VALUE_TYPE error handling added.
 
 ### BEGIN INCLUDE Switches
 
@@ -108,6 +109,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
+  ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
   MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
@@ -2251,16 +2253,17 @@ my %columns = (
     PATTERN => qr/\d+(?:\.\d+(e[-+]?\d\d)?)?/,
     NORMALIZE => sub {
       my ($logger, $where, $value) = @_;
+      my $original_value = $value;
       if ($value eq '1') {
 	$logger->record_problem('MISSING_DECIMAL_POINT', $value, $where);
 	$value = '1.0';
       }
       elsif($value =~ /^\d+\.\d+e[-+]?\d\d$/) {
-     logger->record_problem('IMPROPER_CONFIDENCE_VALUE', $value, $where);
+     $logger->record_problem('IMPROPER_CONFIDENCE_VALUE', $value, $where);
      	$value = sprintf("%.12f", $value);
       }
       unless ($value =~ /^(?:1\.0*)$|^(?:0?\.[0-9]*[1-9][0-9]*)$/) {
-	$logger->record_problem('ILLEGAL_CONFIDENCE_VALUE', $value, $where);
+	$logger->record_problem('ILLEGAL_CONFIDENCE_VALUE', $original_value, $where);
 	$value = '1.0';
       }
       $value;
@@ -2740,7 +2743,13 @@ my %columns = (
   VALUE_TYPE => {
     DESCRIPTION => "{PER, ORG, GPE, STRING}",
     YEARS => [2015],
-    PATTERN => qr/PER|ORG|GPE|STRING/i,
+    PATTERN => qr/^(PER|ORG|GPE|STRING)$/i,
+    NORMALIZE => sub {
+      my ($logger, $where, $value) = @_;
+      $logger->record_problem('ILLEGAL_VALUE_TYPE', $value, $where)
+        if ($value !~ qr/^(PER|ORG|GPE|STRING)$/i);
+      uc $value;
+    },
   },
 
   YEAR => {
@@ -2951,8 +2960,8 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
 
     # Normalize elements
     foreach my $column_name (keys %{$entry}) {
-      $entry->{$column_name} = &{$schema->{NORMALIZE}}($logger, $where, $entry->{$column_name})
-	if defined $schema->{NORMALIZE};
+      $entry->{$column_name} = &{$columns{$column_name}{NORMALIZE}}($logger, $where, $entry->{$column_name})
+	if defined $columns{$column_name}{NORMALIZE};
     }
 
     # Remember where this entry came from

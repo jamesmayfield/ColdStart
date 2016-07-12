@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.9";
+my $version = "2.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -121,12 +121,13 @@ my $queries = QuerySet->new($logger, $queryfile);
 # FIXME: parameterize discipline
 my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $filename);
 
-print $program_output $sf_output->tostring() if defined $program_output;
-
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
 if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
+}
+else{
+  print $program_output $sf_output->tostring() if defined $program_output;
 }
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;
@@ -145,5 +146,6 @@ exit 0;
 # 1.7 - Added switch to enable comments, defaulting to disabled
 # 1.8 - Enabled WRONG_SLOT_NAME and BAD_QUERY warnings
 # 1.9 - Verion upped due to change in library.
+# 2.0 - Validated output is produced only if there were no errors
 
 1;
