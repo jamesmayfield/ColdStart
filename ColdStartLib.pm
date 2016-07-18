@@ -608,8 +608,9 @@ sub put {
   # FIXME: Can generalize to more than two levels, set LEVEL
 ### DO INCLUDE
   if ($fieldname eq 'QUERY_ID') {
-    ($self->{QUERY_ID_BASE}, $self->{QUERY_ID}, $self->{LEVEL}, $self->{EXPANDED}, $self->{PREFIX}, @{$self->{COMPONENTS}}) =
+    my (undef, $query_id) =
       &Query::parse_queryid($value);
+    $self->{QUERY_ID} = $query_id;
   }
   elsif ($fieldname eq 'SLOTS') {
     $self->{SLOT} = $value->[0];
