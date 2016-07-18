@@ -782,7 +782,7 @@ sub expand {
   $queries = QuerySet->new($self->{LOGGER}) unless defined $queries;
   my $entrypoints = $self->get("ENTRYPOINTS");
   foreach my $entrypoint (@{$entrypoints}) {
-    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE PREFIX));
+    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE PREFIX MENTIONS_TAGGED));
     $new_query->add_entrypoint(%{$entrypoint});
 ### DO NOT INCLUDE
 # FIXME: Why was SLOT being deleted?
@@ -877,6 +877,15 @@ sub populate_from_text {
 ### DO INCLUDE
   my $entrypoint = {};
   # Find all tag pairs within the query
+
+### DO NOT INCLUDE
+  # FIXME: Handle the modification in 2016s LDC query format decently
+### DO INCLUDE
+  # Handle the modification in 2016 LDC query here
+  # This is a poor-man fix. The good part however is that its a one-liner and its backward compatible
+  $self->{MENTIONS_TAGGED} = "true" if $body=~/<\/?mentions?>/;
+  $body =~ s/<\/?mentions?>//gs;
+
   while ($body =~ /<(.*?)>(.*?)<\/(.*?)>/gs) {
     my ($tag, $value, $closer) = (uc $1, $2, uc $3);
     $self->{LOGGER}->record_problem('MISMATCHED_TAGS', $tag, $closer, $where)
@@ -927,10 +936,17 @@ sub tostring {
     $omit{$field}++;
   }
   my $string = "$indent<query id=\"" . $self->get('FULL_QUERY_ID') . "\">\n";
+  my $mention_tagged_indent = "";
+  $mention_tagged_indent = "      " 
+    if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
   foreach my $field (sort {$tags{$a}{ORD} <=> $tags{$b}{ORD}}
 		     grep {$tags{$_}{TYPE} eq 'single'} keys %tags) {
     if ($field eq 'ENTRYPOINTS') {
+      $string .= "$indent  <mentions>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
       foreach my $entrypoint (@{$self->{ENTRYPOINTS}}) {
+      $string .= "$indent    <mention>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
 	foreach my $subfield (sort {$tags{$a}{ORD} <=> $tags{$b}{ORD}}
 			      grep {$tags{$_}{TYPE} eq 'multiple'} keys %tags) {
 	  next if $omit{$subfield};
@@ -939,7 +955,7 @@ sub tostring {
 	    $subfield eq 'NAME' && defined $entrypoint->{ORIGINAL_NAME} ? $entrypoint->{ORIGINAL_NAME} :
 	    $entrypoint->{$subfield};
 	  if (defined $value) {
-	    $string .= "$indent  <" . lc($subfield) . ">$value</" . lc($subfield) . ">\n";
+	    $string .= "$indent$mention_tagged_indent  <" . lc($subfield) . ">$value</" . lc($subfield) . ">\n";
 	  }
 	  elsif ($tags{$subfield}{REQUIRED}) {
 	    $self->{LOGGER}->NIST_die("Missing query field: <$subfield>");
@@ -948,7 +964,12 @@ sub tostring {
 	    # Just skip this field
 	  }
 	}
+      $string .= "$indent    <\/mention>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
       }
+      $string .= "$indent  <\/mentions>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
+      
     }
     else {
       next if $omit{$field};
