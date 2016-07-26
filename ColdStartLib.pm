@@ -19,8 +19,10 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.3";        # (1) IMPROPER_CONFIDENCE_VALUE error handling added.
-                            # (2) ILLEGAL_VALUE_TYPE error handling added.
+my $version = "3.4";        # (1) MISSING_TYPEDEF is changed from WARNING to ERROR.
+                            # (2) Handle the mention tags in 2016 LDC queries.
+                            # (3) Removed unnecessary fields copy causing an error when 
+                            #     queries are repaired using a switch in CS-ValidateQueries-MASTER.pl
 
 ### BEGIN INCLUDE Switches
 
@@ -608,8 +610,7 @@ sub put {
   # FIXME: Can generalize to more than two levels, set LEVEL
 ### DO INCLUDE
   if ($fieldname eq 'QUERY_ID') {
-    my (undef, $query_id) =
-      &Query::parse_queryid($value);
+    my (undef, $query_id) = &Query::parse_queryid($value);
     $self->{QUERY_ID} = $query_id;
   }
   elsif ($fieldname eq 'SLOTS') {
