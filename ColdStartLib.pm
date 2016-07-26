@@ -19,8 +19,10 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.3";        # (1) IMPROPER_CONFIDENCE_VALUE error handling added.
-                            # (2) ILLEGAL_VALUE_TYPE error handling added.
+my $version = "3.4";        # (1) MISSING_TYPEDEF is changed from WARNING to ERROR.
+                            # (2) Handle the mention tags in 2016 LDC queries.
+                            # (3) Removed unnecessary fields copy causing an error when 
+                            #     queries are repaired using a switch in CS-ValidateQueries-MASTER.pl
 
 ### BEGIN INCLUDE Switches
 
@@ -75,7 +77,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
   MISSING_RUNID                 ERROR    The first line of the file does not contain a legal runid
-  MISSING_TYPEDEF               WARNING  No type asserted for Entity %s
+  MISSING_TYPEDEF               ERROR    No type asserted for Entity %s
   MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
   MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
   MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
@@ -608,8 +610,8 @@ sub put {
   # FIXME: Can generalize to more than two levels, set LEVEL
 ### DO INCLUDE
   if ($fieldname eq 'QUERY_ID') {
-    ($self->{QUERY_ID_BASE}, $self->{QUERY_ID}, $self->{LEVEL}, $self->{EXPANDED}, $self->{PREFIX}, @{$self->{COMPONENTS}}) =
-      &Query::parse_queryid($value);
+    my (undef, $query_id) = &Query::parse_queryid($value);
+    $self->{QUERY_ID} = $query_id;
   }
   elsif ($fieldname eq 'SLOTS') {
     $self->{SLOT} = $value->[0];
@@ -782,7 +784,7 @@ sub expand {
   $queries = QuerySet->new($self->{LOGGER}) unless defined $queries;
   my $entrypoints = $self->get("ENTRYPOINTS");
   foreach my $entrypoint (@{$entrypoints}) {
-    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE PREFIX));
+    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE PREFIX MENTIONS_TAGGED));
     $new_query->add_entrypoint(%{$entrypoint});
 ### DO NOT INCLUDE
 # FIXME: Why was SLOT being deleted?
@@ -877,6 +879,15 @@ sub populate_from_text {
 ### DO INCLUDE
   my $entrypoint = {};
   # Find all tag pairs within the query
+
+### DO NOT INCLUDE
+  # FIXME: Handle the modification in 2016s LDC query format decently
+### DO INCLUDE
+  # Handle the modification in 2016 LDC query here
+  # This is a poor-man fix. The good part however is that its a one-liner and its backward compatible
+  $self->{MENTIONS_TAGGED} = "true" if $body=~/<\/?mentions?>/;
+  $body =~ s/<\/?mentions?>//gs;
+
   while ($body =~ /<(.*?)>(.*?)<\/(.*?)>/gs) {
     my ($tag, $value, $closer) = (uc $1, $2, uc $3);
     $self->{LOGGER}->record_problem('MISMATCHED_TAGS', $tag, $closer, $where)
@@ -927,10 +938,17 @@ sub tostring {
     $omit{$field}++;
   }
   my $string = "$indent<query id=\"" . $self->get('FULL_QUERY_ID') . "\">\n";
+  my $mention_tagged_indent = "";
+  $mention_tagged_indent = "      " 
+    if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
   foreach my $field (sort {$tags{$a}{ORD} <=> $tags{$b}{ORD}}
 		     grep {$tags{$_}{TYPE} eq 'single'} keys %tags) {
     if ($field eq 'ENTRYPOINTS') {
+      $string .= "$indent  <mentions>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
       foreach my $entrypoint (@{$self->{ENTRYPOINTS}}) {
+      $string .= "$indent    <mention>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
 	foreach my $subfield (sort {$tags{$a}{ORD} <=> $tags{$b}{ORD}}
 			      grep {$tags{$_}{TYPE} eq 'multiple'} keys %tags) {
 	  next if $omit{$subfield};
@@ -939,7 +957,7 @@ sub tostring {
 	    $subfield eq 'NAME' && defined $entrypoint->{ORIGINAL_NAME} ? $entrypoint->{ORIGINAL_NAME} :
 	    $entrypoint->{$subfield};
 	  if (defined $value) {
-	    $string .= "$indent  <" . lc($subfield) . ">$value</" . lc($subfield) . ">\n";
+	    $string .= "$indent$mention_tagged_indent  <" . lc($subfield) . ">$value</" . lc($subfield) . ">\n";
 	  }
 	  elsif ($tags{$subfield}{REQUIRED}) {
 	    $self->{LOGGER}->NIST_die("Missing query field: <$subfield>");
@@ -948,7 +966,12 @@ sub tostring {
 	    # Just skip this field
 	  }
 	}
+      $string .= "$indent    <\/mention>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
       }
+      $string .= "$indent  <\/mentions>\n"
+      	if exists $self->{MENTIONS_TAGGED} && $self->{MENTIONS_TAGGED} eq 'true';
+      
     }
     else {
       next if $omit{$field};
