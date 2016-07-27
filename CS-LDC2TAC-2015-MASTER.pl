@@ -34,8 +34,24 @@ binmode(STDOUT, ':utf8');
 my $level01_query_id;
 my $logger = Logger->new();
 
-die "Usage: perl $0 <LDC_manual_run_file>" unless @ARGV == 1;
-open(my $infile, "<:utf8", $ARGV[0]) or die "Could not open $ARGV[0]: $!";
+die "Usage: perl $0 <LDC_manual_run_file> <queries.index>" unless @ARGV == 2;
+
+my $ldc_manual_run = $ARGV[0];
+my $index_file = $ARGV[1];
+
+my $infile;
+
+my %index;
+open($infile, "<:utf8", $index_file) or die "Could not open $index_file: $!";
+while(<$infile>) {
+  chomp;
+  my ($sf_queryid, $ldc_queryid) = split(/\s+/, $_);
+  $index{$ldc_queryid}{$sf_queryid} = 1;
+}
+close($infile);
+
+
+open($infile, "<:utf8", $ldc_manual_run) or die "Could not open $ldc_manual_run: $!";
 
 while (<$infile>) {
   chomp;
@@ -55,18 +71,20 @@ while (<$infile>) {
   $full_provenance_string = $full_provenance->tostring();
   # Replace query and hop with appropriate query ID
   $query_and_hop =~ /^(.*)_(\d\d)$/ or die "Bad query_and_hop: $query_and_hop";
-  my $query_id = $1;
-  my $hop = $2;
-  if ($hop eq '00') {
-    my $uuid = &main::uuid_generate($query_id, $value_string, $value_provenance->tostring());
-    $level01_query_id = "${query_id}_$uuid";
-    print "$query_id\t$slotname\t$runid\t$full_provenance_string\t$value_string\t$type\t$value_provenance_string\t$confidence\n";
-  }
-  elsif ($hop eq '01') {
-    print "$level01_query_id\t$slotname\t$runid\t$full_provenance_string\t$value_string\t$type\t$value_provenance_string\t$confidence\n";
-  }
-  else {
-    die "Unknown hop: $hop";
+  my $ldc_queryid = $1;
+  foreach my $sf_queryid(keys %{$index{$ldc_queryid}}) {
+    my $hop = $2;
+    if ($hop eq '00') {
+      my $uuid = &main::generate_uuid_from_values($sf_queryid, $value_string, $value_provenance->tostring(), 12);
+      $level01_query_id = "${sf_queryid}_$uuid";
+      print "$sf_queryid\t$slotname\t$runid\t$full_provenance_string\t$value_string\t$type\t$value_provenance_string\t$confidence\n";
+    }
+    elsif ($hop eq '01') {
+      print "$level01_query_id\t$slotname\t$runid\t$full_provenance_string\t$value_string\t$type\t$value_provenance_string\t$confidence\n";
+    }
+    else {
+      die "Unknown hop: $hop";
+    }
   }
 }
 
