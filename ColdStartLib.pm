@@ -19,10 +19,8 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.4";        # (1) MISSING_TYPEDEF is changed from WARNING to ERROR.
-                            # (2) Handle the mention tags in 2016 LDC queries.
-                            # (3) Removed unnecessary fields copy causing an error when 
-                            #     queries are repaired using a switch in CS-ValidateQueries-MASTER.pl
+my $version = "3.5";        # (1) Added support to handle NODEID tag in queries file
+                            # (2) 2016 assessments file format handling support added
 
 ### BEGIN INCLUDE Switches
 
@@ -558,10 +556,11 @@ my %tags = (
   ENTRYPOINTS => {ORD => 0, TYPE => 'single'},
 
   ENTTYPE =>     {ORD => 1, TYPE => 'single',   YEARS => '2014:2015', REQUIRED => 'yes'},
-  SLOT =>        {ORD => 2, TYPE => 'single',   YEARS => '2014:2015'},
-  SLOT0 =>       {ORD => 3, TYPE => 'single',                        REQUIRED => 'yes'},
-  SLOT1 =>       {ORD => 4, TYPE => 'single',   },
-  SLOT2 =>       {ORD => 5, TYPE => 'single',   YEARS => '2012'},
+  NODEID =>      {ORD => 2, TYPE => 'single',	YEARS => '2016', REQUIRED => 'yes'},
+  SLOT =>        {ORD => 3, TYPE => 'single',   YEARS => '2014:2015'},
+  SLOT0 =>       {ORD => 4, TYPE => 'single',                        REQUIRED => 'yes'},
+  SLOT1 =>       {ORD => 5, TYPE => 'single',   },
+  SLOT2 =>       {ORD => 6, TYPE => 'single',   YEARS => '2012'},
 
   NAME =>        {ORD => 1, TYPE => 'multiple',                      REQUIRED => 'yes'},
   DOCID =>       {ORD => 2, TYPE => 'multiple',                      REQUIRED => 'yes'},
@@ -2168,6 +2167,33 @@ my %schemas = (
     },
   },
 
+  '2016assessments' => {
+    YEAR => "2016",
+    TYPE => 'ASSESSMENT',
+    SAMPLES => [],
+    COLUMNS => [qw(
+      ASSESSMENT_ID
+      QUERY_AND_SLOT_NAME
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
+      VALUE_PROVENANCE_TRIPLES
+      VALUE_ASSESSMENT
+      VALUE_MENTION_TYPE
+      PROVENANCE_ASSESSMENT
+      VALUE_EC
+      EC_MENTION_TYPE
+    )],
+    COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
+    ASSESSMENT_CODES => {
+      C => 'CORRECT',
+      W => 'INCORRECT',
+      X => 'INEXACT',
+      I => 'IGNORE',
+      S => 'INEXACT_SHORT',
+      L => 'INEXACT_LONG',
+    },
+  },
+
   '2015SFsubmissions' => {
     YEAR => 2015,
     TYPE => 'SUBMISSION',
@@ -2297,6 +2323,12 @@ my %columns = (
     DESCRIPTION => "Document ID for provenance, from 2012 and 2013 submissions",
     YEARS => [2012, 2013],
     PATTERN => $anything_pattern,
+  },
+
+  EC_MENTION_TYPE => {
+    DESCRIPTION => "The mention type of the equivalence class",
+    YEARS => [2016],
+    PATTERN => qr/NAM|NOM|0/i,
   },
 
   FILENAME => {
@@ -2719,6 +2751,12 @@ my %columns = (
     DESCRIPTION => "LDC equivalence class for this value/provenance pair",
     YEARS => [2012, 2013, 2014],
     PATTERN => $anything_pattern,
+  },
+
+  VALUE_MENTION_TYPE => {
+    DESCRIPTION => "Mention type of this value",
+    YEARS => [2016],
+    PATTERN => qr/NAM|NOM|0/i,
   },
 
 ### DO NOT INCLUDE
