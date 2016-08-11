@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.3";
+my $version = "2.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -274,7 +274,7 @@ $queries = &fix_queries($queries, $fix_types, $fix_subtypes)
 $queries = &check_for_duplication($queries, $fix_dups) if $fix_dups ne 'none';
 $queries = &generate_expanded_queries($queries, $query_base, $index_file) if $switches->get('expand');
 
-print $program_output $queries->tostring("", undef, ['SLOT']);
+print $program_output $queries->tostring("", undef, ['SLOT', 'NODEID']);
 
 close $program_output;
 close $index_file if defined $index_file;
@@ -296,4 +296,5 @@ exit 0;
 # 1.1 - Added code to build index from expanded query_id to original LDC query_id
 # 1.2 - Refactored generate_expanded_queries to move expansion into ColdStartLib
 # 2.0 - Verion upped to make the code work with new ColdStartLib
+# 2.1 - NODEID is removed from the CS-ValidateQueries output to make the SF queries file look the same as 2015.
 1;
