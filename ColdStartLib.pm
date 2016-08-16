@@ -19,8 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.6";        # (1) Added support to correctly classify entries which 
-                            #     has nominal mention but a named mention exists somewhere
+my $version = "3.7";        # (1) Added support for printing queries with entrypoint from selected languages 
 
 ### BEGIN INCLUDE Switches
 
@@ -48,6 +47,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 # ----------                   ----     -------------
 
 ########## Provenance Errors
+  FAILED_LANG_INFERENCE         WARNING  Unable to infer language from DOCID %s. Using default language %s.
   ILLEGAL_DOCID                 ERROR    DOCID %s is not a valid DOCID for this task
   ILLEGAL_OFFSET                ERROR    %s is not a valid offset
   ILLEGAL_OFFSET_IN_DOC         ERROR    %s is not a valid offset for DOCID %s
@@ -569,6 +569,22 @@ my %tags = (
   OFFSET =>      {ORD => 5, TYPE => 'multiple', YEARS => '2012:2013'},
 );
 
+
+my %languages = (
+  ENGLISH => {
+    NAME => "ENGLISH",
+    CODE => "ENG",
+  },      
+  SPANISH => {
+    NAME => "SPANISH",
+    CODE => "SPA",
+  },      
+  CHINESE => {
+    NAME => "CHINESE",
+    CODE => "CMN",
+  },      
+);
+
 sub parse_queryid {
   my ($full) = @_;
   my ($base, $query_id, $level, $expanded, $prefix, $initial, $remainder, @components);
@@ -741,6 +757,8 @@ sub add_entrypoint {
   $entrypoint{DOCID} = $provenance->{TRIPLES}[0]{DOCID} unless defined $entrypoint{DOCID};
   $entrypoint{START} = $provenance->{TRIPLES}[0]{START} unless defined $entrypoint{START};
   $entrypoint{END} = $provenance->{TRIPLES}[0]{END} unless defined $entrypoint{END};
+  $entrypoint{LANGUAGE} = $self->infer_language_from_documentid($entrypoint{DOCID}, $entrypoint{WHERE} || 'NO_SOURCE');
+  push( @{$self->{LANGUAGES}}, $entrypoint{LANGUAGE} ) unless grep {$_ eq $entrypoint{LANGUAGE}} @{$self->{LANGUAGES}};
 ### DO NOT INCLUDE
   # FIXME: Don't hard-code the 12
 ### DO INCLUDE
@@ -750,10 +768,30 @@ sub add_entrypoint {
   \%entrypoint;
 }
 
+# Infer language from documentid 
+sub infer_language_from_documentid{
+  my ($self, $documentid, $where) = @_;
+  my $language;
+  if($documentid =~ /^CMN/i) {
+  	$language = "CHINESE";
+  }
+  elsif($documentid =~ /^SPA/i) {
+  	$language = "SPANISH";
+  }
+  elsif($documentid =~ /ENG/i) {
+  	$language = "ENGLISH";
+  }
+  else {
+  	$self->{LOGGER}->record_problem('FAILED_LANG_INFERENCE', $documentid, 'ENGLISH', $where);
+  	$language = "ENGLISH";
+  }
+  return $language;
+}
+
 # Create a new Query object
 sub new {
   my ($class, $logger, $text) = @_;
-  my $self = {LOGGER => $logger, LEVEL => 0, ENTRYPOINTS => [], EXPANDED_QUERY_IDS => []};
+  my $self = {LOGGER => $logger, LEVEL => 0, ENTRYPOINTS => [], EXPANDED_QUERY_IDS => [], LANGUAGES => []};
   bless($self, $class);
   $self->populate_from_text($text) if defined $text;
   $self;
@@ -783,7 +821,7 @@ sub expand {
   $queries = QuerySet->new($self->{LOGGER}) unless defined $queries;
   my $entrypoints = $self->get("ENTRYPOINTS");
   foreach my $entrypoint (@{$entrypoints}) {
-    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS QUERY_ID_BASE FROM_FILE PREFIX MENTIONS_TAGGED));
+    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS QUERY_ID_BASE FROM_FILE PREFIX MENTIONS_TAGGED LANGUAGES));
     $new_query->add_entrypoint(%{$entrypoint});
 ### DO NOT INCLUDE
 # FIXME: Why was SLOT being deleted?
@@ -796,7 +834,8 @@ sub expand {
 # prefix.
     #$new_query->put('QUERY_ID_BASE', $query_base);
 ### DO INCLUDE
-    $new_query->put('PREFIX', $query_base);
+    my $language_code = $languages{$entrypoint->{LANGUAGE}}{CODE};
+    $new_query->put('PREFIX', "$query_base\_$language_code");
     $new_query->put('ORIGINAL_QUERY_ID', $self->get('FULL_QUERY_ID'));
     push(@{$self->{EXPANDED_QUERY_IDS}}, $new_query->get('QUERY_ID'));
     $new_query->put('QUERY_ID_BASE', $new_query->get('QUERY_ID'));
@@ -1180,12 +1219,24 @@ sub get_child_ids {
 
 # Convert the QuerySet to text form, suitable for print as a TAC evaluation query file
 sub tostring {
-  my ($self, $indent, $queryids, $omit) = @_;
+  my ($self, $indent, $queryids, $omit, $languages) = @_;
   $indent = "" unless defined $indent;
   my $string = "$indent<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n$indent<query_set>\n";
   foreach my $query (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID}}
 		     values %{$self->{QUERIES}}) {
     next if $query->{GENERATED};
+    if($languages) {
+    	my @query_languages = @{$query->{LANGUAGES}};
+    	my %selected_languages = map {$_=>1} split(":", $languages);
+    	my $skip = 1;
+    	foreach my $query_language(@query_languages){
+    		if(exists $selected_languages{$query_language}){
+    			$skip = 0;
+    			last;
+    		}  
+    	}
+    	next if $skip;
+    } 
     next unless !defined $queryids || $queryids->{$query->{QUERY_ID}};
     $string .= $query->tostring("$indent  ", $omit);
   }

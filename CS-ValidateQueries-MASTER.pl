@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.1";
+my $version = "2.2";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -230,6 +230,8 @@ $switches->addVarSwitch('types', "Repair queries with type mismatches (choices a
 $switches->put('types', 'none');
 $switches->addVarSwitch('subtypes', "Repair queries with subtype mismatches (choices are $subtype_repair_string)");
 $switches->put('subtypes', 'none');
+$switches->addVarSwitch('languages', "Select the languages to be considered for output.");
+$switches->put('languages', 'ENGLISH:CHINESE:SPANISH');
 $switches->addConstantSwitch('expand', 'true', "Expand single queries with multiple entry points into multiple queries with single entry points");
 $switches->addVarSwitch('dups', "Check whether different queries with the same slots share one or more entry points (choices are $dups_repair_string)");
 $switches->put('dups', 'none');
@@ -242,6 +244,7 @@ $switches->process(@ARGV);
 my $queryfile = $switches->get("queryfile");
 my $outputfile = $switches->get("outputfile");
 my $query_base = $switches->get('query_base');
+my $languages = $switches->get('languages');
 
 my $fix_types = lc $switches->get('types');
 $logger->NIST_die("Unknown -types argument: $fix_types") unless $type_repairs{$fix_types};
@@ -274,7 +277,7 @@ $queries = &fix_queries($queries, $fix_types, $fix_subtypes)
 $queries = &check_for_duplication($queries, $fix_dups) if $fix_dups ne 'none';
 $queries = &generate_expanded_queries($queries, $query_base, $index_file) if $switches->get('expand');
 
-print $program_output $queries->tostring("", undef, ['SLOT', 'NODEID']);
+print $program_output $queries->tostring("", undef, ['SLOT', 'NODEID'], $languages);
 
 close $program_output;
 close $index_file if defined $index_file;
@@ -297,4 +300,5 @@ exit 0;
 # 1.2 - Refactored generate_expanded_queries to move expansion into ColdStartLib
 # 2.0 - Verion upped to make the code work with new ColdStartLib
 # 2.1 - NODEID is removed from the CS-ValidateQueries output to make the SF queries file look the same as 2015.
+# 2.2 - Added support for printing queries with entrypoint from selected languages
 1;
