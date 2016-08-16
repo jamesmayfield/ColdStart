@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.2";
+my $version = "2.3";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -200,13 +200,26 @@ sub check_for_duplication {
 }
 
 sub generate_expanded_queries {
-  my ($queries, $query_base, $index_file) = @_;
+  my ($queries, $query_base, $index_file, $languages) = @_;
   my $new_queries = QuerySet->new($queries->{LOGGER});
 
   foreach my $query ($queries->get_all_queries()) {
     $query->expand($query_base, $new_queries);
   }
+  
   foreach my $query ($new_queries->get_all_queries()) {
+    if($languages) {
+    	my @query_languages = @{$query->{LANGUAGES}};
+    	my %selected_languages = map {$_=>1} split(":", $languages);
+    	my $skip = 1;
+    	foreach my $query_language(@query_languages){
+    		if(exists $selected_languages{$query_language}){
+    			$skip = 0;
+    			last;
+    		}  
+    	}
+    	next if $skip;
+    } 
     print $index_file $query->get("FULL_QUERY_ID"), "\t", $query->get("ORIGINAL_QUERY_ID"), "\n" if defined $index_file;
   }
   $new_queries;
@@ -275,7 +288,7 @@ my $queries = QuerySet->new($logger, $queryfile);
 $queries = &fix_queries($queries, $fix_types, $fix_subtypes)
   if $fix_types ne 'none' || $fix_subtypes ne 'none';
 $queries = &check_for_duplication($queries, $fix_dups) if $fix_dups ne 'none';
-$queries = &generate_expanded_queries($queries, $query_base, $index_file) if $switches->get('expand');
+$queries = &generate_expanded_queries($queries, $query_base, $index_file, $languages) if $switches->get('expand');
 
 print $program_output $queries->tostring("", undef, ['SLOT', 'NODEID'], $languages);
 
@@ -301,4 +314,5 @@ exit 0;
 # 2.0 - Verion upped to make the code work with new ColdStartLib
 # 2.1 - NODEID is removed from the CS-ValidateQueries output to make the SF queries file look the same as 2015.
 # 2.2 - Added support for printing queries with entrypoint from selected languages
+# 2.3 - Fixing the queries.index file to print queries with entrypoint from selected languages only
 1;
