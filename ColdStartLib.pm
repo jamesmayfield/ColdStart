@@ -556,7 +556,7 @@ my %tags = (
   ENTRYPOINTS => {ORD => 0, TYPE => 'single'},
 
   ENTTYPE =>     {ORD => 1, TYPE => 'single',   YEARS => '2014:2015', REQUIRED => 'yes'},
-  NODEID =>      {ORD => 2, TYPE => 'single',	YEARS => '2016', REQUIRED => 'yes'},
+  NODEID =>      {ORD => 2, TYPE => 'single',	YEARS => '2016'},
   SLOT =>        {ORD => 3, TYPE => 'single',   YEARS => '2014:2015'},
   SLOT0 =>       {ORD => 4, TYPE => 'single',                        REQUIRED => 'yes'},
   SLOT1 =>       {ORD => 5, TYPE => 'single',   },
@@ -790,8 +790,8 @@ sub infer_language_from_documentid{
 
 # Create a new Query object
 sub new {
-  my ($class, $logger, $text) = @_;
-  my $self = {LOGGER => $logger, LEVEL => 0, ENTRYPOINTS => [], EXPANDED_QUERY_IDS => [], LANGUAGES => []};
+  my ($class, $logger, $text, $filename) = @_;
+  my $self = {LOGGER => $logger, LEVEL => 0, ENTRYPOINTS => [], EXPANDED_QUERY_IDS => [], LANGUAGES => [], FILENAME => $filename};
   bless($self, $class);
   $self->populate_from_text($text) if defined $text;
   $self;
@@ -1056,7 +1056,7 @@ sub new {
     local($/);
     my $text = <$infile>;
     close $infile;
-    $self->populate_from_text($text);
+    $self->populate_from_text($text, $filename);
   }
   # Make sure that at least one query was found
   $logger->record_problem('NO_QUERIES_LOADED', "files(" . join(", ", @filenames) . ")")
@@ -1066,11 +1066,11 @@ sub new {
 
 # Convert an evaluation query file to a QuerySet
 sub populate_from_text {
-  my ($self, $text) = @_;
+  my ($self, $text, $filename) = @_;
   # Repeatedly look for text that lies between <query> and </query> tags.
   while ($text =~ /(<query .*?>.*?<\/query>)/gs) {
     my $querytext = $1;
-    my $query = Query->new($self->{LOGGER}, $querytext);
+    my $query = Query->new($self->{LOGGER}, $querytext, $filename);
     $query->{FROM_FILE} = 'true';
 ### DO NOT INCLUDE
     # FIXME: Shahzad recommends adding the condition
