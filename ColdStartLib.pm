@@ -19,8 +19,8 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.5";        # (1) Added support to handle NODEID tag in queries file
-                            # (2) 2016 assessments file format handling support added
+my $version = "3.6";        # (1) Added support to correctly classify entries which 
+                            #     has nominal mention but a named mention exists somewhere
 
 ### BEGIN INCLUDE Switches
 
@@ -585,7 +585,7 @@ sub parse_queryid {
   }
   # If this function is invoked over LDC queryid
   elsif(($prefix, $initial) = $full =~ /^(?:(.+)_)?(\d+)$/i) {
-  	$level = 1;
+  	$level = 0;
   	$query_id = $initial;
   	push(@components, $query_id);
   	$base = $query_id;
@@ -783,7 +783,7 @@ sub expand {
   $queries = QuerySet->new($self->{LOGGER}) unless defined $queries;
   my $entrypoints = $self->get("ENTRYPOINTS");
   foreach my $entrypoint (@{$entrypoints}) {
-    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS FROM_FILE PREFIX MENTIONS_TAGGED));
+    my $new_query = $self->duplicate(qw(ENTRYPOINTS ORIGINAL_QUERY_ID EXPANDED_QUERY_IDS QUERY_ID_BASE FROM_FILE PREFIX MENTIONS_TAGGED));
     $new_query->add_entrypoint(%{$entrypoint});
 ### DO NOT INCLUDE
 # FIXME: Why was SLOT being deleted?
@@ -799,6 +799,8 @@ sub expand {
     $new_query->put('PREFIX', $query_base);
     $new_query->put('ORIGINAL_QUERY_ID', $self->get('FULL_QUERY_ID'));
     push(@{$self->{EXPANDED_QUERY_IDS}}, $new_query->get('QUERY_ID'));
+    $new_query->put('QUERY_ID_BASE', $new_query->get('QUERY_ID'));
+    @{$new_query->{COMPONENTS}} = [$new_query->get('QUERY_ID')];
     $new_query->{EXPANDED} = 'false';
     $queries->add($new_query);
   }
@@ -1817,6 +1819,31 @@ sub score_subtree {
   	}
   	push(@{$categorized_submissions{$selected_duplicate_category}}, @{$categorized_submissions{REDUNDANT}});
   }
+  
+  
+  # Ignore the correct entry if the mention was a nominal but a named mention exists somewhere
+  # This rule came in 2016
+  # Begin
+  
+  my @right;
+  my $altered = 0;
+  foreach my $submission( @{$categorized_submissions{'RIGHT'} || []} ) {
+  	next if not exists $submission->{ASSESSMENT}{VALUE_MENTION_TYPE}
+  		or not exists $submission->{ASSESSMENT}{EC_MENTION_TYPE};
+  	$altered = 1;
+  	my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
+  	my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
+  	$ec_mention_type = "NAM" if $ec_mention_type ne "NOM";
+  	if($value_mention_type eq "NOM" && $ec_mention_type eq "NAM") {
+  		push(@{$categorized_submissions{'IGNORE'}}, $submission);
+  	}
+  	else{
+  		push(@right, $submission);
+  	}
+  }
+  @{$categorized_submissions{'RIGHT'}} = @right if $altered;
+  
+  # End
 
   $num_correct = @{$categorized_submissions{'CORRECT'} || []};
   $num_ignored = @{$categorized_submissions{'IGNORE'} || []};
@@ -1883,8 +1910,14 @@ sub categorize_submissions {
   
   # Categorize REDUNDANT based on post-policy RIGHT submissions
   if($retVal{RIGHT} && @{$retVal{RIGHT}} > 1) {
-  	push(@{$retVal{REDUNDANT}}, @{$retVal{RIGHT}});
-  	$retVal{RIGHT} = [shift @{$retVal{REDUNDANT}}];
+    my @named_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} ne "NOM"} @{$retVal{RIGHT}};
+    my @nominal_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} eq "NOM"} @{$retVal{RIGHT}};
+
+	# Prefer a named_mention over nominal
+    $retVal{RIGHT} = @named_mentions ? [shift @named_mentions] : [shift @nominal_mentions];
+
+    push(@{$retVal{REDUNDANT}}, @named_mentions);
+    push(@{$retVal{REDUNDANT}}, @nominal_mentions);
   }
   
   # Categorize REDUNDANT into RIGHT, WRONG and IGNORED
