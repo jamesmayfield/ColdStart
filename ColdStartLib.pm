@@ -19,7 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.7";        # (1) Added support for printing queries with entrypoint from selected languages 
+my $version = "3.8";        # (1) Fixed the domains of nominal_mention
 
 ### BEGIN INCLUDE Switches
 
@@ -1323,7 +1323,7 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE,FAC,LOC    type                     TYPE         none
   PER,ORG,GPE,FAC,LOC    link                     STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
-  PER            nominal_mention                  STRING       none
+  PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
 END_PREDICATES
 
 #####################################################################################
