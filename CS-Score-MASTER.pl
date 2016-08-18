@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.4.4";
+my $version = "2.5";
 
 # Filehandles for program and error output
 my $program_output;
@@ -296,7 +296,7 @@ sub get_fields_to_print {
 sub new {
   my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $verbose, $logger) = @_;
   my $fields_to_print = &get_fields_to_print($spec, $logger);
-  my $ldc_mean_spec = "EC:RUNID:LEVEL:F";
+  my $ldc_mean_spec = "EC:RUNID:LEVEL:P:R:F";
   my $ldc_mean_fields_to_print = &get_fields_to_print($ldc_mean_spec, $logger);
   my $self = {RUNID => $runid,
   	      INDEX => $index,
@@ -413,7 +413,7 @@ sub add_macro_average {
 		$field->{NAME} eq 'LEVEL') {
 		  $value = $aggregates->{$self->{RUNID}}{$level}->get($field->{NAME});
 	  }
-	  elsif ($field->{NAME} eq 'F1') {
+	  elsif ($field->{NAME} eq 'F1' || $field->{NAME} eq 'PRECISION' || $field->{NAME} eq 'RECALL') {
 	  	$value = $aggregates->{$self->{RUNID}}{$level}->getadjustedmean($field->{NAME});
 	  }
 	  $value = 'ALL-Macro' if $value eq 'ALL-Micro' && $field->{NAME} eq 'EC';
@@ -461,15 +461,25 @@ sub projectLDCMEAN {
   	  	  $combined_scores->put('LEVEL', $scores->get('LEVEL'));
   	  	  $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'));
   	  	  $combined_scores->put('F1', $scores->get('F1'));
+          $combined_scores->put('PRECISION', $scores->get('PRECISION'));
+          $combined_scores->put('RECALL', $scores->get('RECALL'));
   	    }
   	    else{
   	  	  my $f1 = $combined_scores->get('F1');
+          my $precision = $combined_scores->get('PRECISION');
+          my $recall = $combined_scores->get('RECALL');
   	  	  $combined_scores->put('F1', $f1 + $scores->get('F1'));  	  	
+          $combined_scores->put('PRECISION', $precision + $scores->get('PRECISION'));
+          $combined_scores->put('RECALL', $recall + $scores->get('RECALL'));
   	    }
   	    $i++;
 	  }
 	  my $f1 = $combined_scores->get('F1');
+	  my $precision = $combined_scores->get('PRECISION');
+	  my $recall = $combined_scores->get('RECALL');
 	  $combined_scores->put('F1', $f1/$i);
+	  $combined_scores->put('PRECISION', $precision/$i);
+	  $combined_scores->put('RECALL', $recall/$i);
 	  	
 	  push(@combined_scores, $combined_scores);
 	}
@@ -603,6 +613,8 @@ sub print_lines {
   }
   print $program_output "SUMMARY: Summary of scores\n\n";
   $self->print_summary();
+
+  print $program_output "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
 }
 
 sub print_details {
@@ -890,6 +902,8 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2.5 - Adding mean-precision and mean-recall for ALL-Macro scores.
+#     - Added precision and pecall columns to LDC-MEAN scores and SUMMARY scores.
 # 2.4.4 - -queries file format changed. Additional mandatory first column added 
 #		  containing CSLDC queryid corresponding to the CSSF queryid mentioned on 
 #		  that line, required for sanity checking. 
