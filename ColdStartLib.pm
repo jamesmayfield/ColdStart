@@ -1961,8 +1961,13 @@ sub categorize_submissions {
   
   # Categorize REDUNDANT based on post-policy RIGHT submissions
   if($retVal{RIGHT} && @{$retVal{RIGHT}} > 1) {
-    my @named_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} ne "NOM"} @{$retVal{RIGHT}};
-    my @nominal_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} eq "NOM"} @{$retVal{RIGHT}};
+    my @named_mentions = @{$retVal{RIGHT}};
+    my @nominal_mentions = [];
+
+    if( grep {exists $_->{ASSESSMENT}{VALUE_MENTION_TYPE}} @{$retVal{RIGHT}} ){
+      @named_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} ne "NOM"} @{$retVal{RIGHT}};
+      @nominal_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} eq "NOM"} @{$retVal{RIGHT}};
+    }
 
 	# Prefer a named_mention over nominal
     $retVal{RIGHT} = @named_mentions ? [shift @named_mentions] : [shift @nominal_mentions];
