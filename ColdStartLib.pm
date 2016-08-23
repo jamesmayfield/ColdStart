@@ -1819,16 +1819,17 @@ sub get {
 
 # Calculate all scores for a portion of the ground truth tree
 sub score_subtree {
-  my ($self, $name, $subtree, $runid, $policy_options, $policy_selected) = @_;
+  my ($self, $query_id, $name, $subtree, $runid, $policy_options, $policy_selected) = @_;
   # This is a bit of a cheesy hack to get the level
   my @colons = $name =~ /(:)/g;
   my $level = @colons;
   # Score each subtree rooted here
   while (my ($child_name, $child_tree) = each %{$subtree->{ECS}}) {
-    $self->score_subtree($child_name, $child_tree, $runid, $policy_options, $policy_selected);
+    $self->score_subtree($query_id, $child_name, $child_tree, $runid, $policy_options, $policy_selected);
   }
   # Build a score for this node
   my $score = Score->new();
+  $score->put('QUERY_ID_BASE', $query_id);
   $score->put('EC', $name);
   $score->put('RUNID', $runid);
   $score->put('LEVEL', $level);
@@ -2022,7 +2023,8 @@ sub is_path_correct {
 sub score {
   my ($self, $runid, $policy_options, $policy_selected) = @_;
   foreach my $query_id (keys %{$self->{QUERIES}}) {
-    $self->score_subtree($query_id, $self->{QUERIES}{$query_id}, $runid, $policy_options, $policy_selected);
+  	my (undef, $cssf_query_id) = &Query::parse_queryid($query_id);
+    $self->score_subtree($cssf_query_id, $query_id, $self->{QUERIES}{$query_id}, $runid, $policy_options, $policy_selected);
   }
 }
 

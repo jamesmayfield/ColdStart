@@ -68,6 +68,64 @@ my $default_ignore = "UNASSESSED";
 my $pattern = $main::comment_pattern;
 ### DO INCLUDE
 
+
+package TrialsManager;
+
+# This package generates different trials for scoring the run, given the scores 
+# for all queries as input.
+
+use List::Util qw(shuffle);
+
+sub new {
+  my ($class, $logger, $scores_printer, $num_trials, $num_queries) = @_;
+  my $self = {
+  	SCORES_PRINTER => $scores_printer,
+  	NUM_TRIALS => $num_trials,
+  	NUM_QUERIES => $num_queries,
+  };
+  bless($self, $class);
+  $self->setup_trials();
+  $self;
+}
+
+sub setup_trials {
+  my ($self) = @_;
+  
+  my %index = %{$self->{SCORES_PRINTER}{INDEX}};
+  my $num_queries = $self->{NUM_QUERIES};
+  my @ldc_queryids = sort keys { map {$_=>1} values %index };
+  my @sf_queryids = sort keys %index;
+  
+  my %queries_trial;
+  
+  my $i=1;
+  while($i<=$self->{NUM_TRIALS}) {
+  	my %control = map {$_=>1} values %index;
+  	my @indexes = shuffle(0..$#ldc_queryids);
+  	my %ldc_queryids_sample = map {$ldc_queryids[$_]=>1} map {$indexes[$_]} (0..$num_queries-1);
+  	my @sf_queryids_sample_all = map {$_} grep {exists $ldc_queryids_sample{$index{$_}}} @sf_queryids;
+	my @sf_queryids_sample_one = grep {$control{$index{$_}}++==1} shuffle(@sf_queryids_sample_all);
+	
+	if(not exists $queries_trial{join(":", sort @sf_queryids_sample_one)}) {
+	  @{$self->{TRIALS}{$i}{LDC_QUERIES}} = sort keys %ldc_queryids_sample;
+	  %{$self->{TRIALS}{$i}{QUERIES_TO_SCORE_ALL}} = map {$_=>$index{$_}} @sf_queryids_sample_all;
+	  %{$self->{TRIALS}{$i}{QUERIES_TO_SCORE_ONE}} = map {$_=>$index{$_}} @sf_queryids_sample_one;
+	  $queries_trial{join(":", sort @sf_queryids_sample_one)} = $i;
+	  $i++;
+	}
+  }
+}
+
+sub print_lines {
+  my ($self) = @_;
+  foreach my $i(sort keys %{$self->{TRIALS}}){
+	$self->{SCORES_PRINTER}{QUERIES_TO_SCORE} = $self->{TRIALS}{$i}{QUERIES_TO_SCORE_ALL};
+	$self->{SCORES_PRINTER}->print_lines();
+	$self->{SCORES_PRINTER}{QUERIES_TO_SCORE} = $self->{TRIALS}{$i}{QUERIES_TO_SCORE_ONE};
+	$self->{SCORES_PRINTER}->print_lines();
+  }
+}
+
 package ScoresPrinter;
 
 # This package converts scoring output to printable form.
@@ -456,6 +514,7 @@ sub projectLDCMEAN {
 	  foreach my $cssf_query_ec(keys %{$new_scores{$csldc_query_ec}}) {
 	  	my $scores = $new_scores{$csldc_query_ec}{$cssf_query_ec};
    	    if(not exists $combined_scores->{EC}) {
+   	      $combined_scores->put('QUERY_ID_BASE', $scores->get('QUERY_ID_BASE'));
   	  	  $combined_scores->put('EC', $csldc_query_ec);
   	  	  $combined_scores->put('RUNID', $scores->get('RUNID'));
   	  	  $combined_scores->put('LEVEL', $scores->get('LEVEL'));
@@ -570,14 +629,18 @@ sub get_projected_scores {
 
 sub prepare_lines {
   my ($self, $metric) = @_;
+  @{$self->{SUMMARY}{$metric}} = ();
   my @scores = @{$self->{SCORES}};
   if($metric eq "LDCMAX" || $metric eq "LDCMEAN") {
   	@scores = $self->get_projected_scores($metric);
   }
   foreach my $score(sort compare_ec_names @scores) {
+  	next if not exists $self->{QUERIES_TO_SCORE}{$score->{QUERY_ID_BASE}};
   	my %line = $self->get_line($score);
   	push(@{$self->{LINES}}, \%line);
   }
+  
+  # Add aggregates
   $self->add_micro_average($metric, @scores) 
   	if(grep {$_ =~ /MICRO/} @{$metrices{$metric}{AGGREGATES}});
   $self->add_macro_average($metric, @scores)
@@ -758,6 +821,11 @@ $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields
 $switches->addConstantSwitch("verbose", "true", "Print verbose output");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
+$switches->addConstantSwitch("trials", "true", "Run random trials?");
+$switches->addVarSwitch("num_trials", "How many random trials to be preformed?");
+$switches->put("num_trials", '10');
+$switches->addVarSwitch("sample_size", "How many LDC queries to be selected in the sample?");
+$switches->put("sample_size", '3');
 $switches->addVarSwitch("expand", "Expand multi-entrypoint queries, using string provided as base for expanded query names");
 ### DO NOT INCLUDE
 # Removing COMBO
@@ -836,6 +904,10 @@ foreach my $option(sort keys %policy_selected) {
   }
 }
 
+my $trials = $switches->get("trials");
+my $num_trials = $switches->get("num_trials");
+my $sample_size = $switches->get("sample_size");
+
 my @filenames = @{$switches->get("files")};
 my @queryfilenames = grep {/\.xml$/} @filenames;
 my @runfilenames = grep {!/\.xml$/} @filenames;
@@ -894,6 +966,11 @@ my $spec = $switches->get("fields");
 foreach my $runid (@runids) {
   my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, $verbose, \%policy_options, \%policy_selected, $logger);
   $scores_printer->print_lines();
+
+  if($trials) {
+    my $trials_manager = TrialsManager->new($logger, $scores_printer, $num_trials, $sample_size);
+    $trials_manager->print_lines();
+  }
 }
 
 $logger->close_error_output();
