@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "5.2";
+my $version = "5.3";
 
 my $statsfile;
 
@@ -273,7 +273,7 @@ sub add_assertion {
 #  unless ($verb eq 'link') {
 #  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type') {
 ### DO INCLUDE
-  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
+  unless ($verb eq 'mention' || $verb eq 'nominal_mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
   existing:
     # We don't consider inferred assertions to be duplicates
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {
@@ -1118,4 +1118,5 @@ exit 0;
 # 5.0 - Version upped due to change in library
 # 5.1 - nominal_mention error reporting updated; minor bug fixes
 # 5.2 - MULTIPLE_MENTIONS_NO_CANONICAL error handling added. named-mention missing warnings removed when nominal and canonical are both present.
+# 5.3 - Fixing the handling of multiple nominal_mentions for an entity from the same document
 1;

@@ -19,7 +19,11 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.8";        # (1) Fixed the domains of nominal_mention
+my $version = "3.9";        # (1) An error is thrown when the "full" CSSF query ID in
+                            #     the submission file is missing from the queries.xml
+                            #     file, previously only the hash was compared and
+                            #     any change in prefix but not the hash went
+                            #     undetected.
 
 ### BEGIN INCLUDE Switches
 
@@ -1961,8 +1965,13 @@ sub categorize_submissions {
   
   # Categorize REDUNDANT based on post-policy RIGHT submissions
   if($retVal{RIGHT} && @{$retVal{RIGHT}} > 1) {
-    my @named_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} ne "NOM"} @{$retVal{RIGHT}};
-    my @nominal_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} eq "NOM"} @{$retVal{RIGHT}};
+    my @named_mentions = @{$retVal{RIGHT}};
+    my @nominal_mentions = [];
+
+    if( grep {exists $_->{ASSESSMENT}{VALUE_MENTION_TYPE}} @{$retVal{RIGHT}} ){
+      @named_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} ne "NOM"} @{$retVal{RIGHT}};
+      @nominal_mentions = grep {$_->{ASSESSMENT}{VALUE_MENTION_TYPE} eq "NOM"} @{$retVal{RIGHT}};
+    }
 
 	# Prefer a named_mention over nominal
     $retVal{RIGHT} = @named_mentions ? [shift @named_mentions] : [shift @nominal_mentions];
@@ -2565,11 +2574,11 @@ my %columns = (
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
       my $query = $queries->get($entry->{QUERY_ID});
-      unless ($query) {
+      unless (defined $query && $query->get("FULL_QUERY_ID") eq $entry->{FULL_QUERY_ID}) {
 	# Generate the query if this is an assessment
 #&main::dump_structure($entry, 'Entry', [qw(LOGGER SCHEMA)]);
 	$logger->record_problem('UNLOADED_QUERY', $entry->{QUERY_ID}, $where);
-	$logger->NIST_die("Query $entry->{QUERY_ID} not loaded; caller = " . join(":", caller) . "");
+	$logger->NIST_die("Query $entry->{FULL_QUERY_ID} not loaded; caller = " . join(":", caller) . "");
       }
       else {
 	$entry->{QUERY} = $query;
