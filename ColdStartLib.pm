@@ -19,11 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.9";        # (1) An error is thrown when the "full" CSSF query ID in
-                            #     the submission file is missing from the queries.xml
-                            #     file, previously only the hash was compared and
-                            #     any change in prefix but not the hash went
-                            #     undetected.
+my $version = "3.10";       # (1) Correcting categorization of unassessed responses 
 
 ### BEGIN INCLUDE Switches
 
@@ -1942,7 +1938,7 @@ sub categorize_submissions {
       push(@{$retVal{INCORRECT_PARENT}}, $submission);
     }
     else{
-      if(not exists $submission->{ASSESSMENT}) {
+      if(not exists $submission->{ASSESSMENT} or scalar keys %{$submission->{ASSESSMENT}} == 0) {
       	# record that the entry is unassessed
       	push(@{$retVal{UNASSESSED}}, $submission);
       }
@@ -2008,7 +2004,9 @@ sub is_path_correct {
   foreach my $parent_submission (@{$parent_ectree->{SUBMISSIONS} || []} ) {
     # Parent submission must not only be correct but its path should also be correct
     # Check this recursively
-    if ($parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+    if ( exists $parent_submission->{ASSESSMENT} && 
+    scalar keys %{$parent_submission->{ASSESSMENT}} > 0 &&
+    $parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
 	$parent_submission->{TARGET_QUERY_ID} eq $query_id) {
       return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
     }
