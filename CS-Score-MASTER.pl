@@ -30,10 +30,11 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.5";
+my $version = "2.6";
 
 # Filehandles for program and error output
-my $program_output;
+my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE);
+my %program_output;
 my $error_output;
 
 # The default sequence of output fields
@@ -68,61 +69,166 @@ my $default_ignore = "UNASSESSED";
 my $pattern = $main::comment_pattern;
 ### DO INCLUDE
 
+package SamplesScoresPrinter;
 
-package TrialsManager;
-
-# This package generates different trials for scoring the run, given the scores 
-# for all queries as input.
-
-use List::Util qw(shuffle);
+# This package prepares sample summary scores given the samples and scores_printer
 
 sub new {
-  my ($class, $logger, $scores_printer, $num_trials, $num_queries) = @_;
+  my ($class, $logger, $samples, $scores_printer) = @_;
   my $self = {
+  	LOGGER => $logger,
+  	SAMPLES => $samples,
   	SCORES_PRINTER => $scores_printer,
-  	NUM_TRIALS => $num_trials,
-  	NUM_QUERIES => $num_queries,
   };
   bless($self, $class);
-  $self->setup_trials();
+  foreach my $score(@{$self->{SCORES_PRINTER}{SCORES}}) {
+    my $duplicate_score = $score->duplicate();
+    push(@{$self->{SCORES}}, $duplicate_score);
+  }
   $self;
 }
 
-sub setup_trials {
-  my ($self) = @_;
+sub get {
+  my ($self, $field, @args) = @_;
+  return $self->{$field} if defined $self->{$field};
+  my $method = $self->can("get_$field");
+  return $method->($self, @args) if $method;
+}
+
+sub get_QUERIES_TO_SCORE {
+	my ($self, $sample_num, $projection_type) = @_;
+	$self->{SAMPLES}->get("QUERIES_TO_SCORE", $sample_num, $projection_type);
+}
+
+sub manage_duplicates {
+  my ($self, $sample_num, $projection_type) = @_;
   
-  my %index = %{$self->{SCORES_PRINTER}{INDEX}};
-  my $num_queries = $self->{NUM_QUERIES};
-  my @ldc_queryids = sort keys { map {$_=>1} values %index };
-  my @sf_queryids = sort keys %index;
+  my %queries_to_score = $self->{SAMPLES}->get("QUERIES_TO_SCORE", $sample_num, $projection_type);
   
-  my %queries_trial;
+  my @scores;
   
-  my $i=1;
-  while($i<=$self->{NUM_TRIALS}) {
-  	my %control = map {$_=>1} values %index;
-  	my @indexes = shuffle(0..$#ldc_queryids);
-  	my %ldc_queryids_sample = map {$ldc_queryids[$_]=>1} map {$indexes[$_]} (0..$num_queries-1);
-  	my @sf_queryids_sample_all = map {$_} grep {exists $ldc_queryids_sample{$index{$_}}} @sf_queryids;
-	my @sf_queryids_sample_one = grep {$control{$index{$_}}++==1} shuffle(@sf_queryids_sample_all);
-	
-	if(not exists $queries_trial{join(":", sort @sf_queryids_sample_one)}) {
-	  @{$self->{TRIALS}{$i}{LDC_QUERIES}} = sort keys %ldc_queryids_sample;
-	  %{$self->{TRIALS}{$i}{QUERIES_TO_SCORE_ALL}} = map {$_=>$index{$_}} @sf_queryids_sample_all;
-	  %{$self->{TRIALS}{$i}{QUERIES_TO_SCORE_ONE}} = map {$_=>$index{$_}} @sf_queryids_sample_one;
-	  $queries_trial{join(":", sort @sf_queryids_sample_one)} = $i;
-	  $i++;
-	}
+  foreach my $score(@{$self->{SCORES}}) {
+  	my $query_id = $score->{QUERY_ID_BASE};
+  	if(exists $queries_to_score{$query_id}) {
+  	  for(my $i=1; $i<=$queries_to_score{$query_id}; $i++) {
+  	  	my $duplicate_score = $score->duplicate();
+  	    push(@scores, $duplicate_score);
+  	  }
+  	}
   }
+  
+  @{$self->{SCORES_PRINTER}{SCORES}} = @scores;
+}
+
+sub get_samples_summary_evals {
+  my ($self) = @_;
+  my %samples_summary_evals;
+  foreach my $i(sort keys %{$self->{SAMPLES}{SAMPLES}}){
+  	my %stats;
+  	
+	%{$self->{SCORES_PRINTER}{QUERIES_TO_SCORE}} = $self->get("QUERIES_TO_SCORE", $i, "ALL_ENTRYPOINT");
+	$self->manage_duplicates($i, "ALL_ENTRYPOINT");
+	%stats = $self->{SCORES_PRINTER}->get_summary_stats();
+	$samples_summary_evals{$i}{ALL_ENTRYPOINT} = {%stats};
+		
+	%{$self->{SCORES_PRINTER}{QUERIES_TO_SCORE}} = $self->get("QUERIES_TO_SCORE", $i, "ONE_ENTRYPOINT");
+	$self->manage_duplicates($i, "ONE_ENTRYPOINT");
+	%stats = $self->{SCORES_PRINTER}->get_summary_stats();
+	$samples_summary_evals{$i}{ONE_ENTRYPOINT} = {%stats};
+  }
+  
+  %samples_summary_evals;
 }
 
 sub print_lines {
   my ($self) = @_;
-  foreach my $i(sort keys %{$self->{TRIALS}}){
-	$self->{SCORES_PRINTER}{QUERIES_TO_SCORE} = $self->{TRIALS}{$i}{QUERIES_TO_SCORE_ALL};
-	$self->{SCORES_PRINTER}->print_lines();
-	$self->{SCORES_PRINTER}{QUERIES_TO_SCORE} = $self->{TRIALS}{$i}{QUERIES_TO_SCORE_ONE};
-	$self->{SCORES_PRINTER}->print_lines();
+  
+  my $runid = $self->{SCORES_PRINTER}{RUNID};
+  
+  my %code = (
+                  ALL_ENTRYPOINT => "ALLEP",
+                  ONE_ENTRYPOINT => "ONEEP",
+                  LDCMAX => "LDCMAXI",
+                  LDCMEAN => "LDCMEAN",
+                  SF => "SLOTFLG",
+                  F1 => "F",
+                  PRECISION => "P",
+                  RECALL => "R",
+                  0 => "0",
+                  1 => "1",
+                  ALL => "A",
+                  "ALL-Macro" => "Ma",
+                  "ALL-Micro" => "Mi"
+               );
+  
+  my %samples_summary_evals = $self->get_samples_summary_evals();
+  
+  foreach my $sample(sort {$a<=>$b} keys %{$self->{SAMPLES}{SAMPLES}}) {
+  	print {$program_output{SAMPLE}} "$sample";
+  	foreach my $query_num(sort {$a<=>$b} keys %{$self->{SAMPLES}{SAMPLES}{$sample}}) {
+  		my $ldc_queryid = $self->{SAMPLES}{SAMPLES}{$sample}{$query_num}{LDC_QUERY_ID};
+  		my $sf_queryid = $self->{SAMPLES}{SAMPLES}{$sample}{$query_num}{SF_QUERY_ID_FULL}{0};
+  		print {$program_output{SAMPLE}} " $ldc_queryid:$sf_queryid";
+  	}
+  	print {$program_output{SAMPLE}} "\n";
+  }
+  
+  my $skip = qr/^...EP_LDCMEAN_Mi|^ONEEP_LDCMAXI|^ONEEP_LDCMEAN_Ma/;
+  
+  # Print header
+  my @ep_types = qw(ONE_ENTRYPOINT ALL_ENTRYPOINT);
+  my @ev_types = qw(LDCMAX LDCMEAN SF);
+  my @ag_types = qw(ALL-Micro ALL-Macro);
+  my @levels = qw(0 1 ALL);
+  my @metrices = qw(PRECISION RECALL F1);
+  print {$program_output{SAMPLESCORES}} "Sample#";
+  foreach my $ep_type(@ep_types) {
+    foreach my $ev_type(@ev_types){
+      foreach my $ag_type(@ag_types) {
+        foreach my $level(@levels) {
+          foreach my $metric(@metrices) {
+          	my $header = join "_", map {$code{$_}} ($ep_type, $ev_type, $ag_type, $level, $metric);
+          	next if ($header=~$skip);
+            print {$program_output{SAMPLESCORES}} " $header";
+          }
+        }
+      }
+    }
+  }
+  print {$program_output{SAMPLESCORES}} " #RUNID\n";
+  
+  # Print lines
+  my %scores;
+  foreach my $sample(sort {$a<=>$b} keys %samples_summary_evals) {
+  	print {$program_output{SAMPLESCORES}} sprintf("%6d", $sample);
+    foreach my $ep_type(@ep_types) {
+      foreach my $ev_type(@ev_types){
+        foreach my $ag_type(@ag_types) {
+          foreach my $level(@levels) {
+            foreach my $metric(@metrices) {
+              my $header = join "_", map {$code{$_}} ($ep_type, $ev_type, $ag_type, $level, $metric);
+          	  next if ($header=~$skip);
+              my $score = $samples_summary_evals{$sample}{$ep_type}{$ev_type}{$ag_type}{$level}{$metric};
+              $scores{$header}{$sample} = $score;
+              print {$program_output{SAMPLESCORES}} sprintf("               %0.4f", $score);
+            }
+          }
+        }
+      }
+    }
+    print {$program_output{SAMPLESCORES}} " #$runid\n";
+  }
+  
+  print {$program_output{CONFIDENCE}} " "x22, "99%(   95%(   90%(   mean   )90%   )95%   )99%\n"; 
+
+  foreach my $header(sort keys %scores) {
+    my @scores = values %{$scores{$header}};
+    my $mean = $self->{SAMPLES}->mean(@scores);
+    my %confidence_intervals;
+    foreach my $confidence((99, 95, 90)) {
+      @{$confidence_intervals{$confidence}} = $self->{SAMPLES}->get_confidence_interval($confidence, @scores);
+    }
+    print {$program_output{CONFIDENCE}} "$header $confidence_intervals{99}[0] $confidence_intervals{95}[0] $confidence_intervals{90}[0] $mean $confidence_intervals{90}[1] $confidence_intervals{95}[1] $confidence_intervals{99}[1]\n"; 
   }
 }
 
@@ -352,7 +458,7 @@ sub get_fields_to_print {
 }
 
 sub new {
-  my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $verbose, $logger) = @_;
+  my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $logger) = @_;
   my $fields_to_print = &get_fields_to_print($spec, $logger);
   my $ldc_mean_spec = "EC:RUNID:LEVEL:P:R:F";
   my $ldc_mean_fields_to_print = &get_fields_to_print($ldc_mean_spec, $logger);
@@ -365,7 +471,6 @@ sub new {
 	      WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @{$fields_to_print}},
 	      HEADERS => [map {$_->{HEADER}} @{$fields_to_print}],
 	      LINES => [],
-	      VERBOSE => $verbose,
 	     };
   $self->{SEPARATOR} = $separator if defined $separator;
   bless($self, $class);
@@ -416,14 +521,13 @@ sub get_line {
     $line{$field->{NAME}} = $text;
     $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
   }
-#  push(@{$self->{LINES}}, \%line);
   $self->{CATEGORIZED_SUBMISSIONS}{$score->{EC}} = $score->{CATEGORIZED_SUBMISSIONS}
   	if($score->{CATEGORIZED_SUBMISSIONS});
   %line;
 }
 
 sub print_line {
-  my ($self, $line, $fields, $metric_name) = @_;
+  my ($self, $line, $fields, $metric_name, $program_output) = @_;
   my $separator = "";
   $fields = $self->{FIELDS_TO_PRINT} unless $fields;
   foreach my $field (@{$fields}) {
@@ -665,19 +769,17 @@ sub print_lines {
   	$fields_to_print = $self->{LDC_MEAN_FIELDS_TO_PRINT} 
   		if $metric eq "LDCMEAN"; 
 	$self->prepare_lines($metric);
-	$self->print_details() if $self->{VERBOSE} && $metric eq "SF";
-  	print $program_output "$description\n\n";
-	$self->print_headers($fields_to_print) if @{$self->{LINES}};
+	$self->print_details() if $metric eq "SF";
+	$self->print_headers($fields_to_print, undef, $program_output{$metric}) if @{$self->{LINES}};
 	foreach my $line (@{$self->{LINES}}) {
-	  $self->print_line($line, $fields_to_print);
+	  $self->print_line($line, $fields_to_print, undef, $program_output{$metric});
 	}
 	@{$self->{LINES}} = ();
-	print $program_output "\n";
+	print {$program_output{$metric}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
   }
-  print $program_output "SUMMARY: Summary of scores\n\n";
-  $self->print_summary();
+  $self->print_summary($program_output{SUMMARY});
 
-  print $program_output "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
+  print {$program_output{"SUMMARY"}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
 }
 
 sub print_details {
@@ -705,30 +807,51 @@ sub print_details {
   		}
   	}
 		
-	print $program_output "="x80, "\n";
-	print $program_output "$ec\n";
+	print {$program_output{DEBUG}}  "="x80, "\n";
+	print {$program_output{DEBUG}} "$ec\n";
 	
 	foreach my $line_num(sort {$a<=>$b} keys %summary) {
-		print $program_output "\tSUBMISSION:\t", $summary{$line_num}{LINE}, "\n";
-		print $program_output "\tASSESSMENT:\t", $summary{$line_num}{ASSESSMENT_LINE}, "\n\n";
-		print $program_output "\tPREPOLICY ASSESSMENT:\t", $summary{$line_num}{PREPOLICY_ASSESSMENT}, "\n";
-		print $program_output "\tPOSTPOLICY ASSESSMENT:\t", join(",", sort @{$summary{$line_num}{POSTPOLICY_ASSESSMENT}}), "\n";
-		print $program_output "."x80, "\n";
+		print {$program_output{DEBUG}} "\tSUBMISSION:\t", $summary{$line_num}{LINE}, "\n";
+		print {$program_output{DEBUG}} "\tASSESSMENT:\t", $summary{$line_num}{ASSESSMENT_LINE}, "\n\n";
+		print {$program_output{DEBUG}} "\tPREPOLICY ASSESSMENT:\t", $summary{$line_num}{PREPOLICY_ASSESSMENT}, "\n";
+		print {$program_output{DEBUG}} "\tPOSTPOLICY ASSESSMENT:\t", join(",", sort @{$summary{$line_num}{POSTPOLICY_ASSESSMENT}}), "\n";
+		print {$program_output{DEBUG}} "."x80, "\n";
 	}
   }
-  print $program_output "\n";
+  print {$program_output{DEBUG}} "\n";
 }
 
 sub print_summary {
-  my ($self) = @_;
+  my ($self, $output_handle) = @_;
   my $fields_to_print = $self->{LDC_MEAN_FIELDS_TO_PRINT};
-  $self->print_headers($fields_to_print);
+  $self->print_headers($fields_to_print, undef, $output_handle);
   foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
   	my $metric_name = $metrices{$metric}{NAME};
     foreach my $line (@{$self->{SUMMARY}{$metric}}) {
-      $self->print_line($line, $fields_to_print, $metric_name);
+      $self->print_line($line, $fields_to_print, $metric_name, $output_handle);
     }
   }
+}
+
+sub get_summary_stats {
+  my ($self) = @_;
+  foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
+  	@{$self->{SUMMARY}{$metric}} = ();
+  	$self->prepare_lines($metric);
+  }
+  
+  my %summary = %{$self->{SUMMARY}};
+  my @fields = qw(PRECISION RECALL F1);
+  my %stats;
+  foreach my $metric(keys %summary) {
+  	foreach my $line( @{$summary{$metric}} ){
+  	  my $ec = $line->{EC};
+  	  my $level = $line->{LEVEL};
+  	  $stats{$metric}{$ec}{$level} = {map {$_=>$line->{$_}} @fields};
+  	}
+  }
+  
+  %stats;
 }
 
 # Determine which queries should be scored
@@ -800,41 +923,21 @@ sub get_queries_to_score {
 my $switches = SwitchProcessor->new($0,
    "Score one or more TAC Cold Start runs",
    "-discipline is one of the following:\n" . EvaluationQueryOutput::get_all_disciplines() .
-## DO NOT INCLUDE
-# Removing COMBO
-#
-#
-#   "-combo is one of the following:\n" . EvaluationQueryOutput::get_combo_options_description() .
-#
-### DO INCLUDE
    "-fields is a colon-separated list drawn from the following:\n" . &main::build_documentation(\%printable_fields) .
    "policy options are a colon-separated list drawn from the following:\n" . &main::build_documentation(\%policy_options) .
    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
 
-$switches->addVarSwitch('output_file', "Where should program output be sent? (filename, stdout or stderr)");
+$switches->addVarSwitch('output_file', "Where should program output be sent? (prefix of filename, stdout or stderr)");
 $switches->put('output_file', 'stdout');
 $switches->addVarSwitch("error_file", "Where should error output be sent? (filename, stdout or stderr)");
 $switches->put("error_file", "stderr");
 $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields instead of spaces (useful for export to spreadsheet)");
-$switches->addConstantSwitch("verbose", "true", "Print verbose output");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
-$switches->addConstantSwitch("trials", "true", "Run random trials?");
-$switches->addVarSwitch("num_trials", "How many random trials to be preformed?");
-$switches->put("num_trials", '10');
-$switches->addVarSwitch("sample_size", "How many LDC queries to be selected in the sample?");
-$switches->put("sample_size", '3');
+$switches->addVarSwitch("samples", "Specify the Bootstrap samples file.");
 $switches->addVarSwitch("expand", "Expand multi-entrypoint queries, using string provided as base for expanded query names");
-### DO NOT INCLUDE
-# Removing COMBO
-#
-#
-#$switches->addVarSwitch("combo", "How scores should be combined (see below for options)");
-#$switches->put("combo", "MICRO");
-#
-### DO INCLUDE
 
 $switches->addVarSwitch("queries", "file (one LDC query ID, SF query ID pair, separated by space, per line with an optional number separated " .
 					 	"by space representing the hop upto which evaluation is to be performed) " .
@@ -863,15 +966,18 @@ my $logger = Logger->new();
 $logger->ignore_warning('MULTIPLE_RUNIDS');
 
 # Allow redirection of stdout and stderr
-my $output_filename = $switches->get("output_file");
-if (lc $output_filename eq 'stdout') {
-  $program_output = *STDOUT{IO};
-}
-elsif (lc $output_filename eq 'stderr') {
-  $program_output = *STDERR{IO};
-}
-else {
-  open($program_output, ">:utf8", $output_filename) or $logger->NIST_die("Could not open $output_filename: $!");
+my $output_filename_prefix = $switches->get("output_file");
+
+foreach my $output_postfix(@output_postfix) {
+  if (lc $output_filename_prefix eq 'stdout') {
+    $program_output{$output_postfix} = *STDOUT{IO};
+  }
+  elsif (lc $output_filename_prefix eq 'stderr') {
+    $program_output{$output_postfix} = *STDERR{IO};
+  }
+  else {
+    open($program_output{$output_postfix}, ">:utf8", $output_filename_prefix . "." . lc($output_postfix)) or $logger->NIST_die("Could not open $output_filename_prefix . "." . lc($output_postfix): $!");
+  }
 }
 
 my $error_filename = $switches->get("error_file");
@@ -880,15 +986,7 @@ $error_output = $logger->get_error_output();
 
 my $discipline = $switches->get('discipline');
 my $use_tabs = $switches->get("tabs");
-## DO NOT INCLUDE
-# Removing COMBO
-#
-#
-#my $combo = $switches->get('combo');
-#
-### DO INCLUDE
 my $query_base = $switches->get('expand');
-my $verbose = $switches->get('verbose');
 my %policy_selected = (
   RIGHT => $switches->get('right'),
   WRONG => $switches->get('wrong'),
@@ -904,9 +1002,7 @@ foreach my $option(sort keys %policy_selected) {
   }
 }
 
-my $trials = $switches->get("trials");
-my $num_trials = $switches->get("num_trials");
-my $sample_size = $switches->get("sample_size");
+my $samples_file = $switches->get("samples");
 
 my @filenames = @{$switches->get("files")};
 my @queryfilenames = grep {/\.xml$/} @filenames;
@@ -915,10 +1011,6 @@ my $queries = QuerySet->new($logger, @queryfilenames);
 $queries->expand($query_base) if $query_base;
 
 my %index = $queries->get_index();
-
-#print STDERR "Original queries\n  ", join("\n  ", $queries->get_original_query_ids()), "\n";
-#print STDERR "Expanded queries\n  ", join("\n  ", $queries->get_expanded_query_ids()), "\n";
-#print STDERR "All queries\n  ", join("\n  ", $queries->get_all_query_ids()), "\n";
 
 my %queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $queries);
 
@@ -934,13 +1026,11 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package main;
 
 sub score_runid {
-  my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $verbose, $policy_options, $policy_selected, $logger) = @_;
-  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, $spec, $verbose, $logger);
+  my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $policy_options, $policy_selected, $logger) = @_;
+  my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, $spec, $logger);
   # Score each query, printing the query-by-query scores
  foreach my $query_id (sort keys %{$queries_to_score}) {
-#print STDERR "Processing query $query_id\n";
     my $query = $queries->get($query_id);
-#print STDERR "query is undef\n" unless defined $query;
     # Get the scores just for this query in this run
     my @scores = $submissions_and_assessments->score_query($query, $policy_options, $policy_selected,
 							   DISCIPLINE => $discipline,
@@ -964,12 +1054,13 @@ my @runids = $runids ? split(/:/, $runids) : $submissions_and_assessments->get_a
 my $spec = $switches->get("fields");
 
 foreach my $runid (@runids) {
-  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, $verbose, \%policy_options, \%policy_selected, $logger);
-  $scores_printer->print_lines();
+  my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
+  $scores_printer->print_lines($program_output{SF});
 
-  if($trials) {
-    my $trials_manager = TrialsManager->new($logger, $scores_printer, $num_trials, $sample_size);
-    $trials_manager->print_lines();
+  if($samples_file) {
+    my $samples = Bootstrap->new($logger, $samples_file);
+    my $samples_scores_printer = SamplesScoresPrinter->new($logger, $samples, $scores_printer);
+    $samples_scores_printer->print_lines();
   }
 }
 
@@ -979,6 +1070,9 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2.6 - First version of the scorer for 2016
+#     - Output is split across files
+#     - Bootstrap sampling applied over the scores
 # 2.5 - Adding mean-precision and mean-recall for ALL-Macro scores.
 #     - Added precision and pecall columns to LDC-MEAN scores and SUMMARY scores.
 # 2.4.4 - -queries file format changed. Additional mandatory first column added 

@@ -19,11 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "3.9";        # (1) An error is thrown when the "full" CSSF query ID in
-                            #     the submission file is missing from the queries.xml
-                            #     file, previously only the hash was compared and
-                            #     any change in prefix but not the hash went
-                            #     undetected.
+my $version = "4.0";        # (1) Adding Bootstrap sampling support
 
 ### BEGIN INCLUDE Switches
 
@@ -876,7 +872,7 @@ sub generate_query {
   		$self->get('FULL_QUERY_ID').'_'.
 		  &main::generate_uuid_from_values($self->get('FULL_QUERY_ID'), $value, $value_provenance->tostring(), 12));
   # SLOTS, SLOTn, SLOT
-  my @new_slots = @{$self->{SLOTS}};
+  my @new_slots = @{$self->{SLOTS} || []};
   shift @new_slots;
   # If there are no slots left to fill, don't generate a query
   #return unless @new_slots;
@@ -1943,7 +1939,7 @@ sub categorize_submissions {
       push(@{$retVal{INCORRECT_PARENT}}, $submission);
     }
     else{
-      if(not exists $submission->{ASSESSMENT}) {
+      if(not exists $submission->{ASSESSMENT} or scalar keys %{$submission->{ASSESSMENT}} == 0) {
       	# record that the entry is unassessed
       	push(@{$retVal{UNASSESSED}}, $submission);
       }
@@ -2009,7 +2005,9 @@ sub is_path_correct {
   foreach my $parent_submission (@{$parent_ectree->{SUBMISSIONS} || []} ) {
     # Parent submission must not only be correct but its path should also be correct
     # Check this recursively
-    if ($parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+    if ( exists $parent_submission->{ASSESSMENT} && 
+    scalar keys %{$parent_submission->{ASSESSMENT}} > 0 &&
+    $parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
 	$parent_submission->{TARGET_QUERY_ID} eq $query_id) {
       return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
     }
@@ -3953,6 +3951,163 @@ sub print {
   }
   print "\n";
 }
+
+
+
+### BEGIN INCLUDE Bootstrap
+
+#####################################################################################
+##### Bootstrap
+#####################################################################################
+
+package Bootstrap;
+
+use List::Util qw(shuffle sum);
+
+sub new {
+  my ($class, $logger, $samples_file) = @_;
+  my $self = {
+  	LOGGER => $logger,
+  	FILE => $samples_file,
+  	SAMPLES => {},
+  };
+  bless($self, $class);
+  $self->load() if($samples_file && -e $samples_file);
+  $self;
+}
+
+sub get {
+  my ($self, $field, @args) = @_;
+  return $self->{$field} if defined $self->{$field};
+  my $method = $self->can("get_$field");
+  return $method->($self, @args) if $method;
+}
+
+sub get_SAMPLE {
+  my ($self, $sample_num) = @_;
+	
+  %{$self->{SAMPLES}{$sample_num}};
+}
+
+sub get_QUERIES_TO_SCORE {
+  my ($self, $sample_num, $projection_type) = @_;
+  my %sample = $self->get("SAMPLE", $sample_num);
+	
+  my %sf_queryids;
+	
+  if($projection_type eq "ALL_ENTRYPOINT") {
+    foreach my $key(keys %sample) {
+      map {$sf_queryids{$_}++} values %{$sample{$key}{SF_QUERY_ID}};
+    }
+  }
+  elsif($projection_type eq "ONE_ENTRYPOINT") {
+    foreach my $key(keys %sample) {
+      $sf_queryids{$sample{$key}{SF_QUERY_ID}{0}}++
+    }
+  }
+	
+  %sf_queryids;
+}
+
+
+sub load {
+  my ($self) = @_;
+  my $logger = $self->{LOGGER};
+  my $samples_file = $self->{FILE};
+	
+  open(my $samples, $samples_file) or $logger->NIST_die("Could not open $samples_file: $!");
+  while(<$samples>) {
+    chomp;
+    my @elements = split(/\s/, $_);
+    my $sample_num = shift(@elements);
+    my %sample;
+    my $j=0;
+    foreach my $element(@elements) {
+      my ($ldc_query_id, $sf_query_ids) = split(":", $element);
+      my @sf_query_ids = split(",", $sf_query_ids);
+      my @sf_query_ids_hash = map {$self->parse_queryids($_)} @sf_query_ids;
+      $sample{$j} = {
+		    LDC_QUERY_ID => $ldc_query_id,
+		    SF_QUERY_ID_FULL => { map {$_=>$sf_query_ids[$_]} (0..scalar(@sf_query_ids)-1) },
+		    SF_QUERY_ID => { map {$_=>$sf_query_ids_hash[$_]} (0..scalar(@sf_query_ids_hash)-1) },
+        };
+      $j++;
+    }
+    $self->{SAMPLES}{$sample_num} = {%sample};
+  }
+  close($samples);
+}
+
+sub parse_queryids {
+  my ($self, $full_queryid) = @_;
+
+  my (undef, $query_id) 
+  		= &Query::parse_queryid($full_queryid); 
+  
+  $query_id;
+}
+
+sub generate {
+  my ($self, $num_samples, $index) = @_;
+  
+  my $output_string = "";
+  
+  my %inverse;
+  push @{ $inverse{ $index->{$_} } }, $_ for keys %{$index};
+  
+  my @ldc_queryids = sort keys %inverse;
+  
+  my $i=1;
+  while($i<=$num_samples) {
+  	$output_string .= $i;
+  	my %sample;
+  	foreach my $j(0..$#ldc_queryids) {
+  	  my $rand = int(rand(scalar @ldc_queryids));
+  	  my @sf_query_ids = shuffle(@{$inverse{$ldc_queryids[$rand]}});
+  	  my @sf_query_ids_hash = map {$self->parse_queryids($_)} @sf_query_ids;
+  	  
+  	  $output_string .= " $ldc_queryids[$rand]:";
+  	  $output_string .= join(",", @sf_query_ids);
+  	  
+  	  $sample{$j} = {
+            LDC_QUERY_ID => $ldc_queryids[$rand],
+            SF_QUERY_ID_FULL => { map {$_=>$sf_query_ids[$_]} (0..scalar(@sf_query_ids)-1) },
+            SF_QUERY_ID => { map {$_=>$sf_query_ids_hash[$_]} (0..scalar(@sf_query_ids_hash)-1) },
+  	    };
+  	}
+  	$output_string .= "\n";
+	$self->{SAMPLES}{$i} = {%sample};
+	$i++;
+  }
+  
+  $output_string;
+}
+
+sub get_confidence_interval {
+  my ($self, $confidence, @scores) = @_;
+  @scores = sort {$a<=>$b} @scores;
+  my $elements = scalar @scores;
+
+  my $le = (100-$confidence)*0.5/100;
+  my $re = 1-$le;
+
+  my $l_index = int($elements*$le);
+  my $r_index = int($elements*$re);
+  
+  ($scores[$l_index], $scores[$r_index]);
+}
+
+sub mean {
+  my ($self, @elements) = @_;
+  
+  $self->{LOGGER}->NIST_die("Attempting to compute mean of empty list.") 
+    unless @elements;
+    
+  sprintf("%0.4f", sum(@elements)/@elements);
+}
+
+### END INCLUDE Bootstrap
+
 
 package Statistic;
 
