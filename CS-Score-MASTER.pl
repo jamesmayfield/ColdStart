@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.6";
+my $version = "2.7";
 
 # Filehandles for program and error output
 my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE);
@@ -596,6 +596,7 @@ sub projectLDCMEAN {
 	my @scores = @{$self->{SCORES}};
 	my %evaluation_queries = map {$_=>1} keys %{$self->{QUERIES_TO_SCORE}};
 	my %new_scores;
+	my %duplicate_queries;
 	foreach my $scores(@scores){
 	  my $cssf_query_ec = $scores->{EC};
 	  my ($full_cssf_queryid, $cssf_ec) = split(":", $cssf_query_ec);
@@ -605,10 +606,16 @@ sub projectLDCMEAN {
 	  my $full_csldc_queryid = $self->{QUERIES}->get_full_queryid($index{$cssf_queryid});
 	  my $csldc_query_ec = "$full_csldc_queryid";
 	  $csldc_query_ec .= ":$cssf_ec" if(defined $cssf_ec);
-	  
-	  $new_scores{$csldc_query_ec}{$cssf_query_ec} = $scores 
-	  	if( (scalar keys %evaluation_queries > 0 && exists $evaluation_queries{$cssf_queryid})
-	  		|| scalar keys %evaluation_queries == 0);
+
+      if( (scalar keys %evaluation_queries > 0 && exists $evaluation_queries{$cssf_queryid})
+	      || scalar keys %evaluation_queries == 0) {
+	          $duplicate_queries{$csldc_query_ec}++;
+	          $new_scores{$csldc_query_ec}{$cssf_query_ec} = $scores;
+	  }
+	}
+
+	foreach my $key(keys %duplicate_queries) {
+	  $duplicate_queries{$key} /= scalar keys %{$new_scores{$key}};
 	}
 
 	my @combined_scores;
@@ -643,8 +650,9 @@ sub projectLDCMEAN {
 	  $combined_scores->put('F1', $f1/$i);
 	  $combined_scores->put('PRECISION', $precision/$i);
 	  $combined_scores->put('RECALL', $recall/$i);
-	  	
-	  push(@combined_scores, $combined_scores);
+	  for(my $dup_count = 0; $dup_count < $duplicate_queries{$csldc_query_ec}; $dup_count++){
+	    push(@combined_scores, $combined_scores);
+	  }
 	}
 	@combined_scores;
 }
@@ -1070,6 +1078,8 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2.7 - Removed bug in LDCMEAN computation when duplicate LDC queries appear in
+#       the sample.
 # 2.6 - First version of the scorer for 2016
 #     - Output is split across files
 #     - Bootstrap sampling applied over the scores
