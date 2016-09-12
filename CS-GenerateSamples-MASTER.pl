@@ -62,7 +62,7 @@ $switches->put("error_file", "stderr");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 
 $switches->addParam("num_samples", "required", "How many random bootstrap-samples to be selected?");
-$switches->addParam('index_file', "required", "Filename containing mapping from output query name to original LDC query name");
+$switches->addParam('queries', "required", "file (one LDC query ID, SF query ID pair, separated by space, per line with an optional number separated.");
 
 $switches->process(@ARGV);
 
@@ -85,7 +85,7 @@ my $error_filename = $switches->get("error_file");
 $logger->set_error_output($error_filename);
 $error_output = $logger->get_error_output();
 
-my $index_filename = $switches->get('index_file');
+my $queries_filename = $switches->get('queries_file');
 my $num_samples = $switches->get("num_samples");
 
 my $index = load_index();
@@ -100,14 +100,14 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 package main;
 
 sub load_index {
-	my ($index_file, $index);
-	open($index_file, $index_filename) or $logger->NIST_die("Could not create $index_filename: $!");
-	while(<$index_file>) {
+	my ($queries_file, $index);
+	open($queries_file, $queries_filename) or $logger->NIST_die("Could not create $queries_filename: $!");
+	while(<$queries_file>) {
 		chomp;
-		my ($sf_queryid, $ldc_queryid) = split(/\s+/, $_);
+		my ($ldc_queryid, $sf_queryid) = split(/\s+/, $_);
 		$index->{$sf_queryid} = $ldc_queryid;
 	}
-	close($index_file);
+	close($queries_file);
 	$index;
 }
 
