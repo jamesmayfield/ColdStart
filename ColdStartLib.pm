@@ -19,7 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "4.0";        # (1) Adding Bootstrap sampling support
+my $version = "4.1";        # (1) Fixed confidence interval upper bound
 
 ### BEGIN INCLUDE Switches
 
@@ -4092,7 +4092,7 @@ sub get_confidence_interval {
   my $re = 1-$le;
 
   my $l_index = int($elements*$le);
-  my $r_index = int($elements*$re);
+  my $r_index = int($elements*$re)-1;
   
   ($scores[$l_index], $scores[$r_index]);
 }

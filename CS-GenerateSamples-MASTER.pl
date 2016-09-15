@@ -13,7 +13,7 @@ use ColdStartLib;
 
 ### DO INCLUDE
 ##################################################################################### 
-# This program generates the bootstrap-samples file needed by the 2016 scorer
+# This program generates the bootstrap-resamples file needed by the 2016 scorer
 #
 # Authors: Shahzad Rajput
 # Please send questions or comments to shahzad "dot" "rajput "at" gmail "dot" com
@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.0";
+my $version = "1.1";
 
 # Filehandles for program and error output
 my $program_output;
@@ -85,7 +85,7 @@ my $error_filename = $switches->get("error_file");
 $logger->set_error_output($error_filename);
 $error_output = $logger->get_error_output();
 
-my $queries_filename = $switches->get('queries_file');
+my $queries_filename = $switches->get('queries');
 my $num_samples = $switches->get("num_samples");
 
 my $index = load_index();
@@ -121,5 +121,7 @@ $logger->close_error_output();
 ################################################################################
 
 # 1.0 - Initial version
+# 1.1 - Changes the input file from queries.index to queries file (i.e. file containing assessed queries)
+#     - Corrected a typo in the previous change that made the script to crash
 
 1;
