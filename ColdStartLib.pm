@@ -19,7 +19,10 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "4.1";        # (1) Fixed confidence interval upper bound
+my $version = "4.2";        # (1) Fixed categorization of duplicate entries into
+                            #     right, wrong, and ignored, for single-valued slots.
+                            #     This problem arised when a single-valued slots has
+                            #     multiple responses from different languages.
 
 ### BEGIN INCLUDE Switches
 
@@ -1854,22 +1857,21 @@ sub score_subtree {
   }
   if (defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && @{$categorized_submissions{'RIGHT'} || []}) {
   	my $right_submission = pop @{$categorized_submissions{RIGHT}};
-  	push(@{$categorized_submissions{REDUNDANT}}, @{$categorized_submissions{RIGHT}});
+    my @new_redundants = @{$categorized_submissions{RIGHT}};
+    push(@{$categorized_submissions{REDUNDANT}}, @new_redundants);
   	
   	delete $categorized_submissions{RIGHT};
   	push (@{$categorized_submissions{RIGHT}}, $right_submission);
   	
-  	# Categorize RIGHT, WRONG and IGNORED 
+    # Categorize new REDUNDANT into RIGHT, WRONG and IGNORED
   	my @post_policy_metrics = qw(RIGHT WRONG IGNORE);
-  
-  	# Categorize REDUNDANT into RIGHT, WRONG and IGNORED
   	my $selected_duplicate_category;
   	foreach my $post_policy_metric(@post_policy_metrics) {
   	  if($policy_selected->{$post_policy_metric} =~ /DUPLICATE/) {
   	  	$selected_duplicate_category = $post_policy_metric;
   	  }
   	}
-  	push(@{$categorized_submissions{$selected_duplicate_category}}, @{$categorized_submissions{REDUNDANT}});
+  push(@{$categorized_submissions{$selected_duplicate_category}}, @new_redundants);
   }
   
   
