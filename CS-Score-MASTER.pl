@@ -30,10 +30,10 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.7";
+my $version = "2.9";
 
 # Filehandles for program and error output
-my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE);
+my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE ARGUMENTS);
 my %program_output;
 my $error_output;
 
@@ -73,12 +73,31 @@ package SamplesScoresPrinter;
 
 # This package prepares sample summary scores given the samples and scores_printer
 
+my %code = (
+                  ALL_ENTRYPOINT => "ALLEP",
+                  ONE_ENTRYPOINT => "ONEEP",
+                  LDCMAX => "LDCMAXI",
+                  LDCMEAN => "LDCMEAN",
+                  SF => "SLOTFLG",
+                  F1 => "F",
+                  PRECISION => "P",
+                  RECALL => "R",
+                  0 => "0",
+                  1 => "1",
+                  ALL => "A",
+                  "ALL-Macro" => "Ma",
+                  "ALL-Micro" => "Mi"
+            );
+
+my %inverse_code = reverse %code;
+
 sub new {
   my ($class, $logger, $samples, $scores_printer) = @_;
   my $self = {
   	LOGGER => $logger,
   	SAMPLES => $samples,
   	SCORES_PRINTER => $scores_printer,
+    ORIGINAL_STATS => {$scores_printer->get_summary_stats()},
   };
   bless($self, $class);
   foreach my $score(@{$self->{SCORES_PRINTER}{SCORES}}) {
@@ -98,6 +117,21 @@ sub get {
 sub get_QUERIES_TO_SCORE {
 	my ($self, $sample_num, $projection_type) = @_;
 	$self->{SAMPLES}->get("QUERIES_TO_SCORE", $sample_num, $projection_type);
+}
+
+sub get_ORIGINAL_SCORE {
+  my ($self, $field_code) = @_;
+  my $score;
+  my $score_str;
+
+  my ($ep, $type, $aggregate_type, $level, $metric) = map {$inverse_code{$_}} split("_", $field_code);
+
+  $score = $self->{ORIGINAL_STATS}{$type}{$aggregate_type}{$level}{$metric}
+    if $ep eq "ALL_ENTRYPOINT";
+
+  $score_str = sprintf("%0.4f", $score) if defined $score;
+  $score_str = sprintf("%6s","-") unless $score;
+  $score_str;
 }
 
 sub manage_duplicates {
@@ -144,22 +178,6 @@ sub print_lines {
   my ($self) = @_;
   
   my $runid = $self->{SCORES_PRINTER}{RUNID};
-  
-  my %code = (
-                  ALL_ENTRYPOINT => "ALLEP",
-                  ONE_ENTRYPOINT => "ONEEP",
-                  LDCMAX => "LDCMAXI",
-                  LDCMEAN => "LDCMEAN",
-                  SF => "SLOTFLG",
-                  F1 => "F",
-                  PRECISION => "P",
-                  RECALL => "R",
-                  0 => "0",
-                  1 => "1",
-                  ALL => "A",
-                  "ALL-Macro" => "Ma",
-                  "ALL-Micro" => "Mi"
-               );
   
   my %samples_summary_evals = $self->get_samples_summary_evals();
   
@@ -219,16 +237,18 @@ sub print_lines {
     print {$program_output{SAMPLESCORES}} " #$runid\n";
   }
   
-  print {$program_output{CONFIDENCE}} " "x22, "99%(   95%(   90%(   mean   )90%   )95%   )99%\n"; 
+  # Print confidence intervals
+  print {$program_output{CONFIDENCE}} " "x22, "99%(   95%(   90%(   mean   scr.   )90%   )95%   )99%\n"; 
 
   foreach my $header(sort keys %scores) {
     my @scores = values %{$scores{$header}};
     my $mean = $self->{SAMPLES}->mean(@scores);
+    my $original_score = $self->get("ORIGINAL_SCORE", $header);
     my %confidence_intervals;
     foreach my $confidence((99, 95, 90)) {
       @{$confidence_intervals{$confidence}} = $self->{SAMPLES}->get_confidence_interval($confidence, @scores);
     }
-    print {$program_output{CONFIDENCE}} "$header $confidence_intervals{99}[0] $confidence_intervals{95}[0] $confidence_intervals{90}[0] $mean $confidence_intervals{90}[1] $confidence_intervals{95}[1] $confidence_intervals{99}[1]\n"; 
+    print {$program_output{CONFIDENCE}} "$header $confidence_intervals{99}[0] $confidence_intervals{95}[0] $confidence_intervals{90}[0] $mean $original_score $confidence_intervals{90}[1] $confidence_intervals{95}[1] $confidence_intervals{99}[1]\n"; 
   }
 }
 
@@ -254,7 +274,7 @@ my %printable_fields = (
   RUNID => {
   	NAME => 'RUNID',
     DESCRIPTION => "Run ID",
-    HEADER => 'Run ID',
+    HEADER => 'RunID',
     FORMAT => '%s',
     JUSTIFY => 'L',
     FN => sub { $_[0]{RUNID} },
@@ -968,6 +988,8 @@ $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; ex
 ### DO INCLUDE
 $switches->addParam("files", "required", "all others", "Query files, submission files and judgment files");
 
+my $argsin = join(" ", @ARGV);
+
 $switches->process(@ARGV);
 
 my $logger = Logger->new();
@@ -1033,6 +1055,8 @@ $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encounter
 
 package main;
 
+use Cwd;
+
 sub score_runid {
   my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $policy_options, $policy_selected, $logger) = @_;
   my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, $spec, $logger);
@@ -1061,6 +1085,16 @@ my $runids = $switches->get("runids");
 my @runids = $runids ? split(/:/, $runids) : $submissions_and_assessments->get_all_runids();
 my $spec = $switches->get("fields");
 
+# Print the arguments in ".arguments" file
+my $current_directory = Cwd::cwd();
+print {$program_output{ARGUMENTS}} "#Invoked as:\n$current_directory\$ perl $0 ", $argsin, "\n\n";
+print {$program_output{ARGUMENTS}} "#Policy Selected:\n";
+foreach my $option(sort keys %policy_selected) {
+  my $choices = $policy_selected{$option};
+  print {$program_output{ARGUMENTS}} "  $option => $choices\n";
+}
+
+# Score the runs
 foreach my $runid (@runids) {
   my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
   $scores_printer->print_lines($program_output{SF});
@@ -1072,12 +1106,22 @@ foreach my $runid (@runids) {
   }
 }
 
+# Close program output
+foreach my $output_postfix(@output_postfix) {
+  close $program_output{$output_postfix};
+}
+
+# Close error output
 $logger->close_error_output();
 
 ################################################################################
 # Revision History
 ################################################################################
 
+# 2.9 - Added the .arguments output file listing the arguments and policy selected
+#       when the scorer was invoked.
+#     - Changed 'Run ID' to 'RunID' in the header of output file(s)
+# 2.8 - Added actual score `scr.` to .confidence output file
 # 2.7 - Removed bug in LDCMEAN computation when duplicate LDC queries appear in
 #       the sample.
 # 2.6 - First version of the scorer for 2016
