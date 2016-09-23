@@ -30,10 +30,10 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2.9";
+my $version = "3.0";
 
 # Filehandles for program and error output
-my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE ARGUMENTS);
+my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
 my %program_output;
 my $error_output;
 
@@ -298,7 +298,7 @@ my %printable_fields = (
   },
   CORRECT => {
   	NAME => 'NUM_CORRECT_PRE_POLICY',
-    DESCRIPTION => "Number of assessed correct submissions (pre-policy)",
+    DESCRIPTION => "Number of assessed correct responses (pre-policy)",
     HEADER => 'Correct',
     FORMAT => '%4d',
     JUSTIFY => 'R',
@@ -307,7 +307,7 @@ my %printable_fields = (
   },
   INCORRECT => {
   	NAME => 'NUM_INCORRECT_PRE_POLICY',
-    DESCRIPTION => "Number of assessed incorrect submissions (pre-policy)",
+    DESCRIPTION => "Number of assessed incorrect responses (pre-policy)",
     HEADER => 'Incorrect',
     FORMAT => '%4d',
     JUSTIFY => 'R',
@@ -316,7 +316,7 @@ my %printable_fields = (
   },
   INEXACT => {
   	NAME => 'NUM_INEXACT_PRE_POLICY',
-    DESCRIPTION => "Number of assessed inexact submissions (pre-policy)",
+    DESCRIPTION => "Number of assessed inexact responses (pre-policy)",
     HEADER => 'Inexact',
     FORMAT => '%4d',
     JUSTIFY => 'R',
@@ -356,7 +356,7 @@ my %printable_fields = (
     FORMAT => '%4d',
     JUSTIFY => 'R',
     MEAN_FORMAT => '%4.2f',
-    DESCRIPTION => "Number of submissions that were ignored (post-policy)",
+    DESCRIPTION => "Number of responses that were ignored (post-policy)",
     FN => sub { $_[0]{NUM_IGNORED} },
   },
   SUBMITTED => {
@@ -415,37 +415,37 @@ my %printable_fields = (
 my %policy_options = (
   CORRECT => {
   	NAME => 'CORRECT',
-    DESCRIPTION => "Number of assessed correct submissions. Legal choice for -right.",
+    DESCRIPTION => "Number of assessed correct responses. Legal choice for -right.",
     VALUE_MAP => 'NUM_CORRECT',
     CHOICES => [qw(RIGHT)],
   },
   DUPLICATE=> {
   	NAME => 'DUPLICATE',
-    DESCRIPTION => "Number of duplicate submissions. Legal choice for -right, -wrong and -ignore.",
+    DESCRIPTION => "Number of duplicate responses. Legal choice for -right, -wrong and -ignore.",
     VALUE_MAP => 'NUM_IGNORED',
     CHOICES => [qw(RIGHT WRONG IGNORE)],
   },
   INCORRECT => {
   	NAME => 'INCORRECT',
-    DESCRIPTION => "Number of assessed incorrect submissions. Legal choice for -wrong.",
+    DESCRIPTION => "Number of assessed incorrect responses. Legal choice for -wrong.",
     VALUE_MAP => 'NUM_INCORRECT',
     CHOICES => [qw(WRONG)],
   },
   INCORRECT_PARENT => {
   	NAME => 'INCORRECT_PARENT',
-    DESCRIPTION => "Number of submissions that had incrorrect (grand-)parent. Legal choice for -wrong and -ignore.",
+    DESCRIPTION => "Number of responses that had incrorrect (grand-)parent. Legal choice for -wrong and -ignore.",
     VALUE_MAP => 'NUM_INCORRECT_PARENT',
     CHOICES => [qw(WRONG IGNORE)],
   },
   INEXACT => {
   	NAME => 'INEXACT',
-    DESCRIPTION => "Number of assessed inexact submissions. Legal choice for -right, -wrong and -ignore.",
+    DESCRIPTION => "Number of assessed inexact responses. Legal choice for -right, -wrong and -ignore.",
     VALUE_MAP => 'NUM_INEXACT',
     CHOICES => [qw(RIGHT WRONG IGNORE)],
   },
   UNASSESSED=> {
   	NAME => 'UNASSESSED',
-    DESCRIPTION => "Number of unassessed submissions. Legal choice for -wrong and -ignore.",
+    DESCRIPTION => "Number of unassessed responses. Legal choice for -wrong and -ignore.",
     VALUE_MAP => 'NUM_UNASSESSED',
     CHOICES => [qw(WRONG IGNORE)],
   },
@@ -964,7 +964,7 @@ $switches->put("error_file", "stderr");
 $switches->addConstantSwitch("tabs", "true", "Use tabs to separate output fields instead of spaces (useful for export to spreadsheet)");
 $switches->addVarSwitch("discipline", "Discipline for identifying ground truth (see below for options)");
 $switches->put("discipline", 'ASSESSED');
-$switches->addVarSwitch("samples", "Specify the Bootstrap samples file.");
+$switches->addVarSwitch("samples", "Specify the Bootstrap resamples file.");
 $switches->addVarSwitch("expand", "Expand multi-entrypoint queries, using string provided as base for expanded query names");
 
 $switches->addVarSwitch("queries", "file (one LDC query ID, SF query ID pair, separated by space, per line with an optional number separated " .
@@ -986,7 +986,7 @@ $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; ex
 #$switches->addConstantSwitch('showmissing', 'true', "Show missing assessments");
 # $switches->addConstantSwitch('components', 'true', "Show component scores for each query");
 ### DO INCLUDE
-$switches->addParam("files", "required", "all others", "Query files, submission files and judgment files");
+$switches->addParam("files", "required", "all others", "Query file, submission file and judgment file");
 
 my $argsin = join(" ", @ARGV);
 
@@ -1006,6 +1006,11 @@ foreach my $output_postfix(@output_postfix) {
     $program_output{$output_postfix} = *STDERR{IO};
   }
   else {
+  	# Suppress producing empty files
+  	next if ($output_postfix =~ /^LDC/ && not defined $switches->get('expand'));
+  	next if ($output_postfix =~ /^SAMPLE/ && not defined $switches->get('samples'));
+  	next if ($output_postfix =~ "CONFIDENCE" && not defined $switches->get('samples'));
+  	
     open($program_output{$output_postfix}, ">:utf8", $output_filename_prefix . "." . lc($output_postfix)) or $logger->NIST_die("Could not open $output_filename_prefix . "." . lc($output_postfix): $!");
   }
 }
@@ -1087,12 +1092,15 @@ my $spec = $switches->get("fields");
 
 # Print the arguments in ".arguments" file
 my $current_directory = Cwd::cwd();
-print {$program_output{ARGUMENTS}} "#Invoked as:\n$current_directory\$ perl $0 ", $argsin, "\n\n";
-print {$program_output{ARGUMENTS}} "#Policy Selected:\n";
+my $now_string = localtime;
+print {$program_output{PARAMS}} "#At: $now_string\n\n";
+print {$program_output{PARAMS}} "#Invoked as:\n$current_directory\$ perl $0 ", $argsin, "\n\n";
+print {$program_output{PARAMS}} "#Policy Selected:\n";
 foreach my $option(sort keys %policy_selected) {
   my $choices = $policy_selected{$option};
-  print {$program_output{ARGUMENTS}} "  $option => $choices\n";
+  print {$program_output{PARAMS}} "  $option => $choices\n";
 }
+print {$program_output{PARAMS}} "\nSAMPLE => BOOTSTRAP RESAMPLE" if defined $samples_file;
 
 # Score the runs
 foreach my $runid (@runids) {
@@ -1108,6 +1116,9 @@ foreach my $runid (@runids) {
 
 # Close program output
 foreach my $output_postfix(@output_postfix) {
+  next if ($output_postfix =~ /^LDC/ && not defined $switches->get('expand'));
+  next if ($output_postfix =~ /^SAMPLE/ && not defined $switches->get('samples'));
+  next if ($output_postfix =~ "CONFIDENCE" && not defined $switches->get('samples'));
   close $program_output{$output_postfix};
 }
 
@@ -1118,6 +1129,8 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 3.0 - Modified file extensions and suppressed empty file creation
+#     - Some clarification in the usage messages
 # 2.9 - Added the .arguments output file listing the arguments and policy selected
 #       when the scorer was invoked.
 #     - Changed 'Run ID' to 'RunID' in the header of output file(s)
