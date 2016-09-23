@@ -409,16 +409,16 @@ Summary of scores is presented towards the end of the scorer output.
 
 As mentioned above that the scorer produces a subset of the following files depending on the options selected.
 
-* CSrun.score.params			Lists when, how, and with what options the scorer was invoked
-* CSrun.score.errlog			Reports errors encounterd while scoring, if any
-* CSrun.score.debug				Includes response level pre-policy and post-policy assessments
-* CSrun.score.sf				Lists counts and scores based on SF variant
-* CSrun.score.ldcmax			Lists counts and scores based on LDC-MAX variant
-* CSrun.score.ldcmean			Lists counts and scores based on LDC-MEAN variant
-* CSrun.score.summary			Lists summary of the scores
-* CSrun.score.sample			Lists the bootstrap resample in format matching the samplesscores
-* CSrun.score.samplescores		Lists the bootstrap resample statistics
-* CSrun.score.confidence		Reports confidence intervals based on the bootstrap resampling statistics using the percentile method
+    CSrun.score.params       Lists when, how, and with what options the scorer was invoked
+    CSrun.score.errlog       Reports errors encounterd while scoring, if any
+    CSrun.score.debug        Includes response level pre-policy and post-policy assessments
+    CSrun.score.sf           Lists counts and scores based on SF variant
+    CSrun.score.ldcmax       Lists counts and scores based on LDC-MAX variant
+    CSrun.score.ldcmean      Lists counts and scores based on LDC-MEAN variant
+    CSrun.score.summary      Lists summary of the scores
+    CSrun.score.sample       Lists the bootstrap resample in format matching the samplesscores
+    CSrun.score.samplescores Lists the bootstrap resample statistics
+    CSrun.score.confidence   Reports confidence intervals based on the bootstrap resampling statistics using the percentile method
 
 ## 4.4 Output fields
 
