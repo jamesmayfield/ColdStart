@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.0";
+my $version = "1.1";
 
 # Filehandles for program and error output
 my %program_output;
@@ -86,6 +86,24 @@ sub get_language {
   }
   ($language) = grep {$language_options{$_}{NAME} eq $language} keys %language_options;
   $language;
+}
+
+sub get_corrected_assessment_line {
+  my ($assessment, $language, %mention_type) = @_;
+  my $retVal = $assessment->{LINE};
+  if($assessment->{VALUE_EC} ne "0") {
+  	my $original = $assessment->{EC_MENTION_TYPE};
+  	if(exists $mention_type{$assessment->{VALUE_EC}} && exists $mention_type{$assessment->{VALUE_EC}}{$language}) {
+  	  $assessment->{EC_MENTION_TYPE} = $mention_type{$assessment->{VALUE_EC}}{$language};
+  	}
+  	else {
+  	  $assessment->{EC_MENTION_TYPE} = "NOM";
+  	}
+  	my @columns = @{$assessment->{SCHEMA}{COLUMNS}};
+  	$retVal = join("\t", map{$assessment->{SCHEMA}{INVERSE_ASSESSMENT_CODES}{$assessment->{$_}} || $assessment->{$_}} @columns);
+  	$assessment->{EC_MENTION_TYPE} = $original;
+  }
+  $retVal;
 }
 
 # Handle run-time switches
@@ -171,27 +189,49 @@ if ($num_errors) {
 else{
   # set up %parent_language_ids
   my %parent_language;
+  my %mention_type;
   foreach my $assessment(@{$assessments->{ALL_ENTRIES}}) {
-  	if($assessment->{LEVEL} == 0 ){
-  		my $language = &get_language($assessment);
-  		$parent_language{$assessment->{TARGET_QUERY_ID}}{$language} = 1;
-  	}
+    my $language = &get_language($assessment);
+
+    $parent_language{$assessment->{TARGET_QUERY_ID}}{$language} = 1
+      if($assessment->{LEVEL} == 0 );
+
+    my $value_mention_type = $assessment->{VALUE_MENTION_TYPE};
+    my $ec_mention_type = $assessment->{EC_MENTION_TYPE};
+
+    if ( ($value_mention_type eq "NAM" && $ec_mention_type eq "NAM")
+        || ($value_mention_type eq "NOM" && $ec_mention_type eq "NOM") ) {
+          $mention_type{$assessment->{VALUE_EC}}{$language} = $ec_mention_type
+            if(not exists $mention_type{$assessment->{VALUE_EC}}{$language});
+          $logger->NIST_die("Unexpected mention type.")
+            if(exists $mention_type{$assessment->{VALUE_EC}}{$language}
+              && $mention_type{$assessment->{VALUE_EC}}{$language} ne $ec_mention_type);
+    }
+    elsif ($value_mention_type eq "NOM" && $ec_mention_type ne "NAM" && $ec_mention_type ne "NOM" ) {
+      # This happens when the EC_MENTION_TYPE is a (docid, value) pair, i.e., the case when there is a
+      # named mention in the collection but no run retrieved it.
+      #
+      # This case should be handled as follows: If the document mentioned in EC_MENTION_TYPE is in 
+      # language `A` and (1) if `A` matches `$language` then mention_type for `A` and `XLING` is NAM,
+      # but (2) if `A` does not match `$language` then mention_type for `XLING` is NAM.
+      
+      my ($ec_mention_type_language) = $ec_mention_type =~ /_(ENG|CMN|SPA)_/;
+        $mention_type{$assessment->{VALUE_EC}}{$language} = $ec_mention_type
+          if($ec_mention_type_language eq $language);
+        $mention_type{$assessment->{VALUE_EC}}{'XLING'} = $ec_mention_type;
+    }
   }
   # filter all the assessments into language-specific assessments
   foreach my $assessment(@{$assessments->{ALL_ENTRIES}}) {
   	my $language = &get_language($assessment);
-    if($assessment->{LEVEL} == 0 ) {
-      print {$program_output{$language}} "$assessment->{LINE}\n";
-      print {$program_output{"XLING"}} "$assessment->{LINE}\n" if $language ne "XLING";
+    if($assessment->{LEVEL} == 0 || exists $parent_language{ $assessment->{QUERY_ID} }{ $language }) {
+      print {$program_output{$language}} &get_corrected_assessment_line($assessment, $language, %mention_type), "\n";
+      print {$program_output{"XLING"}} &get_corrected_assessment_line($assessment, "XLING", %mention_type), "\n" 
+        if $language ne "XLING";
     }
     else {
-      if( exists $parent_language{ $assessment->{QUERY_ID} }{ $language }) {
-      	print {$program_output{$language}} "$assessment->{LINE}\n";
-      	print {$program_output{"XLING"}} "$assessment->{LINE}\n" if $language ne "XLING";
-      }
-      else {
-      	print {$program_output{"XLING"}} "$assessment->{LINE}\n";
-      }
+      print {$program_output{"XLING"}} &get_corrected_assessment_line($assessment, "XLING", %mention_type), "\n" 
+          if $language ne "XLING";
   	}
   }
 }
@@ -212,5 +252,7 @@ exit 0;
 ################################################################################
 
 # 1.0 - Initial version
+# 1.1 - Applying correction of EC_MENTION_TYPE within monolingual QREL split when the NAMed mention was found 
+#       in another language but not in the language of the split.
 
 1;
