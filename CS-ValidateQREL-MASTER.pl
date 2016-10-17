@@ -215,10 +215,12 @@ else{
       # language `A` and (1) if `A` matches `$language` then mention_type for `A` and `XLING` is NAM,
       # but (2) if `A` does not match `$language` then mention_type for `XLING` is NAM.
       
-      my ($ec_mention_type_language) = $ec_mention_type =~ /_(ENG|CMN|SPA)_/;
-        $mention_type{$assessment->{VALUE_EC}}{$language} = $ec_mention_type
-          if($ec_mention_type_language eq $language);
-        $mention_type{$assessment->{VALUE_EC}}{'XLING'} = $ec_mention_type;
+      my ($ec_mention_type_language) = $ec_mention_type =~ /(ENG|CMN|SPA)_/;
+      $logger->NIST_die("Unexpected value: ==>$ec_mention_type<==\nin line: $assessment->{LINE}\n")
+        unless $ec_mention_type_language;
+      $mention_type{$assessment->{VALUE_EC}}{$language} = $ec_mention_type
+        if($ec_mention_type_language eq $language);
+      $mention_type{$assessment->{VALUE_EC}}{'XLING'} = $ec_mention_type;
     }
   }
   # filter all the assessments into language-specific assessments
@@ -230,8 +232,7 @@ else{
         if $language ne "XLING";
     }
     else {
-      print {$program_output{"XLING"}} &get_corrected_assessment_line($assessment, "XLING", %mention_type), "\n" 
-          if $language ne "XLING";
+      print {$program_output{"XLING"}} &get_corrected_assessment_line($assessment, "XLING", %mention_type), "\n";
   	}
   }
 }
