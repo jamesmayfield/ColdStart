@@ -1105,7 +1105,7 @@ print {$program_output{PARAMS}} "\nSAMPLE => BOOTSTRAP RESAMPLE" if defined $sam
 # Score the runs
 foreach my $runid (@runids) {
   my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
-  $scores_printer->print_lines($program_output{SF});
+  $scores_printer->print_lines();
 
   if($samples_file) {
     my $samples = Bootstrap->new($logger, $samples_file);

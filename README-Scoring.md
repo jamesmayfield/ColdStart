@@ -364,7 +364,7 @@ policy options are a colon-separated list drawn from the following:
 
 ## 4.1 Aggregates
 
-The scorer may produce either SF score variant or all of the follwing depending on the options selected. Aggregates reported for the variants are:
+The scorer may produce either SF score variant or all of the following depending on the options selected. Aggregates reported for the variants are:
 
     |               |   Aggregates Reported         |
 	| Score Variant | Micro-average | Macro-average |
@@ -425,7 +425,7 @@ As mentioned above that the scorer produces a subset of the following files depe
 By default, for each query and hop level, the scorer outputs the following counts:
 
     GT	        Total number of ground truth answers (equivalence classes) as found by the assessors,
-    Submitted   Number of responses in the submission
+    Submitted   Number of responses in the submission,
     Correct     Number of responses in the submission that were assessed as Correct,
     Incorrect   Number of responses in the submission that were assessed as Wrong,
     Inexact     Number of responses in the submission that were assessed as Inexact,
