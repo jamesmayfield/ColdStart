@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.1";
+my $version = "1.2";
 
 # Filehandles for program and error output
 my %program_output;
@@ -79,7 +79,7 @@ sub get_language {
   my @language_identifiers = grep {exists $language_options{$_}{INPROVENANCE}} keys %language_options;
   my $query_language = $assessment->{QUERY}{LANGUAGES}[0];
   my $provenance_triples = "$assessment->{RELATION_PROVENANCE_TRIPLES},$assessment->{VALUE_PROVENANCE_TRIPLES}";
-  my @matching_languages = keys {map {$language_options{$_}{NAME}=>1} grep {$provenance_triples=~/$_/} @language_identifiers};
+  my @matching_languages = keys {map {$language_options{$_}{NAME}=>1} grep {$provenance_triples=~/$_\_/} @language_identifiers};
   my $language = "MULTI-LINGUAL";
   if(scalar @matching_languages == 1 && $matching_languages[0] eq $query_language) {
   	$language = $query_language;
@@ -255,5 +255,6 @@ exit 0;
 # 1.0 - Initial version
 # 1.1 - Applying correction of EC_MENTION_TYPE within monolingual QREL split when the NAMed mention was found 
 #       in another language but not in the language of the split.
+# 1.2 - Removed a bug where filtering based on language identifiers were missing "_".
 
 1;
