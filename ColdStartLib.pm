@@ -1327,6 +1327,9 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE,FAC,LOC    link                     STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
   PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
+# The following are Event predicates added for ColdStart++
+  CONFLICT.ATTACK        type                     TYPE         none       
+  CONFLICT.ATTACK        attacker                 PER,ORG,GPE  none
 END_PREDICATES
 
 #####################################################################################
@@ -1371,7 +1374,7 @@ sub build_hash { map {$_ => 'true'} @_ }
 # Set of legal range types (e.g., {PER, ORG, GPE})
 our %legal_range_types = &build_hash(qw(per gpe org string type));
 # Set of types that are entities
-our %legal_entity_types = &build_hash(qw(per gpe org fac loc));
+our %legal_entity_types = &build_hash(qw(per gpe org fac loc conflict.attack));
 
 # Is one type specification compatible with another?  The second
 # argument must be a hash representing a set of types. The first
