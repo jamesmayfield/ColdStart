@@ -1328,8 +1328,10 @@ my $predicates_spec = <<'END_PREDICATES';
 # nominal mention is added here for those who want to convert Cold Start output to EDL
   PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
 # The following are Event predicates added for ColdStart++
-  CONFLICT.ATTACK        type                     TYPE         none       
-  CONFLICT.ATTACK        attacker                 PER,ORG,GPE  none
+#  CONFLICT.ATTACK        type                     TYPE         none
+  CONFLICT.ATTACK        mention                  STRING       none       
+  CONFLICT.ATTACK        canonical_mention                  STRING       none       
+  CONFLICT.ATTACK        attacker                 PER,ORG,GPE  attacked_by
 END_PREDICATES
 
 #####################################################################################
@@ -1372,7 +1374,7 @@ foreach (grep {!/^\s*#/} split(/\n/, lc $predicate_aliases)) {
 
 sub build_hash { map {$_ => 'true'} @_ }
 # Set of legal range types (e.g., {PER, ORG, GPE})
-our %legal_range_types = &build_hash(qw(per gpe org string type));
+our %legal_range_types = &build_hash(qw(per gpe org string type conflict.attack));
 # Set of types that are entities
 our %legal_entity_types = &build_hash(qw(per gpe org fac loc conflict.attack));
 
@@ -1448,6 +1450,7 @@ sub get_predicate {
   my $source = pop(@_);
   my ($self, $verb, $subject_type, $object_type) = @_;
   return $verb if ref $verb;
+  
   $subject_type = lc $subject_type if defined $subject_type;
   $object_type = lc $object_type if defined $object_type;
   my $domain_string = $subject_type;
