@@ -1329,9 +1329,9 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
 # The following are Event predicates added for ColdStart++
 #  CONFLICT.ATTACK        type                     TYPE         none
-  CONFLICT.ATTACK        mention                  STRING       none       
-  CONFLICT.ATTACK        canonical_mention                  STRING       none       
-  CONFLICT.ATTACK        attacker                 PER,ORG,GPE  attacked_by
+  CONFLICT.ATTACK        mention                  STRING        none       
+  CONFLICT.ATTACK        canonical_mention        STRING        none       
+  CONFLICT.ATTACK        attck_conducted_by       PER,ORG,GPE   attack_conducted
 END_PREDICATES
 
 #####################################################################################
