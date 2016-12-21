@@ -1332,7 +1332,7 @@ my $predicates_spec = <<'END_PREDICATES';
 #  CONFLICT.ATTACK        type                     TYPE         none
   CONFLICT.ATTACK        mention                  STRING        none       
   CONFLICT.ATTACK        canonical_mention        STRING        none       
-  CONFLICT.ATTACK        attack_conducted_by+      PER,ORG,GPE   attack_conducted+
+  CONFLICT.ATTACK        conducted_by+            PER,ORG,GPE   conducted+
 END_PREDICATES
 
 #####################################################################################
@@ -1550,7 +1550,7 @@ sub new {
     $quantity = 'single';
   }
   if ($inverse_name =~ /\*\+?$/) {
-    $name =~ s/\*\+?$//;
+    $inverse_name =~ s/\*\+?$//;
     $inverse_quantity = 'single';
   }
   my $is_event_predicate = 'false';
@@ -1560,7 +1560,7 @@ sub new {
     $is_event_predicate = 'true';
   }
   if ($inverse_name =~ /\+\*?$/) {
-    $name =~ s/\+\*?$//;
+    $inverse_name =~ s/\+\*?$//;
     $is_event_inverse_predicate = 'true';
   }
   # If this predicate has already been defined, make sure that

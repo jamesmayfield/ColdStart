@@ -208,7 +208,7 @@ sub get_entity_type {
 
 # Assert a particular triple into the KB
 sub add_assertion {
-  my ($kb, $subject, $verb, $object, $variable_string, $confidence, $source, $comment, $num_entries) = @_;
+  my ($kb, $subject, $verb, $object, $variable_string, $confidence, $source, $comment) = @_;
   $comment = "" unless defined $comment;
   # First, normalize all of the triple components
   my $subject_entity = $kb->intern($subject, $source);
@@ -228,24 +228,18 @@ sub add_assertion {
   $verb = $predicate->get_name();
   my $is_event_assertion = $predicate->is_event();
   my ($provenance, $document_id, $predicate_justification, $base_filler, $additional_argument_justification, $realis);
-  if($is_event_assertion && $variable_string) {
+  if($is_event_assertion && $variable_string && $verb !~ /mention/) {
     # Handle the case when the assertion is an event assertion
     ($document_id, $predicate_justification, $base_filler, $additional_argument_justification, $realis)
       = split(";", $variable_string);
+    my $provenance_string = "$predicate_justification,$base_filler,$additional_argument_justification";
+    $provenance = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $provenance_string);
   }
   else {
-    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
-      unless ($num_entries == 3) {
-	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, $num_entries, $source);
-	next;
-      }
+    if (lc $predicate->{NAME} eq 'type' || lc $predicate->{NAME} eq 'link') {
       $provenance = Provenance->new($kb->{LOGGER}, $source, 'EMPTY');
     }
     else {
-      unless ($num_entries == 4) {
-	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, $num_entries, $source);
-	next;
-      }
       $provenance = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $variable_string);
     }
   }
@@ -354,6 +348,7 @@ sub add_assertion {
 		   PRINT_STRING => "$verb($subject, $object)",
 		   SUBJECT_ENTITY => $subject_entity,
 		   PREDICATE => $predicate,
+		   PROVENANCE => $provenance,
 		   OBJECT_ENTITY => $object_entity,
 		   CONFIDENCE => $confidence,
 		   SOURCE => $source,
@@ -365,13 +360,11 @@ sub add_assertion {
     # This is an event assertion (more specifically, a non-type and non-link relation)
 	# Add fields specific to this type of tuple
 	$assertion->{DOCUMENT_ID} = $document_id;
+	$assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING} = $variable_string;
 	$assertion->{PREDICATE_JUSTIFICATION} = $predicate_justification;
 	$assertion->{BASE_FILLER} = $base_filler;
 	$assertion->{ADDITION_ARGUMENT_JUSTIFICATION} = $additional_argument_justification;
 	$assertion->{REALIS} = $realis;
-  }
-  else {
-    $assertion->{PROVENANCE} = $provenance;
   }
 
   # For the first year of ColdStart++, we don't have set rules for handling duplicates/multiples of
@@ -529,8 +522,15 @@ sub assert_inverses {
       $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
 			    $assertion->{SUBJECT}, $assertion->{OBJECT}, $assertion->{SOURCE});
       # Assert the inverse if it's not already there
-      my $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
-				       $assertion->{PROVENANCE}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+      my $inverse;
+      if($assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}){
+        $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
+				       $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+      }
+      else{
+        $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
+				       $assertion->{PROVENANCE}->tostring(), $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+      }
       # And flag this as an inferred relation
       $inverse->{INFERRED} = 'true';
       # Make sure the visibility of the assertion and its inverse is in sync
@@ -568,7 +568,7 @@ sub assert_mentions {
 		# Pick the only named mention as the canonical mention. 
 		my ($mention) = values %mentions;
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
-						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
+						   $mention->{PROVENANCE}->tostring(), $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
       elsif ($canonical_mentions_allowed && !keys %canonical_mentions && keys %nominal_mentions) {
@@ -576,7 +576,7 @@ sub assert_mentions {
 		# Pick the only nominal mention as the canonical mention. 
 		my ($mention) = values %nominal_mentions;
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
-						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
+						   $mention->{PROVENANCE}->tostring(), $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
       elsif ($canonical_mentions_allowed && keys %canonical_mentions > 1) {
@@ -590,7 +590,7 @@ sub assert_mentions {
 	  # Canonical mention without a corresponding mention
 	  $kb->{LOGGER}->record_problem('UNASSERTED_MENTION', $canonical_mention->{PRINT_STRING}, $docid, $canonical_mention->{SOURCE});
 	  my $assertion = $kb->add_assertion($canonical_mention->{SUBJECT}, 'mention', $canonical_mention->{OBJECT},
-					     $canonical_mention->{PROVENANCE},
+					     $canonical_mention->{PROVENANCE}->tostring(),
 					     $canonical_mention->{CONFIDENCE},
 					     $canonical_mention->{SOURCE});
 	  $assertion->{INFERRED} = 'true';
@@ -635,8 +635,7 @@ sub check_relation_endpoints {
     next unless ref $assertion->{PREDICATE};
     next if $do_not_check_endpoints{$assertion->{PREDICATE}{NAME}};
     my $provenance = $assertion->{PROVENANCE};
-    my $num_provenance_entries = 0;
-    $num_provenance_entries = $provenance->get_num_entries() if $provenance;
+    my $num_provenance_entries = $provenance->get_num_entries();
     if (defined $assertion->{SUBJECT_ENTITY}) {
       my @subject_mentions;
       for (my $i = 0; $i < $num_provenance_entries; $i++) {
@@ -826,24 +825,24 @@ sub load_tac {
 ### DO INCLUDE
 #	my $is_event_predicate = is_event_predicate($kb, $subject, $predicate, $source);
 #	my $event_assertion_attributes_string = $provenance_string;
-#    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
-#      unless (@entries == 3) {
-#	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
-#	next;
-#      }
+    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
+      unless (@entries == 3) {
+	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
+	next;
+      }
 #      $provenance = Provenance->new($logger, $source, 'EMPTY');
-#    }
-#    else {
-#      unless (@entries == 4) {
-#	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, scalar @entries, $source);
-#	next;
-#      }
+    }
+    else {
+      unless (@entries == 4) {
+	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, scalar @entries, $source);
+	next;
+      }
 #      $provenance = Provenance->new($logger, $source, 'PROVENANCETRIPLELIST', $provenance_string) 
 #      	unless $is_event_predicate;
 #      $provenance = EventAssertionAttributes->new($logger, $source, 'EVENTASSERTIONATTRIBUTES', $event_assertion_attributes_string)
 #      	if $is_event_predicate;
-#    }
-    $kb->add_assertion($subject, $predicate, $object, $variable_string, $confidence, $source, $comment, scalar @entries);
+    }
+    $kb->add_assertion($subject, $predicate, $object, $variable_string, $confidence, $source, $comment);
   }
   close $infile;
   $kb->check_integrity($predicate_constraints);
@@ -913,7 +912,12 @@ sub export_tac {
       $domain_string .= ":";
     }
     print $program_output "$assertion->{SUBJECT}\t$domain_string$assertion->{PREDICATE}{NAME}\t$assertion->{OBJECT}";
-    print $program_output "\t", $assertion->{PROVENANCE}->tooriginalstring();
+    if($assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}) {
+      print $program_output "\t", $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING};
+    }
+    else {
+      print $program_output "\t", $assertion->{PROVENANCE}->tooriginalstring();
+    }
     print $program_output "\t$assertion->{CONFIDENCE}" if $predicate_string ne 'type';
     print $program_output $assertion->{COMMENT};
     print $program_output "\n";
