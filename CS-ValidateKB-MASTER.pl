@@ -208,7 +208,7 @@ sub get_entity_type {
 
 # Assert a particular triple into the KB
 sub add_assertion {
-  my ($kb, $subject, $verb, $object, $provenance, $confidence, $source, $comment) = @_;
+  my ($kb, $subject, $verb, $object, $variable_string, $confidence, $source, $comment, $num_entries) = @_;
   $comment = "" unless defined $comment;
   # First, normalize all of the triple components
   my $subject_entity = $kb->intern($subject, $source);
@@ -226,6 +226,29 @@ sub add_assertion {
     return;
   }
   $verb = $predicate->get_name();
+  my $is_event_assertion = $predicate->is_event();
+  my ($provenance, $document_id, $predicate_justification, $base_filler, $additional_argument_justification, $realis);
+  if($is_event_assertion && $variable_string) {
+    # Handle the case when the assertion is an event assertion
+    ($document_id, $predicate_justification, $base_filler, $additional_argument_justification, $realis)
+      = split(";", $variable_string);
+  }
+  else {
+    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
+      unless ($num_entries == 3) {
+	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, $num_entries, $source);
+	next;
+      }
+      $provenance = Provenance->new($kb->{LOGGER}, $source, 'EMPTY');
+    }
+    else {
+      unless ($num_entries == 4) {
+	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, $num_entries, $source);
+	next;
+      }
+      $provenance = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $variable_string);
+    }
+  }
   # Record entity uses and type definitions. 'type' assertions are special-cased (as they have no object)
   if ($verb eq 'type') {
     $kb->entity_use($subject_entity, 'TYPEDEF', $source);
@@ -323,54 +346,75 @@ sub add_assertion {
   # Create the assertion, but don't record it yet. We do this before
   # handling $is_duplicate_of because we may want to use the new
   # assertion rather than the duplicate
-  my $assertion = {SUBJECT => $subject,
+  my $assertion;
+
+  $assertion = {SUBJECT => $subject,
 		   VERB => $verb,
 		   OBJECT => $object,
 		   PRINT_STRING => "$verb($subject, $object)",
 		   SUBJECT_ENTITY => $subject_entity,
 		   PREDICATE => $predicate,
 		   OBJECT_ENTITY => $object_entity,
-		   PROVENANCE => $provenance,
 		   CONFIDENCE => $confidence,
 		   SOURCE => $source,
-		   COMMENT => $comment};
-  # Only output one of a set of multiples
-  if ($is_multiple_of) {
-    $kb->{LOGGER}->record_problem('MULTIPLE_FILLS_ENTITY', $subject, $verb, $source);
-    if ($confidence < $is_multiple_of->{CONFIDENCE}) {
-      $assertion->{OMIT_FROM_OUTPUT} = 'true';
-    }
-    elsif ($confidence > $is_multiple_of->{CONFIDENCE}) {
-      $is_multiple_of->{OMIT_FROM_OUTPUT} = 'true';
-    }
-    elsif ($assertion->{SOURCE}{LINENUM} < $is_multiple_of->{SOURCE}{LINENUM}) {
-      $is_multiple_of->{OMIT_FROM_OUTPUT} = 'true';
-    }
-    else {
-      $assertion->{OMIT_FROM_OUTPUT} = 'true';
-    }
+		   COMMENT => $comment
+  };
+
+  # Add event specific fields
+  if($is_event_assertion && $variable_string) {
+    # This is an event assertion (more specifically, a non-type and non-link relation)
+	# Add fields specific to this type of tuple
+	$assertion->{DOCUMENT_ID} = $document_id;
+	$assertion->{PREDICATE_JUSTIFICATION} = $predicate_justification;
+	$assertion->{BASE_FILLER} = $base_filler;
+	$assertion->{ADDITION_ARGUMENT_JUSTIFICATION} = $additional_argument_justification;
+	$assertion->{REALIS} = $realis;
   }
-  # Now we can decide how to handle the duplicate
-  if ($is_duplicate_of) {
-    # Make sure this isn't exactly the same assertion
-    if ($provenance->tostring() eq $is_duplicate_of->{PROVENANCE}->tostring()) {
-      $kb->{STATS}{REJECTED_ASSERTIONS}{DUPLICATE}++;
-      return;
-    }
-    $kb->{LOGGER}->record_problem('DUPLICATE_ASSERTION', "$is_duplicate_of->{SOURCE}{FILENAME} line $is_duplicate_of->{SOURCE}{LINENUM}", $source);
-    # Keep the duplicate with higher confidence. If the confidences are the same, keep the earlier one
-    if ($confidence < $is_duplicate_of->{CONFIDENCE}) {
-      $assertion->{OMIT_FROM_OUTPUT} = 'true';
-    }
-    elsif ($confidence > $is_duplicate_of->{CONFIDENCE}) {
-      $is_duplicate_of->{OMIT_FROM_OUTPUT} = 'true';
-    }
-    elsif ($assertion->{SOURCE}{LINENUM} < $is_duplicate_of->{SOURCE}{LINENUM}) {
-      $is_duplicate_of->{OMIT_FROM_OUTPUT} = 'true';
-    }
-    else {
-      $assertion->{OMIT_FROM_OUTPUT} = 'true';
-    }
+  else {
+    $assertion->{PROVENANCE} = $provenance;
+  }
+
+  # For the first year of ColdStart++, we don't have set rules for handling duplicates/multiples of
+  # event tuples
+  unless($is_event_assertion) {
+	  # Only output one of a set of multiples
+	  if ($is_multiple_of) {
+	    $kb->{LOGGER}->record_problem('MULTIPLE_FILLS_ENTITY', $subject, $verb, $source);
+	    if ($confidence < $is_multiple_of->{CONFIDENCE}) {
+	      $assertion->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	    elsif ($confidence > $is_multiple_of->{CONFIDENCE}) {
+	      $is_multiple_of->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	    elsif ($assertion->{SOURCE}{LINENUM} < $is_multiple_of->{SOURCE}{LINENUM}) {
+	      $is_multiple_of->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	    else {
+	      $assertion->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	  }
+	  # Now we can decide how to handle the duplicate
+	  if ($is_duplicate_of) {
+	    # Make sure this isn't exactly the same assertion
+	    if ($provenance->tostring() eq $is_duplicate_of->{PROVENANCE}->tostring()) {
+	      $kb->{STATS}{REJECTED_ASSERTIONS}{DUPLICATE}++;
+	      return;
+	    }
+	    $kb->{LOGGER}->record_problem('DUPLICATE_ASSERTION', "$is_duplicate_of->{SOURCE}{FILENAME} line $is_duplicate_of->{SOURCE}{LINENUM}", $source);
+	    # Keep the duplicate with higher confidence. If the confidences are the same, keep the earlier one
+	    if ($confidence < $is_duplicate_of->{CONFIDENCE}) {
+	      $assertion->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	    elsif ($confidence > $is_duplicate_of->{CONFIDENCE}) {
+	      $is_duplicate_of->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	    elsif ($assertion->{SOURCE}{LINENUM} < $is_duplicate_of->{SOURCE}{LINENUM}) {
+	      $is_duplicate_of->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	    else {
+	      $assertion->{OMIT_FROM_OUTPUT} = 'true';
+	    }
+	  }
   }
   # Record the assertion in various places for easy retrieval
   push(@{$kb->{MENTIONS}{$provenance->get_docid()}}, $assertion)
@@ -591,7 +635,8 @@ sub check_relation_endpoints {
     next unless ref $assertion->{PREDICATE};
     next if $do_not_check_endpoints{$assertion->{PREDICATE}{NAME}};
     my $provenance = $assertion->{PROVENANCE};
-    my $num_provenance_entries = $provenance->get_num_entries();
+    my $num_provenance_entries = 0;
+    $num_provenance_entries = $provenance->get_num_entries() if $provenance;
     if (defined $assertion->{SUBJECT_ENTITY}) {
       my @subject_mentions;
       for (my $i = 0; $i < $num_provenance_entries; $i++) {
@@ -768,7 +813,9 @@ sub load_tac {
      $confidence = sprintf("%.12f", $confidence);
     }
     # Now assign the entries to the appropriate fields
-    my ($subject, $predicate, $object, $provenance_string) = @entries;
+    my ($subject, $predicate, $object, $variable_string) = @entries;
+    # variable_string could be provenance_string for non-event predicates
+    # or event_assertion_attributes_string for event predicates
     if (defined $predicate_constraints && !$predicate_constraints->{lc $predicate}) {
       $kb->{LOGGER}->record_problem('OFF_TASK_SLOT', $predicate, $task, $source);
       next;
@@ -777,21 +824,26 @@ sub load_tac {
 ### DO NOT INCLUDE
 #    if (lc $predicate eq 'type') {
 ### DO INCLUDE
-    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
-      unless (@entries == 3) {
-	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
-	next;
-      }
-      $provenance = Provenance->new($logger, $source, 'EMPTY');
-    }
-    else {
-      unless (@entries == 4) {
-	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, scalar @entries, $source);
-	next;
-      }
-      $provenance = Provenance->new($logger, $source, 'PROVENANCETRIPLELIST', $provenance_string)
-    }
-    $kb->add_assertion($subject, $predicate, $object, $provenance, $confidence, $source, $comment);
+#	my $is_event_predicate = is_event_predicate($kb, $subject, $predicate, $source);
+#	my $event_assertion_attributes_string = $provenance_string;
+#    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
+#      unless (@entries == 3) {
+#	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
+#	next;
+#      }
+#      $provenance = Provenance->new($logger, $source, 'EMPTY');
+#    }
+#    else {
+#      unless (@entries == 4) {
+#	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, scalar @entries, $source);
+#	next;
+#      }
+#      $provenance = Provenance->new($logger, $source, 'PROVENANCETRIPLELIST', $provenance_string) 
+#      	unless $is_event_predicate;
+#      $provenance = EventAssertionAttributes->new($logger, $source, 'EVENTASSERTIONATTRIBUTES', $event_assertion_attributes_string)
+#      	if $is_event_predicate;
+#    }
+    $kb->add_assertion($subject, $predicate, $object, $variable_string, $confidence, $source, $comment, scalar @entries);
   }
   close $infile;
   $kb->check_integrity($predicate_constraints);
@@ -799,6 +851,21 @@ sub load_tac {
 #exit 0;
   $kb;
 }
+
+## Check if the predicate is an "event" predicate
+#
+#sub is_event_predicate {
+#  my ($kb, $subject, $verb, $source) = @_;
+#  my $subject_entity = $kb->intern($subject, $source);
+#  unless (defined $subject_entity) {
+#    $kb->{STATS}{REJECTED_ASSERTIONS}{NO_SUBJECT}++;
+#    return;
+#  }
+#  my $subject_type = $kb->get_entity_type($subject_entity);
+#  $subject_type = undef unless $PredicateSet::legal_entity_types{$subject_type};
+#  my $predicate = $kb->{PREDICATES}->get_predicate($verb, $subject_type, $source);
+#  $predicate->{IS_EVENT};
+#}
 
 # When outputting TAC format, place assertions in a particular order
 sub get_assertion_priority {

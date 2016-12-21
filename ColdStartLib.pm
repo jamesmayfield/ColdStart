@@ -1254,9 +1254,10 @@ sub tostring {
 ##### Predicates
 #####################################################################################
 
-########################################################################################
-# This table lists the legal predicates. An asterisk means the relation is single-valued
-########################################################################################
+#########################################################################################
+# This table lists the legal predicates. An asterisk means the relation is single-valued,
+# a plus means the relation is an event relation
+#########################################################################################
 
 my $predicates_spec = <<'END_PREDICATES';
 # DOMAIN         NAME                             RANGE        INVERSE
@@ -1331,7 +1332,7 @@ my $predicates_spec = <<'END_PREDICATES';
 #  CONFLICT.ATTACK        type                     TYPE         none
   CONFLICT.ATTACK        mention                  STRING        none       
   CONFLICT.ATTACK        canonical_mention        STRING        none       
-  CONFLICT.ATTACK        attck_conducted_by       PER,ORG,GPE   attack_conducted
+  CONFLICT.ATTACK        attack_conducted_by+      PER,ORG,GPE   attack_conducted+
 END_PREDICATES
 
 #####################################################################################
@@ -1360,6 +1361,8 @@ my $predicate_aliases = <<'END_ALIASES';
   MISSPELLED    PER       stateorprovince_of_residence        statesorprovinces_of_residence
   MISSPELLED    PER       titles                              title
 END_ALIASES
+
+
 
 package PredicateSet;
 
@@ -1427,6 +1430,7 @@ sub add_predicates {
   foreach (grep {!/^\s*#/} split(/\n/, lc $spec)) {
     my ($domain, $name, $range, $inverse) = split;
     # The "single-valued" marker (asterisk) is handled by Predicate->new
+    # The "event" marker (plus) is handled by Predicate->new
     my $predicate = Predicate->new($self, $domain, $name, $range, $inverse, $label);
     $self->add_predicate($predicate);
   }
@@ -1541,13 +1545,23 @@ sub new {
   my $quantity = 'list';
   my $inverse_quantity = 'list';
   # Single-valued slots are indicated by a trailing asterisk in the predicate name
-  if ($name =~ /\*$/) {
-    substr($name, -1, 1, '');
+  if ($name =~ /\*\+?$/) {
+    $name =~ s/\*\+?$//;
     $quantity = 'single';
   }
-  if ($inverse_name =~ /\*$/) {
-    substr($inverse_name, -1, 1, '');
+  if ($inverse_name =~ /\*\+?$/) {
+    $name =~ s/\*\+?$//;
     $inverse_quantity = 'single';
+  }
+  my $is_event_predicate = 'false';
+  my $is_event_inverse_predicate = 'false';
+  if ($name =~ /\+\*?$/) {
+    $name =~ s/\+\*?$//;
+    $is_event_predicate = 'true';
+  }
+  if ($inverse_name =~ /\+\*?$/) {
+    $name =~ s/\+\*?$//;
+    $is_event_inverse_predicate = 'true';
   }
   # If this predicate has already been defined, make sure that
   # definition is compatible with the current one, then return it
@@ -1584,7 +1598,8 @@ sub new {
 		      DOMAIN       => $domain,
 		      RANGE        => $range,
 		      INVERSE_NAME => $inverse_name,
-		      QUANTITY     => $quantity},
+		      QUANTITY     => $quantity,
+		      IS_EVENT     => $is_event_predicate},
 		     $class);
   # Save the new predicate in $predicates
   $predicates->add_predicate($predicate);
@@ -1603,6 +1618,7 @@ sub get_range {$_[0]->{RANGE}}
 sub get_inverse {$_[0]->{INVERSE}}
 sub get_inverse_name {$_[0]->{INVERSE_NAME}}
 sub get_quantity {$_[0]->{QUANTITY}}
+sub is_event {$_[0]->{IS_EVENT}}
 
 ### END INCLUDE Predicates
 ### BEGIN INCLUDE Scoring
