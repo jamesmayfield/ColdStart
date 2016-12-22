@@ -1332,7 +1332,8 @@ my $predicates_spec = <<'END_PREDICATES';
 #  CONFLICT.ATTACK        type                     TYPE         none
   CONFLICT.ATTACK        mention                  STRING        none       
   CONFLICT.ATTACK        canonical_mention        STRING        none       
-  CONFLICT.ATTACK        conducted_by+            PER,ORG,GPE   conducted+
+  CONFLICT.ATTACK        attack_conducted_by+     PER,ORG,GPE   conducted_attack+
+  CONFLICT.ATTACK        attack_target+           PER,ORG,GPE   target_of_attack+
 END_PREDICATES
 
 #####################################################################################
