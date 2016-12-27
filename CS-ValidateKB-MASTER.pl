@@ -223,6 +223,7 @@ sub add_assertion {
   my $object_entity;
   my $predicate = $kb->{PREDICATES}->get_predicate($verb, $subject_type, $source);
   unless (ref $predicate) {
+    $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->{STATS}{REJECTED_ASSERTIONS}{NO_PREDICATE}++;
     return;
   }
