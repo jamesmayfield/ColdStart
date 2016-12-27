@@ -46,6 +46,7 @@ my %use_priority = (
 my %type2export = (
   tac => \&export_tac,
   edl => \&export_edl,
+  ea => \&export_ea,
 );
 
 my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
@@ -208,7 +209,7 @@ sub get_entity_type {
 
 # Assert a particular triple into the KB
 sub add_assertion {
-  my ($kb, $subject, $verb, $object, $variable_string, $confidence, $source, $comment) = @_;
+  my ($kb, $subject, $verb, $object, $realis, $variable_string, $confidence, $source, $comment) = @_;
   $comment = "" unless defined $comment;
   # First, normalize all of the triple components
   my $subject_entity = $kb->intern($subject, $source);
@@ -227,13 +228,16 @@ sub add_assertion {
   }
   $verb = $predicate->get_name();
   my $is_event_assertion = $predicate->is_event();
-  my ($provenance, $document_id, $predicate_justification, $base_filler, $additional_argument_justification, $realis);
+  my ($provenance, $document_id, $predicate_justification, $base_filler, $additional_argument_justification);
   if($is_event_assertion && $variable_string && $verb !~ /mention/) {
     # Handle the case when the assertion is an event assertion
-    ($document_id, $predicate_justification, $base_filler, $additional_argument_justification, $realis)
+    ($predicate_justification, $base_filler, $additional_argument_justification)
       = split(";", $variable_string);
-    my $provenance_string = "$predicate_justification,$base_filler,$additional_argument_justification";
+    my $provenance_string = "$predicate_justification";
+    $provenance_string .= ",$base_filler" if($base_filler ne "NIL");
+    $provenance_string .= ",$additional_argument_justification" if($additional_argument_justification ne "NIL");
     $provenance = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $provenance_string);
+    $document_id = $provenance->get_docid(0);
   }
   else {
     if (lc $predicate->{NAME} eq 'type' || lc $predicate->{NAME} eq 'link') {
@@ -345,6 +349,7 @@ sub add_assertion {
   $assertion = {SUBJECT => $subject,
 		   VERB => $verb,
 		   OBJECT => $object,
+		   REALIS => $realis,
 		   PRINT_STRING => "$verb($subject, $object)",
 		   SUBJECT_ENTITY => $subject_entity,
 		   PREDICATE => $predicate,
@@ -525,11 +530,11 @@ sub assert_inverses {
       my $inverse;
       if($assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}){
         $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
-				       $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+				       $assertion->{REALIS}, $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
       }
       else{
         $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
-				       $assertion->{PROVENANCE}->tostring(), $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+				       $assertion->{REALIS}, $assertion->{PROVENANCE}->tostring(), $assertion->{CONFIDENCE}, $assertion->{SOURCE});
       }
       # And flag this as an inferred relation
       $inverse->{INFERRED} = 'true';
@@ -568,7 +573,7 @@ sub assert_mentions {
 		# Pick the only named mention as the canonical mention. 
 		my ($mention) = values %mentions;
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
-						   $mention->{PROVENANCE}->tostring(), $mention->{CONFIDENCE}, $mention->{SOURCE});
+						   $mention->{REALIS}, $mention->{PROVENANCE}->tostring(), $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
       elsif ($canonical_mentions_allowed && !keys %canonical_mentions && keys %nominal_mentions) {
@@ -576,7 +581,7 @@ sub assert_mentions {
 		# Pick the only nominal mention as the canonical mention. 
 		my ($mention) = values %nominal_mentions;
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
-						   $mention->{PROVENANCE}->tostring(), $mention->{CONFIDENCE}, $mention->{SOURCE});
+						   $mention->{REALIS}, $mention->{PROVENANCE}->tostring(), $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
       elsif ($canonical_mentions_allowed && keys %canonical_mentions > 1) {
@@ -589,7 +594,7 @@ sub assert_mentions {
 	unless ($mention || $nominal_mention) {
 	  # Canonical mention without a corresponding mention
 	  $kb->{LOGGER}->record_problem('UNASSERTED_MENTION', $canonical_mention->{PRINT_STRING}, $docid, $canonical_mention->{SOURCE});
-	  my $assertion = $kb->add_assertion($canonical_mention->{SUBJECT}, 'mention', $canonical_mention->{OBJECT},
+	  my $assertion = $kb->add_assertion($canonical_mention->{SUBJECT}, 'mention', $canonical_mention->{OBJECT}, $canonical_mention->{REALIS},
 					     $canonical_mention->{PROVENANCE}->tostring(),
 					     $canonical_mention->{CONFIDENCE},
 					     $canonical_mention->{SOURCE});
@@ -813,6 +818,17 @@ sub load_tac {
     }
     # Now assign the entries to the appropriate fields
     my ($subject, $predicate, $object, $variable_string) = @entries;
+    
+    # Parse/infer the realis
+    my $realis;
+    if($predicate =~ /^(.*?)\.(actual|generic|other)$/i){
+    	$predicate = $1;
+    	$realis = $2;
+    }
+    elsif(lc $predicate ne 'type' || lc $predicate ne 'link'){
+    	$realis = "actual";
+    }
+    
     # variable_string could be provenance_string for non-event predicates
     # or event_assertion_attributes_string for event predicates
     if (defined $predicate_constraints && !$predicate_constraints->{lc $predicate}) {
@@ -842,7 +858,7 @@ sub load_tac {
 #      $provenance = EventAssertionAttributes->new($logger, $source, 'EVENTASSERTIONATTRIBUTES', $event_assertion_attributes_string)
 #      	if $is_event_predicate;
     }
-    $kb->add_assertion($subject, $predicate, $object, $variable_string, $confidence, $source, $comment);
+    $kb->add_assertion($subject, $predicate, $object, $realis, $variable_string, $confidence, $source, $comment);
   }
   close $infile;
   $kb->check_integrity($predicate_constraints);
@@ -886,6 +902,47 @@ sub assertion_comparator {
          $a->{PROVENANCE}->get_docid() cmp $b->{PROVENANCE}->get_docid() ||
 	 $a->{PROVENANCE}->get_start() <=> $b->{PROVENANCE}->get_start();
 }  
+
+# Event Argument format. 
+sub export_ea {
+	my ($kb) = @_;
+	foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
+		next if $assertion->{OMIT_FROM_OUTPUT};
+    # Only output assertions that have fully resolved predicates
+    next unless ref $assertion->{PREDICATE};
+    # FIXME: Checking for $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING} should be good enough
+    if($assertion->{PREDICATE}{IS_EVENT} && $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING} && $assertion->{VERB} !~ /mention/) {
+    	my $subject_string = $assertion->{SUBJECT};
+    	next if $subject_string !~ /^:Event/;
+    	my $predicate_string = $assertion->{PREDICATE}{NAME};
+    	my $object_string = $assertion->{OBJECT};
+    	my $document_id = $assertion->{DOCUMENT_ID};
+    	my $type = $kb->{ASSERTIONS2}{$subject_string}{type}[0]{OBJECT};
+    	my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
+    	$object_string_canonical_mention =~ s/^\"//;
+    	$object_string_canonical_mention =~ s/\"$//;    	
+    	my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}->tostring();
+    	my $event_assertion_attributes_string = $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING};
+    	$event_assertion_attributes_string =~ s/;/\t/g;
+    	$event_assertion_attributes_string =~ s/^.*?\t//;
+    	my $confidence = $assertion->{CONFIDENCE};
+    	
+    	my $output_string = join("\t", (
+    																	$subject_string,
+    																	$document_id, 
+    																	$type, 
+    																	$predicate_string, 
+    																	$object_string_canonical_mention, 
+    																	$object_string_provenance, 
+    																	$event_assertion_attributes_string,
+    																	$confidence));
+    																	
+    	#my $uuid = &main::generate_uuid_from_string($output_string, 12);
+    	
+    	print $program_output "$output_string\n";
+    }		
+	}
+}
 
 # TAC format is just a list of assertions. Output the assertions in
 # the order defined by the above comparator (just to make the output
