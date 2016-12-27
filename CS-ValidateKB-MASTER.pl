@@ -805,8 +805,11 @@ sub load_tac {
     my $confidence = '1.0';
     # Eliminate comments, ensuring that pound signs in the middle of
     # strings are not treated as comment characters
-    s/$main::comment_pattern/$1/;
-    my $comment = $2 || "";
+    my $comment = "";
+    if( /$main::comment_pattern/ ){
+      s/$main::comment_pattern/$1/;
+      $comment = $2;
+    }
     next unless /\S/;
     my @entries = map {&trim($_)} split(/\t/);
     # Get the confidence out of the way if it is provided
