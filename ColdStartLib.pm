@@ -416,7 +416,7 @@ sub tostring {
   # 	     $a->{END} cmp $b->{END}}
   #      @{$self->{TRIPLES}});
 ### SPEEDUP
-  $self->{PROVENANCE_TOSTRING} = join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
+  $self->{PROVENANCE_TOSTRING} = join(",", map {"$self->{DOCID}:$_->{START}-$_->{END}"}
 				      sort {$a->{DOCID} cmp $b->{DOCID} ||
 					      $a->{START} <=> $b->{START} ||
 					      $a->{END} cmp $b->{END}}
@@ -429,7 +429,7 @@ sub tostring {
 # tostring() normalizes provenance entry order; this retains the original order
 sub tooriginalstring {
   my ($self) = @_;
-  join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"} @{$self->{TRIPLES}});
+  join(",", map {"$self->{DOCID}:$_->{START}-$_->{END}"} @{$self->{TRIPLES}});
 }
 
 # Create a new Provenance object
@@ -443,8 +443,8 @@ sub new {
   elsif ($type eq 'DOCID_OFFSET_OFFSET') {
     my ($docid, $start, $end) = @values;
     if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-      push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				 START => $start,
+      $self->{DOCID} = $docid;
+      push(@{$self->{TRIPLES}}, {START => $start,
 				 END => $end,
 				 WHERE => $where});
       $total += $end - $start + 1;
@@ -461,8 +461,10 @@ sub new {
 	$end = 0;
       }
       if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-	push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				   START => $start,
+    $self->{DOCID} = $docid unless $self->{DOCID};
+    $logger->record_problem('MULTIPLE_DOCUMENTS_IN_PROVENANCE', $pair, $where)
+      if($docid ne $self->{DOCID});
+	push(@{$self->{TRIPLES}}, {START => $start,
 				   END => $end,
 				   WHERE => $where});
 	$total += $end - $start + 1;
@@ -491,8 +493,10 @@ sub new {
 	$end = 0;
       }
       if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-	push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				   START => $start,
+    $self->{DOCID} = $docid unless $self->{DOCID};
+    $logger->record_problem('MULTIPLE_DOCUMENTS_IN_PROVENANCE', $triple, $where)
+      if($docid ne $self->{DOCID});
+	push(@{$self->{TRIPLES}}, {START => $start,
 				   END => $end,
 				   WHERE => $where});
 	$total += $end - $start + 1;
@@ -510,7 +514,7 @@ sub get_docid {
   my ($self, $num) = @_;
   $num = 0 unless defined $num;
   return "NO DOCUMENT" unless @{$self->{TRIPLES}};
-  $self->{TRIPLES}[$num]{DOCID};
+  $self->{DOCID};
 }
 
 sub get_start {
