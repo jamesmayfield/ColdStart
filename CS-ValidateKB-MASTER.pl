@@ -368,9 +368,12 @@ sub add_assertion {
 	# Add fields specific to this type of tuple
 	$assertion->{DOCUMENT_ID} = $document_id;
 	$assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING} = $variable_string;
-	$assertion->{PREDICATE_JUSTIFICATION} = $predicate_justification;
-	$assertion->{BASE_FILLER} = $base_filler;
-	$assertion->{ADDITIONAL_ARGUMENT_JUSTIFICATION} = $additional_argument_justification;
+	$assertion->{PREDICATE_JUSTIFICATION} = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $predicate_justification)
+		if $predicate_justification;
+	$assertion->{BASE_FILLER} = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $base_filler)
+		if $base_filler && $base_filler ne "NIL";
+	$assertion->{ADDITIONAL_ARGUMENT_JUSTIFICATION} = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $additional_argument_justification)
+	  if $additional_argument_justification && $additional_argument_justification ne "NIL";
   }
 
   # For the first year of ColdStart++, we don't have set rules for handling duplicates/multiples of
@@ -910,6 +913,17 @@ sub assertion_comparator {
 	 $a->{PROVENANCE}->get_start() <=> $b->{PROVENANCE}->get_start();
 }  
 
+sub is_valid_ea_export_assertion {
+  my ($assertion) = @_;
+  my $retVal = "false";
+  $retVal = "true"
+    if $assertion->{PREDICATE}{IS_EVENT} &&
+       $assertion->{SUBJECT} =~ /^:Event/ &&
+       $assertion->{VERB} !~ /mention|type/ &&
+       $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING};
+	$retVal;
+}
+
 # Event Argument format. 
 sub export_ea {
 	my ($kb) = @_;
@@ -918,32 +932,39 @@ sub export_ea {
     # Only output assertions that have fully resolved predicates
     next unless ref $assertion->{PREDICATE};
     # FIXME: Checking for $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING} should be good enough
-    if($assertion->{PREDICATE}{IS_EVENT} && $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING} && $assertion->{VERB} !~ /mention/) {
+    if(&is_valid_ea_export_assertion($assertion) eq "true") {
     	my $subject_string = $assertion->{SUBJECT};
-    	next if $subject_string !~ /^:Event/;
     	my $predicate_string = $assertion->{PREDICATE}{NAME};
     	my $object_string = $assertion->{OBJECT};
     	my $document_id = $assertion->{DOCUMENT_ID};
     	my $type = $kb->{ASSERTIONS2}{$subject_string}{type}[0]{OBJECT};
-    	my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
+      my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
     	$object_string_canonical_mention =~ s/^\"//;
-    	$object_string_canonical_mention =~ s/\"$//;    	
-    	my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}->tostring();
-    	my $event_assertion_attributes_string = $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING};
-    	$event_assertion_attributes_string =~ s/;/\t/g;
-    	$event_assertion_attributes_string =~ s/^.*?\t//;
-    	my $confidence = $assertion->{CONFIDENCE};
+      $object_string_canonical_mention =~ s/\"$//;
+      my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}->toshortstring();
+      my $confidence = $assertion->{CONFIDENCE};
+      my $predicate_justification = $assertion->{PREDICATE_JUSTIFICATION}->toshortstring();
+      my $base_filler = $assertion->{BASE_FILLER}->toshortstring();
+      my $additional_justification = "NIL";
+      $additional_justification = $assertion->{ADDITIONAL_ARGUMENT_JUSTIFICATION}->toshortstring()
+        if $assertion->{ADDITIONAL_ARGUMENT_JUSTIFICATION} &&
+           $assertion->{ADDITIONAL_ARGUMENT_JUSTIFICATION} ne "NIL";
+      my $realis = ucfirst $assertion->{REALIS};
     	
-    	my $output_string = join("\t", (
-    																	$subject_string,
-    																	$document_id, 
-    																	$type, 
-    																	$predicate_string, 
-    																	$object_string_canonical_mention, 
-    																	$object_string_provenance, 
-    																	$event_assertion_attributes_string,
-    																	$confidence));
-    																	
+      my $output_string =
+        join("\t", (
+          $subject_string,
+          $document_id,
+          $type,
+          $predicate_string,
+          $object_string_canonical_mention,
+          $object_string_provenance,
+          $predicate_justification,
+          $base_filler,
+          $additional_justification,
+          $realis,
+          $confidence));
+
     	#my $uuid = &main::generate_uuid_from_string($output_string, 12);
     	
     	print $program_output "$output_string\n";

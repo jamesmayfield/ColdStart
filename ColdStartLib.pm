@@ -417,13 +417,26 @@ sub tostring {
   #      @{$self->{TRIPLES}});
 ### SPEEDUP
   $self->{PROVENANCE_TOSTRING} = join(",", map {"$self->{DOCID}:$_->{START}-$_->{END}"}
-				      sort {$a->{DOCID} cmp $b->{DOCID} ||
-					      $a->{START} <=> $b->{START} ||
+				      sort {$a->{START} <=> $b->{START} ||
 					      $a->{END} cmp $b->{END}}
 				      @{$self->{TRIPLES}})
     unless $self->{PROVENANCE_TOSTRING};
 ### SPEEDUP
   $self->{PROVENANCE_TOSTRING};
+}
+
+# This is used to, among other things, get a short version
+# for Event Argument output
+sub toshortstring {
+  my ($self) = @_;
+
+  $self->{PROVENANCE_TOSTRING_SHORT} = join(",", map {"$_->{START}-$_->{END}"}
+				      sort {$a->{START} <=> $b->{START} ||
+					      $a->{END} cmp $b->{END}}
+				      @{$self->{TRIPLES}})
+    unless $self->{PROVENANCE_TOSTRING_SHORT};
+
+  $self->{PROVENANCE_TOSTRING_SHORT};
 }
 
 # tostring() normalizes provenance entry order; this retains the original order
@@ -445,8 +458,7 @@ sub new {
     if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
       $self->{DOCID} = $docid;
       push(@{$self->{TRIPLES}}, {START => $start,
-				 END => $end,
-				 WHERE => $where});
+				 END => $end});
       $total += $end - $start + 1;
     }
   }
@@ -465,8 +477,7 @@ sub new {
     $logger->record_problem('MULTIPLE_DOCUMENTS_IN_PROVENANCE', $pair, $where)
       if($docid ne $self->{DOCID});
 	push(@{$self->{TRIPLES}}, {START => $start,
-				   END => $end,
-				   WHERE => $where});
+				   END => $end});
 	$total += $end - $start + 1;
       }
       else {
@@ -497,8 +508,7 @@ sub new {
     $logger->record_problem('MULTIPLE_DOCUMENTS_IN_PROVENANCE', $triple, $where)
       if($docid ne $self->{DOCID});
 	push(@{$self->{TRIPLES}}, {START => $start,
-				   END => $end,
-				   WHERE => $where});
+				   END => $end});
 	$total += $end - $start + 1;
       }
     }
