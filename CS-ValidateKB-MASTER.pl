@@ -230,7 +230,7 @@ sub add_assertion {
   $verb = $predicate->get_name();
   my $is_event_assertion = $predicate->is_event();
   my ($provenance, $document_id, $predicate_justification, $base_filler, $additional_argument_justification);
-  if($is_event_assertion && $variable_string && $verb !~ /mention/) {
+  if($is_event_assertion eq "true" && $variable_string && $verb !~ /mention/) {
     # Handle the case when the assertion is an event assertion
     ($predicate_justification, $base_filler, $additional_argument_justification)
       = split(";", $variable_string);
@@ -363,10 +363,16 @@ sub add_assertion {
   };
 
   # Add event specific fields
-  if($is_event_assertion && $variable_string) {
+  if($is_event_assertion eq "true" && $variable_string) {
     # This is an event assertion (more specifically, a non-type and non-link relation)
 	# Add fields specific to this type of tuple
 	$assertion->{DOCUMENT_ID} = $document_id;
+	# Ensure that Base Filler and Additional Justification are both NIL if the assertion subject is non-event entity
+	if($subject =~ /:Entity/) {
+    $variable_string =~ s/(;.*?;.*?)$/;NIL;NIL/;
+    $base_filler = "NIL";
+    $additional_argument_justification = "NIL";
+	}
 	$assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING} = $variable_string;
 	$assertion->{PREDICATE_JUSTIFICATION} = Provenance->new($kb->{LOGGER}, $source, 'PROVENANCETRIPLELIST', $predicate_justification)
 		if $predicate_justification;
@@ -524,28 +530,33 @@ sub check_definitions {
 # Make sure that every assertion also has an asserted inverse
 sub assert_inverses {
   my ($kb) = @_;
+  my @singular_assertions;
   foreach my $assertion ($kb->get_assertions()) {
     next unless ref $assertion->{PREDICATE};
     next unless &PredicateSet::is_compatible($assertion->{PREDICATE}{RANGE}, \%PredicateSet::legal_entity_types);
     unless ($kb->get_assertions($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT})) {
-      $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
-			    $assertion->{SUBJECT}, $assertion->{OBJECT}, $assertion->{SOURCE});
-      # Assert the inverse if it's not already there
-      my $inverse;
-      if($assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}){
-        $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
-				       $assertion->{REALIS}, $assertion->{IS_REALIS_INFERRED}, $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
-      }
-      else{
-        $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
-				       $assertion->{REALIS}, $assertion->{IS_REALIS_INFERRED}, $assertion->{PROVENANCE}->tostring(), $assertion->{CONFIDENCE}, $assertion->{SOURCE});
-      }
-      # And flag this as an inferred relation
-      $inverse->{INFERRED} = 'true';
-      # Make sure the visibility of the assertion and its inverse is in sync
-      $assertion->{OMIT_FROM_OUTPUT} = 'true' if $inverse->{OMIT_FROM_OUTPUT};
-      $inverse->{OMIT_FROM_OUTPUT} = 'true' if $assertion->{OMIT_FROM_OUTPUT};
+    	push(@singular_assertions, $assertion);
     }
+  }
+ 
+	foreach my $assertion (@singular_assertions) {
+    $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
+	    $assertion->{SUBJECT}, $assertion->{OBJECT}, $assertion->{SOURCE});
+    # Assert the inverse if it's not already there
+    my $inverse;
+    if($assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}){
+      $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
+		       $assertion->{REALIS}, $assertion->{IS_REALIS_INFERRED}, $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+    }
+    else{
+      $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
+			       $assertion->{REALIS}, $assertion->{IS_REALIS_INFERRED}, $assertion->{PROVENANCE}->tostring(), $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+    }
+    # And flag this as an inferred relation
+    $inverse->{INFERRED} = 'true';
+    # Make sure the visibility of the assertion and its inverse is in sync
+    $assertion->{OMIT_FROM_OUTPUT} = 'true' if $inverse->{OMIT_FROM_OUTPUT};
+    $inverse->{OMIT_FROM_OUTPUT} = 'true' if $assertion->{OMIT_FROM_OUTPUT};
   }
 }
 
