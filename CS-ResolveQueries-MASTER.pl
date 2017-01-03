@@ -577,6 +577,13 @@ sub parse_assertion {
   push(@entries, "1.0") unless $entries[-1] =~ /^\d+\.\d+$/;
   # Get the list of expected columns in the assertion statement
   my $predicate = lc $entries[1];
+  my $realis = "actual";
+  my $is_realis_infered = "true";
+  if($predicate =~ /^(.*?)\.(actual|generic|other)/i) {
+    $predicate = $1;
+    $realis = $2;
+    $is_realis_infered = "false";
+  }
   my $labels = $predicate2labels{$predicate} || $predicate2labels{default};
   # Make sure the number of values provided matches the number
   # expected.  This should always be true if the Validator has been
@@ -587,9 +594,14 @@ sub parse_assertion {
   }
   # Create the hash
   my $result = {map {$labels->[$_] => $entries[$_]} 0..$#{$labels}};
+  $result->{predicate} = $predicate;
+  $result->{realis} = $realis;
   # Pull out the start and end offsets
   if (defined $result->{offsets}) {
     my $offsets = $result->{offsets};
+    # Handling ColdStart++ update
+    $offsets =~ s/;NIL//g;
+    $offsets =~ s/;/,/g;
     my @offsets = split(/,/, $offsets);
     foreach (0..$#offsets) {
       my ($docid, $start, $end) = $offsets[$_] =~ /^(.*):(\d+)-(\d+)$/ or die "illegal offset specification: $offsets[$_]";
