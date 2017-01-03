@@ -771,7 +771,7 @@ sub add_entrypoint {
 					      $entrypoint{END});
   }
   my $provenance = $entrypoint{PROVENANCE};
-  $entrypoint{DOCID} = $provenance->{TRIPLES}[0]{DOCID} unless defined $entrypoint{DOCID};
+  $entrypoint{DOCID} = $provenance->{DOCID} unless defined $entrypoint{DOCID};
   $entrypoint{START} = $provenance->{TRIPLES}[0]{START} unless defined $entrypoint{START};
   $entrypoint{END} = $provenance->{TRIPLES}[0]{END} unless defined $entrypoint{END};
   $entrypoint{LANGUAGE} = $self->infer_language_from_documentid($entrypoint{DOCID}, $entrypoint{WHERE} || 'NO_SOURCE');
