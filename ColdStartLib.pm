@@ -329,6 +329,51 @@ our $comment_pattern = qr/
       (\s*\#.*)$/x;		      # Pound sign through the end of the line is not included in the replacement
 
 ### END INCLUDE Patterns
+### BEGIN INCLUDE ProvenanceList
+
+#####################################################################################
+# ProvenanceList
+#####################################################################################
+
+package ProvenanceList;
+
+# Create a new ProvenanceList object
+sub new {
+  my ($class, $logger, $where, $text) = @_;
+	my @elements = split(";", $text);
+	my ($predicate_justification, $base_filler, $additional_justification) =
+	   map {Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',$_)} @elements;
+  my $self = {LOGGER => $logger,
+    WHERE => $where,
+    PREDICATE_JUSTIFICATION => $predicate_justification,
+    BASE_FILLER => $base_filler,
+    ADDITIONAL_JUSTIFICATION => $additional_justification};
+  bless($self, $class);
+  $self;
+}
+
+# This is used to get a consistent string representing the provenancelist
+sub tostring {
+	my ($self) = @_;
+	my $predicate_justification = $self->{PREDICATE_JUSTIFICATION}->tostring();
+	my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tostring() : "NIL";
+	my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tostring() : "NIL";
+	$self->{PROVENANCE_TOSTRING} = "$predicate_justification;$base_filler;$additional_justification"
+    unless $self->{PROVENANCE_TOSTRING};
+  $self->{PROVENANCE_TOSTRING};
+}
+
+# tostring() normalizes provenance entry order; this retains the original order
+sub tooriginalstring {
+  my ($self) = @_;
+  my $predicate_justification = $self->{PREDICATE_JUSTIFICATION}->tooriginalstring();
+	my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tooriginalstring() : "NIL";
+	my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tooriginalstring() : "NIL";
+	"$predicate_justification;$base_filler;$additional_justification";
+}
+
+
+## END INCLUDE ProvenanceList
 ### BEGIN INCLUDE Provenance
 
 #####################################################################################
