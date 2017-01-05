@@ -121,7 +121,7 @@ sub intern {
     $kb->{LOGGER}->record_problem('STRING_USED_FOR_ENTITY', $name, $source);
     return;
   }
-  unless ($name =~ /^:?(Entity|Event|m)\w+$/i) {
+  unless ($name =~ /^:?(Entity|Event|m).+$/i) {
     $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_NAME', $name, $source);
     return;
   }
@@ -228,7 +228,6 @@ sub add_assertion {
     return;
   }
   $verb = $predicate->get_name();
-  my $is_event_assertion = $predicate->is_event();
   my ($provenance, $document_id, $predicate_justification, $base_filler, $additional_argument_justification);
   if($is_event_assertion eq "true" && $variable_string && $verb !~ /mention/) {
     # Handle the case when the assertion is an event assertion
@@ -928,8 +927,7 @@ sub is_valid_ea_export_assertion {
   my ($assertion) = @_;
   my $retVal = "false";
   $retVal = "true"
-    if $assertion->{PREDICATE}{IS_EVENT} &&
-       $assertion->{SUBJECT} =~ /^:Event/ &&
+    if $assertion->{SUBJECT} =~ /^:Event/ &&
        $assertion->{VERB} !~ /mention|type/ &&
        $assertion->{EVENT_ASSERTION_ATTRIBUTES_STRING};
 	$retVal;

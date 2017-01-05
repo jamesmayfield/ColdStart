@@ -596,6 +596,12 @@ sub parse_assertion {
   my $result = {map {$labels->[$_] => $entries[$_]} 0..$#{$labels}};
   $result->{predicate} = $predicate;
   $result->{realis} = $realis;
+  if($result->{offsets}) {
+  	# Remove the NILs from the provenance, if any
+  	# this is needed to take care the change format for the ColdStart++ 
+    $result->{offsets} =~ s/;NIL//g;
+    $result->{offsets} =~ s/;/,/g;
+  }
   # Pull out the start and end offsets
   if (defined $result->{offsets}) {
     my $offsets = $result->{offsets};

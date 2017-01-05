@@ -1269,8 +1269,7 @@ sub tostring {
 #####################################################################################
 
 #########################################################################################
-# This table lists the legal predicates. An asterisk means the relation is single-valued,
-# a plus means the relation is an event relation
+# This table lists the legal predicates. An asterisk means the relation is single-valued
 #########################################################################################
 
 my $predicates_spec = <<'END_PREDICATES';
@@ -1342,12 +1341,156 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE,FAC,LOC    link                     STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
   PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
+
+# The following are Sentiment predicates added for ColdStart++
+  PER            likes                            ORG,GPE      is_liked_by
+  PER            dislikes                         ORG,GPE      is_disliked_by
+
 # The following are Event predicates added for ColdStart++
-#  CONFLICT.ATTACK        type                     TYPE         none
-  CONFLICT.ATTACK        mention                  STRING        none       
-  CONFLICT.ATTACK        canonical_mention        STRING        none       
-  CONFLICT.ATTACK        attacker+                PER,ORG,GPE   conflict.attack_attacker+
-  CONFLICT.ATTACK        target+                  PER,ORG,GPE   conflict.attack_target+
+
+  CONFLICT.ATTACK                mention           STRING                      none
+  CONFLICT.ATTACK                canonical_mention STRING                      none
+  CONFLICT.ATTACK                attacker          PER,ORG,GPE                 conflict.attack_attacker
+  CONFLICT.ATTACK                instrument        STRING                      none
+  CONFLICT.ATTACK                target            PER,GPE,ORG                 conflict.attack_target
+  CONFLICT.ATTACK                target            STRING                      none
+  CONFLICT.ATTACK                date              STRING                      none
+  CONFLICT.ATTACK                location          STRING                      none
+
+  CONFLICT.DEMONSTRATE           mention           STRING                      none
+  CONFLICT.DEMONSTRATE           canonical_mention STRING                      none
+  CONFLICT.DEMONSTRATE           entity            PER,ORG                     conflict.demonstrate_entity
+  CONFLICT.DEMONSTRATE           date              STRING                      none
+  CONFLICT.DEMONSTRATE           location          STRING                      none
+
+  CONTACT.BROADCAST              mention           STRING                      none
+  CONTACT.BROADCAST              canonical_mention STRING                      none
+  CONTACT.BROADCAST              audience          PER,ORG,GPE                 contact.broadcast_audience
+  CONTACT.BROADCAST              entity            PER,ORG,GPE                 contact.broadcast_entity
+  CONTACT.BROADCAST              date              STRING                      none
+  CONTACT.BROADCAST              location          STRING                      none
+
+  CONTACT.CONTACT                mention           STRING                      none
+  CONTACT.CONTACT                canonical_mention STRING                      none
+  CONTACT.CONTACT                entity            PER,ORG,GPE                 contact.contact_entity
+  CONTACT.CONTACT                date              STRING                      none
+  CONTACT.CONTACT                location          STRING                      none
+
+  CONTACT.CORRESPONDENCE         mention           STRING                      none
+  CONTACT.CORRESPONDENCE         canonical_mention STRING                      none
+  CONTACT.CORRESPONDENCE         entity            PER,ORG,GPE                 contact.correspondence_entity
+  CONTACT.CORRESPONDENCE         date              STRING                      none
+  CONTACT.CORRESPONDENCE         location          STRING                      none
+
+  CONTACT.MEET                   mention           STRING                      none
+  CONTACT.MEET                   canonical_mention STRING                      none
+  CONTACT.MEET                   entity            PER,ORG,GPE                 contact.meet_entity
+  CONTACT.MEET                   date              STRING                      none
+  CONTACT.MEET                   location          STRING                      none
+
+  JUSTICE.ARREST-JAIL            mention           STRING                      none
+  JUSTICE.ARREST-JAIL            canonical_mention STRING                      none
+  JUSTICE.ARREST-JAIL            agent             PER,ORG,GPE                 justice.arrest-jail_agent
+  JUSTICE.ARREST-JAIL            crime             STRING                      justice.arrest-jail_crime
+  JUSTICE.ARREST-JAIL            person            PER                         justice.arrest-jail_person
+  JUSTICE.ARREST-JAIL            date              STRING                      none
+  JUSTICE.ARREST-JAIL            location          STRING                      none
+
+  LIFE.DIE                       mention           STRING                      none
+  LIFE.DIE                       canonical_mention STRING                      none
+  LIFE.DIE                       agent             PER,ORG,GPE                 life.die_agent
+  LIFE.DIE                       instrument        STRING                      life.die_instrument
+  LIFE.DIE                       victim            PER                         life.die_victim
+  LIFE.DIE                       date              STRING                      none
+  LIFE.DIE                       location          STRING                      none
+
+  LIFE.INJURE                    mention           STRING                      none
+  LIFE.INJURE                    canonical_mention STRING                      none
+  LIFE.INJURE                    agent             PER,ORG,GPE                 life.injure_agent
+  LIFE.INJURE                    instrument        STRING                      life.injure_instrument
+  LIFE.INJURE                    victim            PER                         life.injure_victim
+  LIFE.INJURE                    date              STRING                      none
+  LIFE.INJURE                    location          STRING                      none
+
+  MANUFACTURE.ARTIFACT           mention           STRING                      none
+  MANUFACTURE.ARTIFACT           canonical_mention STRING                      none
+  MANUFACTURE.ARTIFACT           agent             PER,ORG,GPE                 manufacture.artifact_agent
+  MANUFACTURE.ARTIFACT           artifact          STRING                      manufacture.artifact_artifact
+  MANUFACTURE.ARTIFACT           instrument        STRING                      manufacture.artifact_instrument
+  MANUFACTURE.ARTIFACT           date              STRING                      none
+  MANUFACTURE.ARTIFACT           location          STRING                      none
+
+  MOVEMENT.TRANSPORT-ARTIFACT    mention           STRING                      none
+  MOVEMENT.TRANSPORT-ARTIFACT    canonical_mention STRING                      none
+  MOVEMENT.TRANSPORT-ARTIFACT    agent             PER,ORG,GPE                 movement.transport-artifact_agent
+  MOVEMENT.TRANSPORT-ARTIFACT    artifact          STRING                      movement.transport-artifact_artifact
+  MOVEMENT.TRANSPORT-ARTIFACT    destination       GPE,STRING                  movement.transport-artifact_destination
+  MOVEMENT.TRANSPORT-ARTIFACT    instrument        STRING                      movement.transport-artifact_instrument
+  MOVEMENT.TRANSPORT-ARTIFACT    origin            GPE,STRING                  movement.transport-artifact_origin
+  MOVEMENT.TRANSPORT-ARTIFACT    date              STRING                      none
+  MOVEMENT.TRANSPORT-ARTIFACT    location          STRING                      none
+
+  MOVEMENT.TRANSPORT-PERSON      mention           STRING                      none
+  MOVEMENT.TRANSPORT-PERSON      canonical_mention STRING                      none
+  MOVEMENT.TRANSPORT-PERSON      agent             PER,ORG,GPE                 movement.transport-person_agent
+  MOVEMENT.TRANSPORT-PERSON      destination       GPE,STRING                  movement.transport-person_destination
+  MOVEMENT.TRANSPORT-PERSON      instrument        STRING                      movement.transport-person_instrument
+  MOVEMENT.TRANSPORT-PERSON      origin            GPE,STRING                  movement.transport-person_origin
+  MOVEMENT.TRANSPORT-PERSON      person            PER                         movement.transport-person_person
+  MOVEMENT.TRANSPORT-PERSON      date              STRING                      none
+  MOVEMENT.TRANSPORT-PERSON      location          STRING                      none
+
+  PERSONNEL.ELECT                mention           STRING                      none
+  PERSONNEL.ELECT                canonical_mention STRING                      none
+  PERSONNEL.ELECT                agent             PER,ORG,GPE                 personnel.elect_agent
+  PERSONNEL.ELECT                person            PER                         personnel.elect_person
+  PERSONNEL.ELECT                position          STRING                      personnel.elect_position
+  PERSONNEL.ELECT                date              STRING                      none
+  PERSONNEL.ELECT                location          STRING                      none
+
+  PERSONNEL.END-POSITION         mention           STRING                      none
+  PERSONNEL.END-POSITION         canonical_mention STRING                      none
+  PERSONNEL.END-POSITION         entity            ORG,GPE                     personnel.end-position_entity
+  PERSONNEL.END-POSITION         person            PER                         personnel.end-position_person
+  PERSONNEL.END-POSITION         position          STRING                      personnel.end-position_position
+  PERSONNEL.END-POSITION         date              STRING                      none
+  PERSONNEL.END-POSITION         location          STRING                      none
+
+  PERSONNEL.START-POSITION       mention           STRING                      none
+  PERSONNEL.START-POSITION       canonical_mention STRING                      none
+  PERSONNEL.START-POSITION       entity            ORG,GPE                     personnel.start-position_entity
+  PERSONNEL.START-POSITION       person            PER                         personnel.start-position_person
+  PERSONNEL.START-POSITION       position          STRING                      personnel.start-position_position
+  PERSONNEL.START-POSITION       date              STRING                      none
+  PERSONNEL.START-POSITION       location          STRING                      none
+
+  TRANSACTION.TRANSACTION        mention           STRING                      none
+  TRANSACTION.TRANSACTION        canonical_mention STRING                      none
+  TRANSACTION.TRANSACTION        beneficiary       PER,ORG,GPE                 transaction.transaction_beneficiary
+  TRANSACTION.TRANSACTION        giver             PER,ORG,GPE                 transaction.transaction_giver
+  TRANSACTION.TRANSACTION        recipient         PER,ORG,GPE                 transaction.transaction_recipient
+  TRANSACTION.TRANSACTION        date              STRING                      none
+  TRANSACTION.TRANSACTION        location          STRING                      none
+
+  TRANSACTION.TRANSFER-MONEY     mention           STRING                      none
+  TRANSACTION.TRANSFER-MONEY     canonical_mention STRING                      none
+  TRANSACTION.TRANSFER-MONEY     beneficiary       PER,ORG,GPE                 transaction.transfer-money_beneficiary
+  TRANSACTION.TRANSFER-MONEY     giver             PER,ORG,GPE                 transaction.transfer-money_giver
+  TRANSACTION.TRANSFER-MONEY     money             STRING                      transaction.transfer-money_money
+  TRANSACTION.TRANSFER-MONEY     recipient         PER,ORG,GPE                 transaction.transfer-money_recipient
+  TRANSACTION.TRANSFER-MONEY     date              STRING                      none
+  TRANSACTION.TRANSFER-MONEY     location          STRING                      none
+
+  TRANSACTION.TRANSFER-OWNERSHIP mention           STRING                      none
+  TRANSACTION.TRANSFER-OWNERSHIP canonical_mention STRING                      none
+  TRANSACTION.TRANSFER-OWNERSHIP beneficiary       PER,ORG,GPE                 transaction.transfer-ownership_beneficiary
+  TRANSACTION.TRANSFER-OWNERSHIP giver             PER,ORG,GPE                 transaction.transfer-ownership_giver
+  TRANSACTION.TRANSFER-OWNERSHIP recipient         PER,ORG,GPE                 transaction.transfer-ownership_recipient
+  TRANSACTION.TRANSFER-OWNERSHIP thing             STRING                      transaction.transfer-ownership_thing
+  TRANSACTION.TRANSFER-OWNERSHIP date              STRING                      none
+  TRANSACTION.TRANSFER-OWNERSHIP location          STRING                      none
+
+  
 END_PREDICATES
 
 #####################################################################################
@@ -1392,9 +1535,17 @@ foreach (grep {!/^\s*#/} split(/\n/, lc $predicate_aliases)) {
 
 sub build_hash { map {$_ => 'true'} @_ }
 # Set of legal range types (e.g., {PER, ORG, GPE})
-our %legal_range_types = &build_hash(qw(per gpe org string type conflict.attack));
+our %legal_range_types = &build_hash(qw(per gpe org string type conflict.attack 
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet 
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact 
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position 
+  transaction.transaction transaction.transfer-money transaction.transfer-ownership));
 # Set of types that are entities
-our %legal_entity_types = &build_hash(qw(per gpe org fac loc conflict.attack));
+our %legal_entity_types = &build_hash(qw(per gpe org fac loc conflict.attack 
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet 
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact 
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position 
+  transaction.transaction transaction.transfer-money transaction.transfer-ownership));
 
 # Is one type specification compatible with another?  The second
 # argument must be a hash representing a set of types. The first
@@ -1442,10 +1593,9 @@ sub new {
 sub add_predicates {
   my ($self, $label, $spec) = @_;
   chomp $spec;
-  foreach (grep {!/^\s*#/} split(/\n/, lc $spec)) {
+  foreach (grep {!/^\s*#/ && !/^\s*$/} split(/\n/, lc $spec)) {
     my ($domain, $name, $range, $inverse) = split;
     # The "single-valued" marker (asterisk) is handled by Predicate->new
-    # The "event" marker (plus) is handled by Predicate->new
     my $predicate = Predicate->new($self, $domain, $name, $range, $inverse, $label);
     $self->add_predicate($predicate);
   }
@@ -1560,23 +1710,13 @@ sub new {
   my $quantity = 'list';
   my $inverse_quantity = 'list';
   # Single-valued slots are indicated by a trailing asterisk in the predicate name
-  if ($name =~ /\*\+?$/) {
-    $name =~ s/\*\+?$//;
+  if ($name =~ /\*$/) {
+    substr($name, -1, 1, '');
     $quantity = 'single';
   }
-  if ($inverse_name =~ /\*\+?$/) {
-    $inverse_name =~ s/\*\+?$//;
+  if ($inverse_name =~ /\*$/) {
+    substr($inverse_name, -1, 1, '');
     $inverse_quantity = 'single';
-  }
-  my $is_event_predicate = 'false';
-  my $is_event_inverse_predicate = 'false';
-  if ($name =~ /\+\*?$/) {
-    $name =~ s/\+\*?$//;
-    $is_event_predicate = 'true';
-  }
-  if ($inverse_name =~ /\+\*?$/) {
-    $inverse_name =~ s/\+\*?$//;
-    $is_event_inverse_predicate = 'true';
   }
   # If this predicate has already been defined, make sure that
   # definition is compatible with the current one, then return it
@@ -1613,8 +1753,7 @@ sub new {
 		      DOMAIN       => $domain,
 		      RANGE        => $range,
 		      INVERSE_NAME => $inverse_name,
-		      QUANTITY     => $quantity,
-		      IS_EVENT     => $is_event_predicate},
+		      QUANTITY     => $quantity},
 		     $class);
   # Save the new predicate in $predicates
   $predicates->add_predicate($predicate);
@@ -1633,7 +1772,6 @@ sub get_range {$_[0]->{RANGE}}
 sub get_inverse {$_[0]->{INVERSE}}
 sub get_inverse_name {$_[0]->{INVERSE_NAME}}
 sub get_quantity {$_[0]->{QUANTITY}}
-sub is_event {$_[0]->{IS_EVENT}}
 
 ### END INCLUDE Predicates
 ### BEGIN INCLUDE Scoring
