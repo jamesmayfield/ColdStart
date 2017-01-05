@@ -120,7 +120,7 @@ sub intern {
     $kb->{LOGGER}->record_problem('STRING_USED_FOR_ENTITY', $name, $source);
     return;
   }
-  unless ($name =~ /^:?\w+$/) {
+  unless ($name =~ /^:?(Entity|Event|m).+$/i) {
     $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_NAME', $name, $source);
     return;
   }
