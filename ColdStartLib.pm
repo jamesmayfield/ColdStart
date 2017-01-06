@@ -345,8 +345,8 @@ sub new {
   my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
   my ($predicate_justification,$base_filler,$additional_justification) =
     map {
-      Provenance->new($logger, $where, $types[$_], $elements[$_])
-        if $elements[$_] ne 'NIL'
+      $elements[$_] eq 'NIL' ?
+        undef : Provenance->new($logger, $where, $types[$_], $elements[$_])
     } (0..$#elements);
   my @docids = map {$_->get_docid() if $_}
     grep {defined $_}
