@@ -219,6 +219,10 @@ sub add_assertion {
   $subject = $subject_entity->{NAME};
   my $subject_type = $kb->get_entity_type($subject_entity);
   $subject_type = undef unless $PredicateSet::legal_entity_types{$subject_type};
+  my $realis;
+  if($verb =~ /^(.*?)\.(actual|generic|other)$/i) {
+    ($verb, $realis) = ($1, $2);
+  }
   my $object_entity;
   my $predicate = $kb->{PREDICATES}->get_predicate($verb, $subject_type, $source);
   unless (ref $predicate) {
@@ -330,6 +334,7 @@ sub add_assertion {
 		   PRINT_STRING => "$verb($subject, $object)",
 		   SUBJECT_ENTITY => $subject_entity,
 		   PREDICATE => $predicate,
+		   REALIS => $realis,
 		   OBJECT_ENTITY => $object_entity,
 		   PROVENANCE => $provenance,
 		   CONFIDENCE => $confidence,
@@ -486,7 +491,9 @@ sub assert_inverses {
       $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
 			    $assertion->{SUBJECT}, $assertion->{OBJECT}, $assertion->{SOURCE});
       # Assert the inverse if it's not already there
-      my $inverse = $kb->add_assertion($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT},
+      my $inverse_name = $assertion->{PREDICATE}{INVERSE_NAME};
+      $inverse_name .= ".".$assertion->{REALIS} if $assertion->{REALIS};
+      my $inverse = $kb->add_assertion($assertion->{OBJECT}, $inverse_name, $assertion->{SUBJECT},
 				       $assertion->{PROVENANCE}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
       # And flag this as an inferred relation
       $inverse->{INFERRED} = 'true';
@@ -841,7 +848,9 @@ sub export_tac {
       next if $domain_string eq 'multiple';
       $domain_string .= ":";
     }
-    print $program_output "$assertion->{SUBJECT}\t$domain_string$assertion->{PREDICATE}{NAME}\t$assertion->{OBJECT}";
+    my $predicate_name = $assertion->{PREDICATE}{NAME};
+    $predicate_name .= ".".$assertion->{REALIS} if $assertion->{REALIS};
+    print $program_output "$assertion->{SUBJECT}\t$domain_string$predicate_name\t$assertion->{OBJECT}";
     print $program_output "\t", $assertion->{PROVENANCE}->tooriginalstring();
     print $program_output "\t$assertion->{CONFIDENCE}" if $predicate_string ne 'type';
     print $program_output $assertion->{COMMENT};
