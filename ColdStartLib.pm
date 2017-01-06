@@ -340,9 +340,13 @@ package ProvenanceList;
 # Create a new ProvenanceList object
 sub new {
   my ($class, $logger, $where, $text) = @_;
-	my @elements = split(";", $text);
-	my ($predicate_justification, $base_filler, $additional_justification) =
-	   map {Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',$_)} @elements;
+  my @elements = split(";", $text);
+  my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
+  my ($predicate_justification,$base_filler,$additional_justification) =
+    map {
+      Provenance->new($logger, $where, $types[$_], $elements[$_])
+        if $elements[$_] ne 'NIL'
+    } (0..$#elements);
   my $self = {LOGGER => $logger,
     WHERE => $where,
     PREDICATE_JUSTIFICATION => $predicate_justification,
@@ -482,6 +486,11 @@ sub new {
   my ($class, $logger, $where, $type, @values) = @_;
   my $self = {LOGGER => $logger, TRIPLES => [], WHERE => $where};
   my $total = 0;
+  # This is where we control custom max_triples
+  if($type =~ /PROVENANCETRIPLELIST\+(.)/) {
+    $max_triples = $1;
+    $type = 'PROVENANCETRIPLELIST';
+  }
   if ($type eq 'EMPTY') {
     # DO NOTHING
   }
@@ -520,7 +529,9 @@ sub new {
   elsif ($type eq 'PROVENANCETRIPLELIST') {
     my ($triple_list) = @values;
     my @triple_list = split(/,/, $triple_list);
-    if (@triple_list > $max_triples) {
+    # This is where we handle unlimited triple list
+    # specified using PROVENANCETRIPLELIST++
+    if ($max_triples ne "+" && @triple_list > $max_triples) {
       $logger->record_problem('TOO_MANY_PROVENANCE_TRIPLES',
 			      scalar @triple_list, $max_triples, $where);
       $#triple_list = $max_triples - 1;
