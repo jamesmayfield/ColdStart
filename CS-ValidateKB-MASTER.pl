@@ -592,17 +592,14 @@ sub check_relation_endpoints {
     next unless ref $assertion->{PREDICATE};
     next if $do_not_check_endpoints{$assertion->{PREDICATE}{NAME}};
     my $provenance = $assertion->{PROVENANCE};
-    my $num_provenance_entries = $provenance->get_num_entries();
     if (defined $assertion->{SUBJECT_ENTITY}) {
       my @subject_mentions;
-      for (my $i = 0; $i < $num_provenance_entries; $i++) {
-	my $docid = $assertion->{PROVENANCE}->get_docid($i);
+	my $docid = $assertion->{PROVENANCE}->get_docid();
 	unless(@subject_mentions) {
 	  @subject_mentions = $kb->get_assertions($assertion->{SUBJECT_ENTITY}, 'mention', undef, $docid);
 	  @subject_mentions = $kb->get_assertions($assertion->{SUBJECT_ENTITY}, 'nominal_mention', undef, $docid) 
 	  	unless @subject_mentions;
 	}
-      }
       $kb->{LOGGER}->record_problem('UNATTESTED_RELATION_ENTITY',
 				    $assertion->{PRINT_STRING},
 				    $assertion->{SUBJECT_ENTITY}{NAME},
@@ -612,14 +609,12 @@ sub check_relation_endpoints {
     }
     if (defined $assertion->{OBJECT_ENTITY}) {
       my @object_mentions;
-      for (my $i = 0; $i < $num_provenance_entries; $i++) {
-	my $docid = $assertion->{PROVENANCE}->get_docid($i);
+	my $docid = $assertion->{PROVENANCE}->get_docid();
 	unless(@object_mentions) {
 	  @object_mentions = $kb->get_assertions($assertion->{OBJECT_ENTITY}, 'mention', undef, $docid);
 	  @object_mentions = $kb->get_assertions($assertion->{OBJECT_ENTITY}, 'nominal_mention', undef, $docid)
 	  	unless @object_mentions;
 	}
-      }
       $kb->{LOGGER}->record_problem('UNATTESTED_RELATION_ENTITY',
 				    $assertion->{PRINT_STRING},
 				    $assertion->{OBJECT_ENTITY}{NAME},
