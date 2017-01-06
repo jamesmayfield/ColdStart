@@ -353,6 +353,7 @@ sub new {
     ($predicate_justification,$base_filler,$additional_justification);
   my $self = {LOGGER => $logger,
     WHERE => $where,
+    DOCID => $docids[0],
     PREDICATE_JUSTIFICATION => $predicate_justification,
     BASE_FILLER => $base_filler,
     ADDITIONAL_JUSTIFICATION => $additional_justification};
@@ -361,6 +362,12 @@ sub new {
     $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $self->tooriginalstring(), $where);
   }
   $self;
+}
+
+sub get_docid {
+  my ($self) = @_;
+  return "NO DOCUMENT" unless $self->{DOCID};
+  $self->{DOCID};
 }
 
 # This is used to get a consistent string representing the provenancelist
@@ -472,7 +479,7 @@ sub tostring {
   # 	     $a->{END} cmp $b->{END}}
   #      @{$self->{TRIPLES}});
 ### SPEEDUP
-  $self->{PROVENANCE_TOSTRING} = join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
+  $self->{PROVENANCE_TOSTRING} = join(",", map {"$self->{DOCID}:$_->{START}-$_->{END}"}
 				      sort {$a->{START} <=> $b->{START} ||
 					      $a->{END} cmp $b->{END}}
 				      @{$self->{TRIPLES}})
