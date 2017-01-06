@@ -370,6 +370,16 @@ sub get_docid {
   $self->{DOCID};
 }
 
+sub get_start {
+  my ($self) = @_;
+  $self->{PREDICATE_JUSTIFICATION}->get_start();
+}
+
+sub get_end {
+  my ($self) = @_;
+  $self->{PREDICATE_JUSTIFICATION}->get_end();
+}
+
 # This is used to get a consistent string representing the provenancelist
 sub tostring {
 	my ($self) = @_;
