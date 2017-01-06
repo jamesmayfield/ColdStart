@@ -57,6 +57,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_OFFSET_PAIR           ERROR    (%s, %s) is not a valid offset pair
   ILLEGAL_OFFSET_PAIR_STRING    ERROR    %s is not a valid offset pair string
   ILLEGAL_OFFSET_TRIPLE_STRING  ERROR    %s is not a valid docid/offset pair string
+  MULTIPLE_DOCIDS_IN_PROV       ERROR    %s contains multiple DOCIDs
   TOO_MANY_PROVENANCE_TRIPLES   WARNING  Too many provenance triples (%d) provided; only the first %d will be used
   TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
   TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
@@ -347,12 +348,18 @@ sub new {
       Provenance->new($logger, $where, $types[$_], $elements[$_])
         if $elements[$_] ne 'NIL'
     } (0..$#elements);
+  my @docids = map {$_->get_docid() if $_}
+    grep {defined $_}
+    ($predicate_justification,$base_filler,$additional_justification);
   my $self = {LOGGER => $logger,
     WHERE => $where,
     PREDICATE_JUSTIFICATION => $predicate_justification,
     BASE_FILLER => $base_filler,
     ADDITIONAL_JUSTIFICATION => $additional_justification};
   bless($self, $class);
+  unless (scalar keys ({map{$_=>1 if $_} @docids}) == 1) {
+    $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $self->tooriginalstring(), $where);
+  }
   $self;
 }
 
@@ -371,9 +378,9 @@ sub tostring {
 sub tooriginalstring {
   my ($self) = @_;
   my $predicate_justification = $self->{PREDICATE_JUSTIFICATION}->tooriginalstring();
-	my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tooriginalstring() : "NIL";
-	my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tooriginalstring() : "NIL";
-	"$predicate_justification;$base_filler;$additional_justification";
+  my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tooriginalstring() : "NIL";
+  my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tooriginalstring() : "NIL";
+  "$predicate_justification;$base_filler;$additional_justification";
 }
 
 
@@ -466,8 +473,7 @@ sub tostring {
   #      @{$self->{TRIPLES}});
 ### SPEEDUP
   $self->{PROVENANCE_TOSTRING} = join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
-				      sort {$a->{DOCID} cmp $b->{DOCID} ||
-					      $a->{START} <=> $b->{START} ||
+				      sort {$a->{START} <=> $b->{START} ||
 					      $a->{END} cmp $b->{END}}
 				      @{$self->{TRIPLES}})
     unless $self->{PROVENANCE_TOSTRING};
@@ -478,7 +484,7 @@ sub tostring {
 # tostring() normalizes provenance entry order; this retains the original order
 sub tooriginalstring {
   my ($self) = @_;
-  join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"} @{$self->{TRIPLES}});
+  join(",", map {"$self->{DOCID}:$_->{START}-$_->{END}"} @{$self->{TRIPLES}});
 }
 
 # Create a new Provenance object
@@ -497,8 +503,8 @@ sub new {
   elsif ($type eq 'DOCID_OFFSET_OFFSET') {
     my ($docid, $start, $end) = @values;
     if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-      push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				 START => $start,
+      $self->{DOCID} = $docid;
+      push(@{$self->{TRIPLES}}, {START => $start,
 				 END => $end,
 				 WHERE => $where});
       $total += $end - $start + 1;
@@ -515,8 +521,10 @@ sub new {
 	$end = 0;
       }
       if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-	push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				   START => $start,
+	$self->{DOCID} = $docid unless $self->{DOCID};
+	$logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $pair, $where)
+	  if($docid ne $self->{DOCID});
+	push(@{$self->{TRIPLES}}, {START => $start,
 				   END => $end,
 				   WHERE => $where});
 	$total += $end - $start + 1;
@@ -547,8 +555,10 @@ sub new {
 	$end = 0;
       }
       if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-	push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				   START => $start,
+	$self->{DOCID} = $docid unless $self->{DOCID};
+	$logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $triple_list, $where)
+	  if($docid ne $self->{DOCID});
+	push(@{$self->{TRIPLES}}, {START => $start,
 				   END => $end,
 				   WHERE => $where});
 	$total += $end - $start + 1;
@@ -566,7 +576,7 @@ sub get_docid {
   my ($self, $num) = @_;
   $num = 0 unless defined $num;
   return "NO DOCUMENT" unless @{$self->{TRIPLES}};
-  $self->{TRIPLES}[$num]{DOCID};
+  $self->{DOCID};
 }
 
 sub get_start {
@@ -813,7 +823,7 @@ sub add_entrypoint {
 					      $entrypoint{END});
   }
   my $provenance = $entrypoint{PROVENANCE};
-  $entrypoint{DOCID} = $provenance->{TRIPLES}[0]{DOCID} unless defined $entrypoint{DOCID};
+  $entrypoint{DOCID} = $provenance->{DOCID} unless defined $entrypoint{DOCID};
   $entrypoint{START} = $provenance->{TRIPLES}[0]{START} unless defined $entrypoint{START};
   $entrypoint{END} = $provenance->{TRIPLES}[0]{END} unless defined $entrypoint{END};
   $entrypoint{LANGUAGE} = $self->infer_language_from_documentid($entrypoint{DOCID}, $entrypoint{WHERE} || 'NO_SOURCE');
