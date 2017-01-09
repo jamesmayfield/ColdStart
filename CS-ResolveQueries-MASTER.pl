@@ -603,6 +603,8 @@ sub parse_assertion {
       }
     }
   }
+  # Remove realis from the predicate
+  $result->{predicate} =~ s/\.(actual|generic|other)$//;
   # Add the description and position fields, which are metadata about
   # the assertion that do not appear in it
   $result->{description} = "$result->{predicate}($result->{entity}, $result->{object}) ---> <<$line>>";
