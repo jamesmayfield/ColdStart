@@ -144,14 +144,14 @@ sub add_to_index {
 sub match {
   my ($self, $assertion) = @_;
   # Any mention that overlaps is a match
-  !($self->{QUERYMENTION}{END} < $assertion->{start_0} || $assertion->{end_0} < $self->{QUERYMENTION}{START});
+  !($self->{QUERYMENTION}{END} < $assertion->{predicate_justification}{start_0} || $assertion->{predicate_justification}{end_0} < $self->{QUERYMENTION}{START});
 }
 
 # Find FindEntrypointsTasks in the index that match the given assertion
 push(@retrievers, sub  {
                     my ($taskset, $assertion) = @_;
 		    return () unless $assertion->{predicate} eq 'mention';
-		    grep {$_->match($assertion)} @{$taskset->{INDICES}{FindEntrypoint}{$assertion->{docid_0}} || []};
+		    grep {$_->match($assertion)} @{$taskset->{INDICES}{FindEntrypoint}{$assertion->{predicate_justification}{docid_0}} || []};
                   });
 
 # Remove this FindEntrypointsTask from the TaskSet. This only reverses
@@ -193,9 +193,9 @@ sub remove_from_index {
 # far (or if it is the only one seen so far)
 sub execute {
   my ($self, $taskset, $assertion) = @_;
-  my $common = &main::min($assertion->{end_0}, $self->{QUERYMENTION}{END}) -
-               &main::max($assertion->{start_0}, $self->{QUERYMENTION}{START});
-  my $k_only = $assertion->{end_0} - $assertion->{start_0} - $common;
+  my $common = &main::min($assertion->{predicate_justification}{end_0}, $self->{QUERYMENTION}{END}) -
+               &main::max($assertion->{predicate_justification}{start_0}, $self->{QUERYMENTION}{START});
+  my $k_only = $assertion->{predicate_justification}{end_0} - $assertion->{predicate_justification}{start_0} - $common;
   if (defined $self->{BEST_MATCH}) {
     return if $common < $self->{COMMON};
     if ($common == $self->{COMMON}) {
@@ -265,7 +265,7 @@ sub execute {
     # query thus far to be treated independently as a shorter
     # query. We also need this task fulfilled to know what the query
     # name for the subsequent fill(s) is
-    my $task = Entity2NameTask->new($self->{QUERY}, $self, $assertion->{object}, $assertion->{docid_0}, $assertion);
+    my $task = Entity2NameTask->new($self->{QUERY}, $self, $assertion->{object}, $assertion->{predicate_justification}{docid_0}, $assertion);
     $taskset->add_task($task);
     $taskset->{STATS}{FILLS_FOUND}++;
   }
@@ -314,7 +314,7 @@ sub add_to_index {
 push(@retrievers, sub  {
                     my ($taskset, $assertion) = @_;
 		    return () unless $assertion->{predicate} eq 'canonical_mention';
-		    @{$taskset->{INDICES}{Entity2Name}{$assertion->{entity}}{$assertion->{docid_0}} || []};
+		    @{$taskset->{INDICES}{Entity2Name}{$assertion->{entity}}{$assertion->{predicate_justification}{docid_0}} || []};
                   });
 
 sub remove_from_index {
@@ -331,7 +331,7 @@ sub execute {
   # Generate the next round of slot filling if necessary
   if (@{$self->{QUERY}{SLOTS}}) {
     my $filler = &TaskSet::normalize_filler($assertion->{object});
-    my $provenance_string = "$assertion->{docid_0}:$assertion->{start_0}-$assertion->{end_0}";
+    my $provenance_string = "$assertion->{predicate_justification}{docid_0}:$assertion->{predicate_justification}{start_0}-$assertion->{predicate_justification}{end_0}";
     my $provenance = Provenance->new($logger, {FILENAME => "somewhere", LINENUM => "someline"}, 'PROVENANCETRIPLELIST', $provenance_string);
     my $next_query = $self->{QUERY}->generate_query($filler, $provenance);
     if (defined $next_query) {
@@ -521,7 +521,7 @@ sub add_fill {
   }
   else {
     $filler = &normalize_filler($assertion->{object});
-    $filler_provenance = "$assertion->{docid_0}:$assertion->{start_0}-$assertion->{end_0}";
+    $filler_provenance = "$assertion->{predicate_justification}{docid_0}:$assertion->{predicate_justification}{start_0}-$assertion->{predicate_justification}{end_0}";
   }
   # We've calculated all of the necessary values, so print the result
   my $outfile = $self->{OUTFILE};
@@ -589,13 +589,18 @@ sub parse_assertion {
   my $result = {map {$labels->[$_] => $entries[$_]} 0..$#{$labels}};
   # Pull out the start and end offsets
   if (defined $result->{offsets}) {
-    my $offsets = $result->{offsets};
-    my @offsets = split(/,/, $offsets);
-    foreach (0..$#offsets) {
-      my ($docid, $start, $end) = $offsets[$_] =~ /^(.*):(\d+)-(\d+)$/ or die "illegal offset specification: $offsets[$_]";
-      $result->{"docid_$_"} = $docid;
-      $result->{"start_$_"} = $start;
-      $result->{"end_$_"} = $end;
+    my @offset_fields = qw(predicate_justification base_filler additional_justification);
+    my @offset_values = split(";", $result->{offsets});
+    my %offsets = map {$offset_fields[$_]=>$offset_values[$_]} (0..$#offset_fields);
+    foreach my $offset_field(@offset_fields) {
+      my @offsets = split(/,/, $offsets{$offset_field});
+      foreach (0..$#offsets) {
+        next if $offsets[$_] eq 'NIL';
+        my ($docid, $start, $end) = $offsets[$_] =~ /^(.*):(\d+)-(\d+)$/ or die "illegal offset specification: $offsets[$_]";
+        $result->{$offset_field}{"docid_$_"} = $docid;
+        $result->{$offset_field}{"start_$_"} = $start;
+        $result->{$offset_field}{"end_$_"} = $end;
+      }
     }
   }
   # Add the description and position fields, which are metadata about
