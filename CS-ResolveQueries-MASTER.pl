@@ -686,13 +686,13 @@ sub process_runfile {
   }
   close $infile;
   my @toprint = (
-		 {HEADER => "Entry points", FN => sub { $_[0]{ENTRYPOINTS_FOUND} }},
-		 {HEADER => "Fills", FN => sub { $_[0]{FILLS_FOUND} }},
-		 {HEADER => "String fills", FN => sub { $_[0]{FINAL_STRING_FILLS_FOUND} }},
-		 {HEADER => "ResolutionTasks", FN => sub {$_[0]{TASKS}{TOTAL} }},
-		 {HEADER => "Entity2NameTasks", FN => sub {$_[0]{TASKS}{Entity2NameTask} }},
-		 {HEADER => "FillSlotTasks", FN => sub {$_[0]{TASKS}{FillSlotTask} }},
-		 {HEADER => "FindEntrypointsTasks", FN => sub {$_[0]{TASKS}{FindEntrypointsTask} }},
+		 {HEADER => "Entry points", FN => sub { $_[0]{ENTRYPOINTS_FOUND} ? $_[0]{ENTRYPOINTS_FOUND} : 0 }},
+		 {HEADER => "Fills", FN => sub { $_[0]{FILLS_FOUND} ? $_[0]{FILLS_FOUND} : 0 }},
+		 {HEADER => "String fills", FN => sub { $_[0]{FINAL_STRING_FILLS_FOUND} ? $_[0]{FINAL_STRING_FILLS_FOUND} : 0 }},
+		 {HEADER => "ResolutionTasks", FN => sub {$_[0]{TASKS}{TOTAL} ? $_[0]{TASKS}{TOTAL} : 0 }},
+		 {HEADER => "Entity2NameTasks", FN => sub {$_[0]{TASKS}{Entity2NameTask} ? $_[0]{TASKS}{Entity2NameTask} : 0}},
+		 {HEADER => "FillSlotTasks", FN => sub {$_[0]{TASKS}{FillSlotTask} ? $_[0]{TASKS}{FillSlotTask} : 0}},
+		 {HEADER => "FindEntrypointsTasks", FN => sub {$_[0]{TASKS}{FindEntrypointsTask} ? $_[0]{TASKS}{FindEntrypointsTask} : 0}},
 		);
 
   foreach (@toprint) {
