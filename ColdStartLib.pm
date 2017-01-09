@@ -498,6 +498,21 @@ sub tostring {
   $self->{PROVENANCE_TOSTRING};
 }
 
+# This is used to, among other things, get a short version
+# for Event Argument output
+sub toshortstring {
+  my ($self) = @_;
+
+  $self->{PROVENANCE_TOSTRING_SHORT} = join(",", map {"$_->{START}-$_->{END}"}
+				      sort {$a->{START} <=> $b->{START} ||
+					      $a->{END} cmp $b->{END}}
+				      @{$self->{TRIPLES}})
+    unless $self->{PROVENANCE_TOSTRING_SHORT};
+
+  $self->{PROVENANCE_TOSTRING_SHORT};
+}
+
+
 # tostring() normalizes provenance entry order; this retains the original order
 sub tooriginalstring {
   my ($self) = @_;

@@ -46,6 +46,7 @@ my %use_priority = (
 my %type2export = (
   tac => \&export_tac,
   edl => \&export_edl,
+  earg => \&export_earg,
 );
 
 my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
@@ -823,6 +824,61 @@ sub assertion_comparator {
          $a->{PROVENANCE}->get_docid() cmp $b->{PROVENANCE}->get_docid() ||
 	 $a->{PROVENANCE}->get_start() <=> $b->{PROVENANCE}->get_start();
 }  
+
+sub is_valid_ea_export_assertion {
+  my ($assertion) = @_;
+  my $retVal = "false";
+  $retVal = "true"
+    if $assertion->{SUBJECT} =~ /^:Event/ &&
+       $assertion->{VERB} !~ /mention|type/ &&
+	$retVal;
+}
+
+# Event Argument format.
+sub export_earg {
+  my ($kb) = @_;
+  foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
+    next if $assertion->{OMIT_FROM_OUTPUT};
+    # Only output assertions that have fully resolved predicates
+    next unless ref $assertion->{PREDICATE};
+    if(&is_valid_ea_export_assertion($assertion) eq "true") {
+      my $subject_string = $assertion->{SUBJECT};
+      my $predicate_string = $assertion->{PREDICATE}{NAME};
+      my $object_string = $assertion->{OBJECT};
+      my $document_id = $assertion->{PROVENANCE}->get_docid();
+      my $type = $kb->{ASSERTIONS2}{$subject_string}{type}[0]{OBJECT};
+      my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
+      $object_string_canonical_mention =~ s/^\"//;
+      $object_string_canonical_mention =~ s/\"$//;
+      my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
+      my $confidence = $assertion->{CONFIDENCE};
+      my ($predicate_justification, $base_filler, $additional_justification) = ("NIL", "NIL", "NIL");
+      $predicate_justification = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring()
+        if $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION};
+      $base_filler = $assertion->{BASE_FILLER}->toshortstring() if $assertion->{BASE_FILLER};
+      $additional_justification = $assertion->{PROVENANCE}{ADDITIONAL_ARGUMENT_JUSTIFICATION}->toshortstring()
+        if $assertion->{PROVENANCE}{ADDITIONAL_ARGUMENT_JUSTIFICATION};
+      my $realis = ucfirst $assertion->{REALIS};
+
+      my $output_string =
+        join("\t", (
+          $subject_string,
+          $document_id,
+          $type,
+          $predicate_string,
+          $object_string_canonical_mention,
+          $object_string_provenance,
+          $predicate_justification,
+          $base_filler,
+          $additional_justification,
+          $realis,
+          $confidence));
+
+      #my $uuid = &main::generate_uuid_from_string($output_string, 12);
+      print $program_output "$output_string\n";
+    }
+  }
+}
 
 # TAC format is just a list of assertions. Output the assertions in
 # the order defined by the above comparator (just to make the output
