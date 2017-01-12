@@ -848,9 +848,10 @@ sub export_earg {
       my $document_id = $assertion->{PROVENANCE}->get_docid();
       my $type = $kb->{ASSERTIONS2}{$subject_string}{type}[0]{OBJECT};
       my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
-      $object_string_canonical_mention =~ s/^\"//;
-      $object_string_canonical_mention =~ s/\"$//;
-      my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
+      $object_string_canonical_mention = $kb->{ASSERTIONS3}{$subject_string}{$predicate_string}{$object_string}[0]{OBJECT}
+        unless $object_string_canonical_mention;
+      $object_string_canonical_mention =~ s/^\"|\"$//g;
+      my $object_string_provenance = $kb->{ASSERTIONS3}{$subject_string}{$predicate_string}{$object_string}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
       my $confidence = $assertion->{CONFIDENCE};
       my ($predicate_justification, $base_filler, $additional_justification) = ("NIL", "NIL", "NIL");
       $predicate_justification = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring()
