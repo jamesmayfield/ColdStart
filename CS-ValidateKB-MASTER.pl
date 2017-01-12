@@ -232,6 +232,18 @@ sub add_assertion {
     return;
   }
   $verb = $predicate->get_name();
+  my %verbs_with_restricted_prov = (
+    mention => 1,
+    likes => 1,
+    dislikes => 1,
+  );
+  foreach my $v(keys %verbs_with_restricted_prov) {
+    if($verb =~ /$v/ ) {
+      my %counts = $provenance->get_counts();
+      $kb->{LOGGER}->record_problem('TOO_MANY_PROVENANCE_TRIPLES_E', $counts{PREDICATE_JUSTIFICATION}, $verbs_with_restricted_prov{$v}, $source)
+        if($counts{PREDICATE_JUSTIFICATION}>$verbs_with_restricted_prov{$v});
+    }
+  }
   # Record entity uses and type definitions. 'type' assertions are special-cased (as they have no object)
   if ($verb eq 'type') {
     $kb->entity_use($subject_entity, 'TYPEDEF', $source);
@@ -786,7 +798,7 @@ sub load_tac {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
 	next;
       }
-      $provenance = Provenance->new($logger, $source, 'EMPTY');
+      $provenance = ProvenanceList->new($logger, $source);
     }
     else {
       unless (@entries == 4) {

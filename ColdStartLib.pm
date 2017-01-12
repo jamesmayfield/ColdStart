@@ -59,6 +59,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_OFFSET_TRIPLE_STRING  ERROR    %s is not a valid docid/offset pair string
   MULTIPLE_DOCIDS_IN_PROV       ERROR    %s contains multiple DOCIDs
   TOO_MANY_PROVENANCE_TRIPLES   WARNING  Too many provenance triples (%d) provided; only the first %d will be used
+  TOO_MANY_PROVENANCE_TRIPLES_E ERROR    Too many provenance triples: provided=(%d) expected=(%d)
   TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
   TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
 
@@ -341,6 +342,12 @@ package ProvenanceList;
 # Create a new ProvenanceList object
 sub new {
   my ($class, $logger, $where, $text) = @_;
+  unless($text) {
+    my $self = {LOGGER => $logger,
+    WHERE => $where};
+    bless($self, $class);
+    return $self;
+  }
   my @elements = split(";", $text);
   my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
   my ($predicate_justification,$base_filler,$additional_justification) =
@@ -370,6 +377,12 @@ sub get_docid {
   $self->{DOCID};
 }
 
+sub get_counts {
+	my ($self) = @_;
+	map { $_ => ($self->{$_} && $self->{$_} eq "NIL") || (not defined $self->{$_}) ? 0 : scalar @{$self->{$_}{TRIPLES}} }
+	  qw(PREDICATE_JUSTIFICATION BASE_FILLER ADDITIONAL_JUSTIFICATION);
+}
+
 sub get_start {
   my ($self) = @_;
   $self->{PREDICATE_JUSTIFICATION}->get_start();
@@ -394,6 +407,7 @@ sub tostring {
 # tostring() normalizes provenance entry order; this retains the original order
 sub tooriginalstring {
   my ($self) = @_;
+  return "" unless $self->{PREDICATE_JUSTIFICATION};
   my $predicate_justification = $self->{PREDICATE_JUSTIFICATION}->tooriginalstring();
   my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tooriginalstring() : "NIL";
   my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tooriginalstring() : "NIL";
