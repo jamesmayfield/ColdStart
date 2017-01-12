@@ -251,7 +251,7 @@ sub add_assertion {
   else {
     $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->entity_typedef($subject_entity, $predicate->get_domain(), 'SUBJECT', $source);
-    if (&PredicateSet::is_compatible('string', $predicate->get_range())) {
+    if (&PredicateSet::is_compatible('string', $predicate->get_range()) && scalar ($predicate->get_range()) == 1) {
       # Make sure this is a properly double quoted string
       unless ($object =~ /^"(?>(?:(?>[^"\\]+)|\\.)*)"$/) {
 	# If not, complain and stick double quotes around it

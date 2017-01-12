@@ -1431,130 +1431,125 @@ my $predicates_spec = <<'END_PREDICATES';
 # The following are Event predicates
   CONFLICT.ATTACK                mention           STRING                      none
   CONFLICT.ATTACK                canonical_mention STRING                      none
-  CONFLICT.ATTACK                attacker          PER,ORG,GPE                 conflict.attack_attacker
+  CONFLICT.ATTACK                attacker          PER,ORG,GPE,STRING          conflict.attack_attacker
   CONFLICT.ATTACK                instrument        STRING                      none
-  CONFLICT.ATTACK                target            PER,GPE,ORG                 conflict.attack_target
-  CONFLICT.ATTACK                target            STRING                      none
+  CONFLICT.ATTACK                target            PER,GPE,ORG,STRING          conflict.attack_target
   CONFLICT.ATTACK                date              STRING                      none
-  CONFLICT.ATTACK                place             STRING                      none
+  CONFLICT.ATTACK                location          GPE,STRING                  conflict.attack_location
   CONFLICT.DEMONSTRATE           mention           STRING                      none
   CONFLICT.DEMONSTRATE           canonical_mention STRING                      none
-  CONFLICT.DEMONSTRATE           entity            PER,ORG                     conflict.demonstrate_entity
+  CONFLICT.DEMONSTRATE           entity            PER,ORG,STRING              conflict.demonstrate_entity
   CONFLICT.DEMONSTRATE           date              STRING                      none
-  CONFLICT.DEMONSTRATE           place             STRING                      none
+  CONFLICT.DEMONSTRATE           location          GPE,STRING                  conflict.demonstrate_location
   CONTACT.BROADCAST              mention           STRING                      none
   CONTACT.BROADCAST              canonical_mention STRING                      none
-  CONTACT.BROADCAST              audience          PER,ORG,GPE                 contact.broadcast_audience
-  CONTACT.BROADCAST              entity            PER,ORG,GPE                 contact.broadcast_entity
+  CONTACT.BROADCAST              audience          PER,ORG,GPE,STRING          contact.broadcast_audience
+  CONTACT.BROADCAST              entity            PER,ORG,GPE,STRING          contact.broadcast_entity
   CONTACT.BROADCAST              date              STRING                      none
-  CONTACT.BROADCAST              place             STRING                      none
+  CONTACT.BROADCAST              location          GPE,STRING                  contact.broadcast_location
   CONTACT.CONTACT                mention           STRING                      none
   CONTACT.CONTACT                canonical_mention STRING                      none
-  CONTACT.CONTACT                entity            PER,ORG,GPE                 contact.contact_entity
+  CONTACT.CONTACT                entity            PER,ORG,GPE,STRING          contact.contact_entity
   CONTACT.CONTACT                date              STRING                      none
-  CONTACT.CONTACT                place             STRING                      none
+  CONTACT.CONTACT                location          GPE,STRING                  contact.contact_location
   CONTACT.CORRESPONDENCE         mention           STRING                      none
   CONTACT.CORRESPONDENCE         canonical_mention STRING                      none
-  CONTACT.CORRESPONDENCE         entity            PER,ORG,GPE                 contact.correspondence_entity
+  CONTACT.CORRESPONDENCE         entity            PER,ORG,GPE,STRING          contact.correspondence_entity
   CONTACT.CORRESPONDENCE         date              STRING                      none
-  CONTACT.CORRESPONDENCE         place             STRING                      none
+  CONTACT.CORRESPONDENCE         location          GPE,STRING                  contact.correspondence_location
   CONTACT.MEET                   mention           STRING                      none
   CONTACT.MEET                   canonical_mention STRING                      none
-  CONTACT.MEET                   entity            PER,ORG,GPE                 contact.meet_entity
+  CONTACT.MEET                   entity            PER,ORG,GPE,STRING          contact.meet_entity
   CONTACT.MEET                   date              STRING                      none
-  CONTACT.MEET                   place             STRING                      none
+  CONTACT.MEET                   location          GPE,STRING                  contact.meet_location
   JUSTICE.ARREST-JAIL            mention           STRING                      none
   JUSTICE.ARREST-JAIL            canonical_mention STRING                      none
-  JUSTICE.ARREST-JAIL            agent             PER,ORG,GPE                 justice.arrest-jail_agent
+  JUSTICE.ARREST-JAIL            agent             PER,ORG,GPE,STRING          justice.arrest-jail_agent
   JUSTICE.ARREST-JAIL            crime             STRING                      none
-  JUSTICE.ARREST-JAIL            person            PER                         justice.arrest-jail_person
+  JUSTICE.ARREST-JAIL            person            PER,STRING                  justice.arrest-jail_person
   JUSTICE.ARREST-JAIL            date              STRING                      none
-  JUSTICE.ARREST-JAIL            place             STRING                      none
+  JUSTICE.ARREST-JAIL            location          GPE,STRING                  justice.arrest-jail_location
   LIFE.DIE                       mention           STRING                      none
   LIFE.DIE                       canonical_mention STRING                      none
-  LIFE.DIE                       agent             PER,ORG,GPE                 life.die_agent
+  LIFE.DIE                       agent             PER,ORG,GPE,STRING          life.die_agent
   LIFE.DIE                       instrument        STRING                      none
-  LIFE.DIE                       victim            PER                         life.die_victim
+  LIFE.DIE                       victim            PER,STRING                  life.die_victim
   LIFE.DIE                       date              STRING                      none
-  LIFE.DIE                       place             STRING                      none
+  LIFE.DIE                       location          GPE,STRING                  life.die_location
   LIFE.INJURE                    mention           STRING                      none
   LIFE.INJURE                    canonical_mention STRING                      none
-  LIFE.INJURE                    agent             PER,ORG,GPE                 life.injure_agent
+  LIFE.INJURE                    agent             PER,ORG,GPE,STRING          life.injure_agent
   LIFE.INJURE                    instrument        STRING                      none
-  LIFE.INJURE                    victim            PER                         life.injure_victim
+  LIFE.INJURE                    victim            PER,STRING                  life.injure_victim
   LIFE.INJURE                    date              STRING                      none
-  LIFE.INJURE                    place             STRING                      none
+  LIFE.INJURE                    location          GPE,STRING                  life.injure_location
   MANUFACTURE.ARTIFACT           mention           STRING                      none
   MANUFACTURE.ARTIFACT           canonical_mention STRING                      none
-  MANUFACTURE.ARTIFACT           agent             PER,ORG,GPE                 manufacture.artifact_agent
+  MANUFACTURE.ARTIFACT           agent             PER,ORG,GPE,STRING          manufacture.artifact_agent
   MANUFACTURE.ARTIFACT           artifact          STRING                      none
   MANUFACTURE.ARTIFACT           instrument        STRING                      none
   MANUFACTURE.ARTIFACT           date              STRING                      none
-  MANUFACTURE.ARTIFACT           place             STRING                      none
+  MANUFACTURE.ARTIFACT           location          GPE,STRING                  manufacture.artifact_location
   MOVEMENT.TRANSPORT-ARTIFACT    mention           STRING                      none
   MOVEMENT.TRANSPORT-ARTIFACT    canonical_mention STRING                      none
-  MOVEMENT.TRANSPORT-ARTIFACT    agent             PER,ORG,GPE                 movement.transport-artifact_agent
+  MOVEMENT.TRANSPORT-ARTIFACT    agent             PER,ORG,GPE,STRING          movement.transport-artifact_agent
   MOVEMENT.TRANSPORT-ARTIFACT    artifact          STRING                      none
-  MOVEMENT.TRANSPORT-ARTIFACT    destination       GPE                         movement.transport-artifact_destination
-  MOVEMENT.TRANSPORT-ARTIFACT    destination       STRING                      none
+  MOVEMENT.TRANSPORT-ARTIFACT    destination       GPE,STRING                  movement.transport-artifact_destination
   MOVEMENT.TRANSPORT-ARTIFACT    instrument        STRING                      none
-  MOVEMENT.TRANSPORT-ARTIFACT    origin            GPE                         movement.transport-artifact_origin
-  MOVEMENT.TRANSPORT-ARTIFACT    origin            STRING                      none
+  MOVEMENT.TRANSPORT-ARTIFACT    origin            GPE,STRING                  movement.transport-artifact_origin
   MOVEMENT.TRANSPORT-ARTIFACT    date              STRING                      none
   MOVEMENT.TRANSPORT-PERSON      mention           STRING                      none
   MOVEMENT.TRANSPORT-PERSON      canonical_mention STRING                      none
-  MOVEMENT.TRANSPORT-PERSON      agent             PER,ORG,GPE                 movement.transport-person_agent
-  MOVEMENT.TRANSPORT-PERSON      destination       GPE                         movement.transport-person_destination
-  MOVEMENT.TRANSPORT-PERSON      destination       STRING                      none
+  MOVEMENT.TRANSPORT-PERSON      agent             PER,ORG,GPE,STRING          movement.transport-person_agent
+  MOVEMENT.TRANSPORT-PERSON      destination       GPE,STRING                  movement.transport-person_destination
   MOVEMENT.TRANSPORT-PERSON      instrument        STRING                      none
-  MOVEMENT.TRANSPORT-PERSON      origin            GPE                         movement.transport-person_origin
-  MOVEMENT.TRANSPORT-PERSON      origin            STRING                      none
-  MOVEMENT.TRANSPORT-PERSON      person            PER                         movement.transport-person_person
+  MOVEMENT.TRANSPORT-PERSON      origin            GPE,STRING                  movement.transport-person_origin
+  MOVEMENT.TRANSPORT-PERSON      person            PER,STRING                  movement.transport-person_person
   MOVEMENT.TRANSPORT-PERSON      date              STRING                      none
   PERSONNEL.ELECT                mention           STRING                      none
   PERSONNEL.ELECT                canonical_mention STRING                      none
-  PERSONNEL.ELECT                agent             PER,ORG,GPE                 personnel.elect_agent
-  PERSONNEL.ELECT                person            PER                         personnel.elect_person
+  PERSONNEL.ELECT                agent             PER,ORG,GPE,STRING          personnel.elect_agent
+  PERSONNEL.ELECT                person            PER,STRING                  personnel.elect_person
   PERSONNEL.ELECT                position          STRING                      none
   PERSONNEL.ELECT                date              STRING                      none
-  PERSONNEL.ELECT                place             STRING                      none
+  PERSONNEL.ELECT                location          GPE,STRING                  personnel.elect_location
   PERSONNEL.END-POSITION         mention           STRING                      none
   PERSONNEL.END-POSITION         canonical_mention STRING                      none
-  PERSONNEL.END-POSITION         entity            ORG,GPE                     personnel.end-position_entity
-  PERSONNEL.END-POSITION         person            PER                         personnel.end-position_person
+  PERSONNEL.END-POSITION         entity            ORG,GPE,STRING              personnel.end-position_entity
+  PERSONNEL.END-POSITION         person            PER,STRING                  personnel.end-position_person
   PERSONNEL.END-POSITION         position          STRING                      none
   PERSONNEL.END-POSITION         date              STRING                      none
-  PERSONNEL.END-POSITION         place             STRING                      none
+  PERSONNEL.END-POSITION         location          GPE,STRING                  personnel.end-position_location
   PERSONNEL.START-POSITION       mention           STRING                      none
   PERSONNEL.START-POSITION       canonical_mention STRING                      none
-  PERSONNEL.START-POSITION       entity            ORG,GPE                     personnel.start-position_entity
-  PERSONNEL.START-POSITION       person            PER                         personnel.start-position_person
+  PERSONNEL.START-POSITION       entity            ORG,GPE,STRING              personnel.start-position_entity
+  PERSONNEL.START-POSITION       person            PER,STRING                  personnel.start-position_person
   PERSONNEL.START-POSITION       position          STRING                      none
   PERSONNEL.START-POSITION       date              STRING                      none
-  PERSONNEL.START-POSITION       place             STRING                      none
+  PERSONNEL.START-POSITION       location          GPE,STRING                  personnel.start-position_location
   TRANSACTION.TRANSACTION        mention           STRING                      none
   TRANSACTION.TRANSACTION        canonical_mention STRING                      none
-  TRANSACTION.TRANSACTION        beneficiary       PER,ORG,GPE                 transaction.transaction_beneficiary
-  TRANSACTION.TRANSACTION        giver             PER,ORG,GPE                 transaction.transaction_giver
-  TRANSACTION.TRANSACTION        recipient         PER,ORG,GPE                 transaction.transaction_recipient
+  TRANSACTION.TRANSACTION        beneficiary       PER,ORG,GPE,STRING          transaction.transaction_beneficiary
+  TRANSACTION.TRANSACTION        giver             PER,ORG,GPE,STRING          transaction.transaction_giver
+  TRANSACTION.TRANSACTION        recipient         PER,ORG,GPE,STRING          transaction.transaction_recipient
   TRANSACTION.TRANSACTION        date              STRING                      none
-  TRANSACTION.TRANSACTION        place             STRING                      none
+  TRANSACTION.TRANSACTION        location          GPE,STRING                  transaction.transaction_location
   TRANSACTION.TRANSFER-MONEY     mention           STRING                      none
   TRANSACTION.TRANSFER-MONEY     canonical_mention STRING                      none
-  TRANSACTION.TRANSFER-MONEY     beneficiary       PER,ORG,GPE                 transaction.transfer-money_beneficiary
-  TRANSACTION.TRANSFER-MONEY     giver             PER,ORG,GPE                 transaction.transfer-money_giver
+  TRANSACTION.TRANSFER-MONEY     beneficiary       PER,ORG,GPE,STRING          transaction.transfer-money_beneficiary
+  TRANSACTION.TRANSFER-MONEY     giver             PER,ORG,GPE,STRING          transaction.transfer-money_giver
   TRANSACTION.TRANSFER-MONEY     money             STRING                      none
-  TRANSACTION.TRANSFER-MONEY     recipient         PER,ORG,GPE                 transaction.transfer-money_recipient
+  TRANSACTION.TRANSFER-MONEY     recipient         PER,ORG,GPE,STRING          transaction.transfer-money_recipient
   TRANSACTION.TRANSFER-MONEY     date              STRING                      none
-  TRANSACTION.TRANSFER-MONEY     place             STRING                      none
+  TRANSACTION.TRANSFER-MONEY     location          GPE,STRING                  transaction.transfer-money_location
   TRANSACTION.TRANSFER-OWNERSHIP mention           STRING                      none
   TRANSACTION.TRANSFER-OWNERSHIP canonical_mention STRING                      none
-  TRANSACTION.TRANSFER-OWNERSHIP beneficiary       PER,ORG,GPE                 transaction.transfer-ownership_beneficiary
-  TRANSACTION.TRANSFER-OWNERSHIP giver             PER,ORG,GPE                 transaction.transfer-ownership_giver
-  TRANSACTION.TRANSFER-OWNERSHIP recipient         PER,ORG,GPE                 transaction.transfer-ownership_recipient
+  TRANSACTION.TRANSFER-OWNERSHIP beneficiary       PER,ORG,GPE,STRING          transaction.transfer-ownership_beneficiary
+  TRANSACTION.TRANSFER-OWNERSHIP giver             PER,ORG,GPE,STRING          transaction.transfer-ownership_giver
+  TRANSACTION.TRANSFER-OWNERSHIP recipient         PER,ORG,GPE,STRING          transaction.transfer-ownership_recipient
   TRANSACTION.TRANSFER-OWNERSHIP thing             STRING                      none
   TRANSACTION.TRANSFER-OWNERSHIP date              STRING                      none
-  TRANSACTION.TRANSFER-OWNERSHIP place             STRING                      none
+  TRANSACTION.TRANSFER-OWNERSHIP location          GPE,STRING                  transaction.transfer-ownership_location
 END_PREDICATES
 
 #####################################################################################
@@ -1819,6 +1814,8 @@ sub new {
   # Save the new predicate in $predicates
   $predicates->add_predicate($predicate);
   # Automatically generate the inverse predicate
+  $range_string = join(",", grep {$_ ne "string"} keys %{$range})
+    unless $inverse_name eq 'none';
   $predicate->{INVERSE} = $class->new($predicates, $range_string,
 				      $original_inverse_name, $domain_string,
 				      $original_name, $label)
