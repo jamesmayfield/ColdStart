@@ -859,6 +859,7 @@ sub export_earg {
       my $object_string = $assertion->{OBJECT};
       my $document_id = $assertion->{PROVENANCE}->get_docid();
       my $type = $kb->{ASSERTIONS2}{$subject_string}{type}[0]{OBJECT};
+      $type = join(".", map {ucfirst lc $_} split(/\./, $type));
       my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
       $object_string_canonical_mention = $kb->{ASSERTIONS3}{$subject_string}{$predicate_string}{$object_string}[0]{OBJECT}
         unless $object_string_canonical_mention;
@@ -872,7 +873,7 @@ sub export_earg {
       $additional_justification = $assertion->{PROVENANCE}{ADDITIONAL_ARGUMENT_JUSTIFICATION}->toshortstring()
         if $assertion->{PROVENANCE}{ADDITIONAL_ARGUMENT_JUSTIFICATION};
       my $realis = ucfirst $assertion->{REALIS};
-
+      $predicate_string = ucfirst lc $predicate_string;
       my $output_string =
         join("\t", (
           $subject_string,
