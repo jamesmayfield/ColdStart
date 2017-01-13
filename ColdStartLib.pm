@@ -1433,10 +1433,10 @@ my $predicates_spec = <<'END_PREDICATES';
 # The following are not TAC slot filling predicates, but rather
 # predicates required by the Cold Start task. FAC and LOC are included
 # to support the export of a Cold Start Run as an EDL submission
-  PER,ORG,GPE,FAC,LOC    mention                  STRING       none
-  PER,ORG,GPE,FAC,LOC    canonical_mention        STRING       none
-  PER,ORG,GPE,FAC,LOC    type                     TYPE         none
-  PER,ORG,GPE,FAC,LOC    link                     STRING       none
+  PER,ORG,GPE,FAC,LOC,STRING    mention                  STRING       none
+  PER,ORG,GPE,FAC,LOC,STRING    canonical_mention        STRING       none
+  PER,ORG,GPE,FAC,LOC,STRING    type                     TYPE         none
+  PER,ORG,GPE,FAC,LOC           link                     STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
   PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
 # The following are Sentiment predicates
@@ -1612,7 +1612,7 @@ our %legal_range_types = &build_hash(qw(per gpe org string type conflict.attack
   movement.transport-person personnel.elect personnel.end-position personnel.start-position 
   transaction.transaction transaction.transfer-money transaction.transfer-ownership));
 # Set of types that are entities
-our %legal_entity_types = &build_hash(qw(per gpe org fac loc conflict.attack 
+our %legal_entity_types = &build_hash(qw(per gpe org fac loc string conflict.attack 
   conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet 
   justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact 
   movement.transport-person personnel.elect personnel.end-position personnel.start-position 

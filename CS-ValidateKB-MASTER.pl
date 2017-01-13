@@ -121,7 +121,7 @@ sub intern {
     $kb->{LOGGER}->record_problem('STRING_USED_FOR_ENTITY', $name, $source);
     return;
   }
-  unless ($name =~ /^:?(Entity|Event|m).+$/i) {
+  unless ($name =~ /^:?(Entity|Event|String|m).+$/i) {
     $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_NAME', $name, $source);
     return;
   }
@@ -263,7 +263,7 @@ sub add_assertion {
   else {
     $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->entity_typedef($subject_entity, $predicate->get_domain(), 'SUBJECT', $source);
-    if (&PredicateSet::is_compatible('string', $predicate->get_range()) && scalar ($predicate->get_range()) == 1) {
+    if (&PredicateSet::is_compatible('string', $predicate->get_range()) && scalar keys ($predicate->get_range()) == 1) {
       # Make sure this is a properly double quoted string
       unless ($object =~ /^"(?>(?:(?>[^"\\]+)|\\.)*)"$/) {
 	# If not, complain and stick double quotes around it
@@ -273,7 +273,7 @@ sub add_assertion {
 	$object = "\"$object\"";
       }
     }
-    if (&PredicateSet::is_compatible($predicate->get_range(), \%PredicateSet::legal_entity_types)) {
+    elsif (&PredicateSet::is_compatible($predicate->get_range(), \%PredicateSet::legal_entity_types)) {
       $object_entity = $kb->intern($object, $source);
       unless (defined $object_entity) {
 	$kb->{STATS}{REJECTED_ASSERTIONS}{NO_OBJECT}++;
@@ -498,6 +498,8 @@ sub check_definitions {
 sub assert_inverses {
   my ($kb) = @_;
   foreach my $assertion ($kb->get_assertions()) {
+    next if $assertion->{OBJECT} =~ /:String/;
+    next unless $assertion->{OBJECT_ENTITY};
     next unless ref $assertion->{PREDICATE};
     next unless &PredicateSet::is_compatible($assertion->{PREDICATE}{RANGE}, \%PredicateSet::legal_entity_types);
     unless ($kb->get_assertions($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT})) {
