@@ -46,7 +46,6 @@ my %use_priority = (
 my %type2export = (
   tac => \&export_tac,
   edl => \&export_edl,
-  earg => \&export_earg,
 );
 
 my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
@@ -850,7 +849,22 @@ sub is_valid_ea_export_assertion {
 
 # Event Argument format.
 sub export_earg {
-  my ($kb) = @_;
+  my ($kb, $event_argument_dir) = @_;
+  my (%arguments, %linking, %corpuslinking);;
+  my @fields = qw(
+      ID
+      DOCUMENT_ID
+      EVENT
+      ROLE
+      FILLER
+      CAS
+      PREDICATE_JUSTIFICATION
+      BASE_FILLER
+      ADDITIONAL_JUSTIFICATION
+      REALIS
+      CONFIDENCE
+    );
+  my $run_id = $kb->{RUNID};
   foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
     next if $assertion->{OMIT_FROM_OUTPUT};
     # Only output assertions that have fully resolved predicates
@@ -866,18 +880,20 @@ sub export_earg {
       $object_string_canonical_mention = $kb->{ASSERTIONS3}{$subject_string}{$predicate_string}{$object_string}[0]{OBJECT}
         unless $object_string_canonical_mention;
       $object_string_canonical_mention =~ s/^\"|\"$//g;
-      my $object_string_provenance = $kb->{ASSERTIONS3}{$subject_string}{$predicate_string}{$object_string}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
+      my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
       my $confidence = $assertion->{CONFIDENCE};
       my ($predicate_justification, $base_filler, $additional_justification) = ("NIL", "NIL", "NIL");
       $predicate_justification = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring()
         if $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION};
-      $base_filler = $assertion->{BASE_FILLER}->toshortstring() if $assertion->{BASE_FILLER};
-      $additional_justification = $assertion->{PROVENANCE}{ADDITIONAL_ARGUMENT_JUSTIFICATION}->toshortstring()
-        if $assertion->{PROVENANCE}{ADDITIONAL_ARGUMENT_JUSTIFICATION};
+      $base_filler = $assertion->{PROVENANCE}{BASE_FILLER}->toshortstring() if $assertion->{PROVENANCE}{BASE_FILLER};
+      $additional_justification = $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}->toshortstring()
+        if $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION};
       my $realis = ucfirst $assertion->{REALIS};
       $predicate_string = ucfirst lc $predicate_string;
-      my $output_string =
-        join("\t", (
+      my $id = $arguments{$document_id} ? 1 : scalar @{$arguments{$document_id}} + 1;
+      my $node_id = $subject_string;
+      $subject_string = join(".", ("$run_id$node_id",$document_id,$id)); 
+      my @output = (
           $subject_string,
           $document_id,
           $type,
@@ -888,11 +904,37 @@ sub export_earg {
           $base_filler,
           $additional_justification,
           $realis,
-          $confidence));
-
-      #my $uuid = &main::generate_uuid_from_string($output_string, 12);
-      print $program_output "$output_string\n";
+          $confidence);
+      my %output_line = map {$fields[$_]=>$output[$_]} (0..$#fields);
+      push(@{$arguments{$document_id}}, \%output_line);
+      push(@{$linking{$document_id}{$node_id}}, "$subject_string");
+      push(@{$corpuslinking{$node_id}}, "$run_id.$node_id");
     }
+  }
+
+  # Generate the argument file
+  foreach my $document_id(keys %arguments){
+    open(ARGUMENT, ">>$event_argument_dir/arguments/$document_id");
+    foreach my $line(@{$arguments{$document_id}}) {
+      print ARGUMENT join("\t", map {$line->{$_}} @fields), "\n";
+    }
+    close(ARGUMENT);
+  }
+
+  # Generate the linking file
+  foreach my $document_id(keys %linking) {
+    open(LINKING, ">>$event_argument_dir/linking/$document_id");
+    foreach my $node_id(keys %{$linking{$document_id}}) {
+      print LINKING "$run_id$node_id.$document_id\t", join(" ", sort @{$linking{$document_id}{$node_id}}), "\n";
+    }
+    close(LINKING);
+  }
+
+  # Generate the corpus linking file
+  foreach my $node_id(sort keys %corpuslinking) {
+    open(CORPUS_LINKING, ">>$event_argument_dir/corpusLinking/corpusLinking");
+    print CORPUS_LINKING "$run_id$node_id\t", join(" ", sort @{$corpuslinking{$node_id}}), "\n";
+    close(CORPUS_LINKING);
   }
 }
 
@@ -1030,6 +1072,7 @@ $switches->addVarSwitch('ignore', "Colon-separated list of warnings to ignore. L
 $switches->addVarSwitch('task', "Specify task to validate. Legal values are: " . join(", ", map {"$_ ($tasks{$_}{DESCRIPTION})"} sort keys %tasks) . ".");
 $switches->put('task', 'CSKB');
 $switches->addVarSwitch('stats_file', "Specify a file into which statistics about the KB being validated will be placed");
+$switches->addVarSwitch('event_argument_dir', "Specify a directory into which event argument output will be placed");
 $switches->addParam("filename", "required", "File containing input KB specification.");
 
 $switches->process(@ARGV);
@@ -1064,6 +1107,17 @@ elsif (lc $error_filename eq 'stderr') {
 }
 else {
   open($error_output, ">:utf8", $error_filename) or Logger->new()->NIST_die("Could not open $error_filename: $!");
+}
+
+my $event_argument_dir = $switches->get("event_argument_dir");
+if($event_argument_dir) {
+  if(-e $event_argument_dir) {
+    Logger->new()->NIST_die("Event argument output directory already exists at $event_argument_dir: $!");
+  }
+  system("mkdir $event_argument_dir");
+  system("mkdir $event_argument_dir/arguments");
+  system("mkdir $event_argument_dir/corpusLinking");
+  system("mkdir $event_argument_dir/linking");
 }
 
 my $logger = Logger->new(undef, $error_output);
@@ -1143,6 +1197,10 @@ else {
   # Output the KB if so desired
   if ($output_fn) {
     &{$output_fn}($kb, $output_options);
+  }
+  # Produce the event argument output if the output directory is specified
+  if ($event_argument_dir) {
+    &export_earg($kb, $event_argument_dir);
   }
 }
 
