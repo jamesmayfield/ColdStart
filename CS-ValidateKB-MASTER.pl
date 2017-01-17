@@ -890,7 +890,7 @@ sub export_earg {
         if $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION};
       my $realis = ucfirst $assertion->{REALIS};
       $predicate_string = ucfirst lc $predicate_string;
-      my $id = $arguments{$document_id} ? 1 : scalar @{$arguments{$document_id}} + 1;
+      my $id = $arguments{$document_id} ? scalar @{$arguments{$document_id}} + 1 : 1;
       my $node_id = $subject_string;
       $subject_string = join(".", ("$run_id$node_id",$document_id,$id)); 
       my @output = (
