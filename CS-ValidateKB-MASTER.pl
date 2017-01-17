@@ -262,7 +262,7 @@ sub add_assertion {
   else {
     $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->entity_typedef($subject_entity, $predicate->get_domain(), 'SUBJECT', $source);
-    if (&PredicateSet::is_compatible('string', $predicate->get_range()) && scalar keys ($predicate->get_range()) == 1) {
+    if (&PredicateSet::is_compatible('string', $predicate->get_range()) && $predicate->get_name() =~ /mention/i) {
       # Make sure this is a properly double quoted string
       unless ($object =~ /^"(?>(?:(?>[^"\\]+)|\\.)*)"$/) {
 	# If not, complain and stick double quotes around it
@@ -908,7 +908,7 @@ sub export_earg {
       my %output_line = map {$fields[$_]=>$output[$_]} (0..$#fields);
       push(@{$arguments{$document_id}}, \%output_line);
       push(@{$linking{$document_id}{$node_id}}, "$subject_string");
-      push(@{$corpuslinking{$node_id}}, "$run_id.$node_id");
+      push(@{$corpuslinking{$node_id}}, "$document_id-$run_id$node_id.$document_id");
     }
   }
 
@@ -1111,7 +1111,7 @@ else {
 
 my $event_argument_dir = $switches->get("event_argument_dir");
 if($event_argument_dir) {
-  if(-e $event_argument_dir) {
+  if(-d $event_argument_dir) {
     Logger->new()->NIST_die("Event argument output directory already exists at $event_argument_dir: $!");
   }
   system("mkdir $event_argument_dir");
