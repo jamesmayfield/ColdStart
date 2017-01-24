@@ -349,21 +349,28 @@ sub new {
     return $self;
   }
   my @elements = split(";", $text);
-  my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
-  my ($predicate_justification,$base_filler,$additional_justification) =
-    map {
-      $elements[$_] eq 'NIL' ?
-        undef : Provenance->new($logger, $where, $types[$_], $elements[$_])
-    } (0..$#elements);
+  my ($filler_string,$predicate_justification,$base_filler,$additional_justification);
+  $predicate_justification = Provenance->new($logger, $where, "PROVENANCETRIPLELIST+1", $elements[0])
+    if((scalar @elements) == 1);
+  if((scalar @elements) > 1) {
+    my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
+    ($filler_string,$predicate_justification,$base_filler,$additional_justification) =
+      map {
+        $elements[$_] eq 'NIL' ?
+          undef : Provenance->new($logger, $where, $types[$_], $elements[$_])
+      } (0..$#elements);
+  }
   my @docids = map {$_->get_docid() if $_}
     grep {defined $_}
     ($predicate_justification,$base_filler,$additional_justification);
   my $self = {LOGGER => $logger,
     WHERE => $where,
     DOCID => $docids[0],
+    FILLER_STRING => $filler_string,
     PREDICATE_JUSTIFICATION => $predicate_justification,
     BASE_FILLER => $base_filler,
-    ADDITIONAL_JUSTIFICATION => $additional_justification};
+    ADDITIONAL_JUSTIFICATION => $additional_justification,
+    ORIGINAL_STRING => $text};
   bless($self, $class);
   unless (scalar keys ({map{$_=>1 if $_} @docids}) == 1) {
     $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $self->tooriginalstring(), $where);
@@ -380,7 +387,7 @@ sub get_docid {
 sub get_counts {
 	my ($self) = @_;
 	map { $_ => ($self->{$_} && $self->{$_} eq "NIL") || (not defined $self->{$_}) ? 0 : scalar @{$self->{$_}{TRIPLES}} }
-	  qw(PREDICATE_JUSTIFICATION BASE_FILLER ADDITIONAL_JUSTIFICATION);
+	  qw(FILLER_STRING PREDICATE_JUSTIFICATION BASE_FILLER ADDITIONAL_JUSTIFICATION);
 }
 
 sub get_start {
@@ -396,10 +403,11 @@ sub get_end {
 # This is used to get a consistent string representing the provenancelist
 sub tostring {
 	my ($self) = @_;
+	my $filler_string = $self->{FILLER_STRING} ? $self->{FILLER_STRING}->tostring() : "NIL";
 	my $predicate_justification = $self->{PREDICATE_JUSTIFICATION}->tostring();
 	my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tostring() : "NIL";
 	my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tostring() : "NIL";
-	$self->{PROVENANCE_TOSTRING} = "$predicate_justification;$base_filler;$additional_justification"
+	$self->{PROVENANCE_TOSTRING} = "$filler_string;$predicate_justification;$base_filler;$additional_justification"
     unless $self->{PROVENANCE_TOSTRING};
   $self->{PROVENANCE_TOSTRING};
 }
@@ -407,11 +415,8 @@ sub tostring {
 # tostring() normalizes provenance entry order; this retains the original order
 sub tooriginalstring {
   my ($self) = @_;
-  return "" unless $self->{PREDICATE_JUSTIFICATION};
-  my $predicate_justification = $self->{PREDICATE_JUSTIFICATION}->tooriginalstring();
-  my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tooriginalstring() : "NIL";
-  my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tooriginalstring() : "NIL";
-  "$predicate_justification;$base_filler;$additional_justification";
+  return "" unless $self->{ORIGINAL_STRING};
+  $self->{ORIGINAL_STRING};
 }
 
 
