@@ -353,7 +353,7 @@ sub new {
   $predicate_justification = Provenance->new($logger, $where, "PROVENANCETRIPLELIST+1", $elements[0])
     if((scalar @elements) == 1);
   if((scalar @elements) > 1) {
-    my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
+    my @types = qw(PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
     ($filler_string,$predicate_justification,$base_filler,$additional_justification) =
       map {
         $elements[$_] eq 'NIL' ?
@@ -362,7 +362,7 @@ sub new {
   }
   my @docids = map {$_->get_docid() if $_}
     grep {defined $_}
-    ($predicate_justification,$base_filler,$additional_justification);
+    ($filler_string,$predicate_justification,$base_filler,$additional_justification);
   my $self = {LOGGER => $logger,
     WHERE => $where,
     DOCID => $docids[0],
@@ -404,7 +404,7 @@ sub get_end {
 sub tostring {
 	my ($self) = @_;
 	my $filler_string = $self->{FILLER_STRING} ? $self->{FILLER_STRING}->tostring() : "NIL";
-	my $predicate_justification = $self->{PREDICATE_JUSTIFICATION}->tostring();
+	my $predicate_justification = $self->{PREDICATE_JUSTIFICATION} ? $self->{PREDICATE_JUSTIFICATION}->tostring() : "NIL";
 	my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tostring() : "NIL";
 	my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tostring() : "NIL";
 	$self->{PROVENANCE_TOSTRING} = "$filler_string;$predicate_justification;$base_filler;$additional_justification"
