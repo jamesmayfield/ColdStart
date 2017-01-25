@@ -391,8 +391,11 @@ sub add_assertion {
     }
   }
   # Record the assertion in various places for easy retrieval
-  push(@{$kb->{MENTIONS}{$provenance->get_docid()}}, $assertion)
-    if defined $predicate && ($predicate->{NAME} eq 'mention');
+  if(defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'nominal_mention') ) {
+    $kb->{MENTIONS2}{$provenance->get_docid()}{$provenance->{PREDICATE_JUSTIFICATION}->toshortstring()}{$object}{$subject} = $assertion;
+    $kb->{MENTIONS1}{$provenance->get_docid()}{$provenance->{PREDICATE_JUSTIFICATION}->toshortstring()}{$subject} = $assertion;
+    push(@{$kb->{MENTIONS0}{$provenance->get_docid()}{$provenance->{PREDICATE_JUSTIFICATION}->toshortstring()}}, $assertion);
+  }
   push(@{$kb->{DOCIDS}{$subject}{$verb}{$provenance->get_docid()}}, $assertion)
     if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention' || $predicate->{NAME} eq 'nominal_mention');
   if ($predicate->{NAME} eq 'link') {
@@ -599,6 +602,7 @@ sub check_confidence {
 # Check:
 # (1) if assertions invloving string object entities have filler string present
 # (2) if *mention* assertions have only predicate_justification provided
+# (3) if the same provenance has multiple strings in the mentions, no effort is made to check if the offsets indeed represent the string in actual document
 sub check_provenance_lists {
   my ($kb) = @_;
   foreach my $assertion(@{$kb->{ASSERTIONS0}}) {
@@ -615,6 +619,16 @@ sub check_provenance_lists {
                                         $assertion->{PROVENANCE}{FILLER_STRING} ||
                                         $assertion->{PROVENANCE}{BASE_FILLER} ||
                                         $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}));
+  }
+
+  foreach my $docid(keys %{$kb->{MENTIONS2}}) {
+    foreach my $span(keys %{$kb->{MENTIONS2}{$docid}}) {
+      if (scalar keys (%{$kb->{MENTIONS2}{$docid}{$span}}) > 1) {
+        $kb->{LOGGER}->record_problem('MULTIPLE_STRINGS_FOR_PROV', $kb->{MENTIONS0}{$docid}{$span}[0]{PROVENANCE}->tooriginalstring(),
+          join(", ", map {"$_->{OBJECT} at line $_->{SOURCE}{LINENUM}"}
+            sort {$a->{SOURCE}{LINENUM} <=> $b->{SOURCE}{LINENUM}} @{$kb->{MENTIONS0}{$docid}{$span}}), 'NO_SOURCE');
+      }
+    }
   }
 }
 
