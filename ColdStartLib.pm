@@ -63,6 +63,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   TOO_MANY_PROVENANCE_TRIPLES_E ERROR    Too many provenance triples: provided=(%d) expected=(%d)
   TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
   TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
+  UNEXPECTED_PROVENANCE         ERROR    Only PREDICATE_JUSTIFICATION is expected in the provenance: %s
 
 ########## Knowledge Base Errors
   AMBIGUOUS_PREDICATE           ERROR    %s: ambiguous predicate

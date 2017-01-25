@@ -596,16 +596,25 @@ sub check_confidence {
   }
 }
 
-# Check if assertions invloving string object entities have filler string present
+# Check:
+# (1) if assertions invloving string object entities have filler string present
+# (2) if *mention* assertions have only predicate_justification provided
 sub check_provenance_lists {
   my ($kb) = @_;
-  foreach my $assertion(grep {$_->{OBJECT_ENTITY} &&
-                               $kb->get_entity_type($_->{OBJECT_ENTITY}) eq "string" &&
-                               ! $_->{PROVENANCE}{FILLER_STRING}}
-                          @{$kb->{ASSERTIONS0}}) {
+  foreach my $assertion(@{$kb->{ASSERTIONS0}}) {
     $kb->{LOGGER}->record_problem('MISSING_FILLER_STRING_PROV',
           $assertion->{PROVENANCE}->tooriginalstring(),
-          $assertion->{SOURCE});
+          $assertion->{SOURCE})
+      if ($assertion->{OBJECT_ENTITY} &&
+            $kb->get_entity_type($assertion->{OBJECT_ENTITY}) eq "string" &&
+            ! $assertion->{PROVENANCE}{FILLER_STRING});
+    $kb->{LOGGER}->record_problem('UNEXPECTED_PROVENANCE',
+          $assertion->{PROVENANCE}->tooriginalstring(),
+          $assertion->{SOURCE})
+      if ($assertion->{VERB} =~ /mention/ && (!$assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} ||
+                                        $assertion->{PROVENANCE}{FILLER_STRING} ||
+                                        $assertion->{PROVENANCE}{BASE_FILLER} ||
+                                        $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}));
   }
 }
 
