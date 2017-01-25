@@ -637,7 +637,7 @@ sub check_relation_endpoints {
       $kb->{LOGGER}->record_problem('UNATTESTED_RELATION_ENTITY',
 				    $assertion->{PRINT_STRING},
 				    $assertion->{SUBJECT_ENTITY}{NAME},
-				    $provenance->tostring(),
+				    $provenance->tooriginalstring(),
 				    $assertion->{SOURCE})
 	unless @subject_mentions;
     }
@@ -652,7 +652,7 @@ sub check_relation_endpoints {
       $kb->{LOGGER}->record_problem('UNATTESTED_RELATION_ENTITY',
 				    $assertion->{PRINT_STRING},
 				    $assertion->{OBJECT_ENTITY}{NAME},
-				    $provenance->tostring(),
+				    $provenance->tooriginalstring(),
 				    $assertion->{SOURCE})
 	unless @object_mentions;
     }
