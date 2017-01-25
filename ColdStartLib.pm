@@ -57,6 +57,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_OFFSET_PAIR           ERROR    (%s, %s) is not a valid offset pair
   ILLEGAL_OFFSET_PAIR_STRING    ERROR    %s is not a valid offset pair string
   ILLEGAL_OFFSET_TRIPLE_STRING  ERROR    %s is not a valid docid/offset pair string
+  MISSING_FILLER_STRING_PROV    ERROR    Filler string missing in provencance: %s
   MULTIPLE_DOCIDS_IN_PROV       ERROR    %s contains multiple DOCIDs
   TOO_MANY_PROVENANCE_TRIPLES   WARNING  Too many provenance triples (%d) provided; only the first %d will be used
   TOO_MANY_PROVENANCE_TRIPLES_E ERROR    Too many provenance triples: provided=(%d) expected=(%d)

@@ -596,6 +596,19 @@ sub check_confidence {
   }
 }
 
+# Check if assertions invloving string object entities have filler string present
+sub check_provenance_lists {
+  my ($kb) = @_;
+  foreach my $assertion(grep {$_->{OBJECT_ENTITY} &&
+                               $kb->get_entity_type($_->{OBJECT_ENTITY}) eq "string" &&
+                               ! $_->{PROVENANCE}{FILLER_STRING}}
+                          @{$kb->{ASSERTIONS0}}) {
+    $kb->{LOGGER}->record_problem('MISSING_FILLER_STRING_PROV',
+          $assertion->{PROVENANCE}->tooriginalstring(),
+          $assertion->{SOURCE});
+  }
+}
+
 my @do_not_check_endpoints = (
   'type',
   'mention',
@@ -651,6 +664,7 @@ sub check_integrity {
   my ($kb, $predicate_constraints) = @_;
   $kb->check_entity_types();
   $kb->check_definitions();
+  $kb->check_provenance_lists();
   $kb->assert_inverses();
   $kb->assert_mentions(!defined $predicate_constraints || $predicate_constraints->{'canonical_mention'});
   $kb->check_relation_endpoints();
