@@ -79,6 +79,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
   MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
   MISSING_MENTION               WARNING  Entity %s has no mention in document %s
+  MISSING_MENTION_E             ERROR    %s: '%s' is not a mention of entity %s
   # This is the WARNING version of ILLEGAL_CONFIDENCE_VALUE:
   MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
