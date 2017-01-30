@@ -483,7 +483,7 @@ my $max_triples = 4;
     if (defined $docids &&
 	($checks{START} || '') ne 'ERROR' &&
 	($checks{DOCID} || '') ne 'ERROR') {
-      if ($start > $docids->{$docid}) {
+      if ($start > $docids->{$docid}{LENGTH}) {
 	$logger->record_problem('ILLEGAL_OFFSET_IN_DOC', $start, $docid, $where);
 	$checks{START_OFFSET} = $logger->get_error_type('ILLEGAL_OFFSET_IN_DOC');
       }
@@ -491,7 +491,7 @@ my $max_triples = 4;
     if (defined $docids &&
 	($checks{END} || '') ne 'ERROR' &&
 	($checks{DOCID} || '') ne 'ERROR') {
-      if ($end > $docids->{$docid}) {
+      if ($end > $docids->{$docid}{LENGTH}) {
 	$logger->record_problem('ILLEGAL_OFFSET_IN_DOC', $end, $docid, $where);
 	$checks{END_OFFSET} = $logger->get_error_type('ILLEGAL_OFFSET_IN_DOC');
       }
