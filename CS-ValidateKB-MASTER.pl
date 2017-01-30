@@ -516,8 +516,19 @@ sub assert_inverses {
       # Assert the inverse if it's not already there
       my $inverse_name = $assertion->{PREDICATE}{INVERSE_NAME};
       $inverse_name .= ".".$assertion->{REALIS} if $assertion->{REALIS};
+      my $provenance = $assertion->{PROVENANCE};
+      if(exists $provenance->{FILLER_STRING} && defined $provenance->{FILLER_STRING}) {
+        my $docid = $provenance->get_docid();
+        my $subject = $assertion->{SUBJECT};
+        my ($canonical_mention) = $kb->get_assertions($subject, 'canonical_mention', undef, $docid);
+        $kb->{LOGGER}->record_problem('MISSING_CANONICAL_E', $subject, $docid, $assertion->{SOURCE})
+          unless ($canonical_mention);
+        $provenance->{FILLER_STRING} = $canonical_mention->{PROVENANCE}{PREDICATE_JUSTIFICATION};
+        my $filler_string = $provenance->{FILLER_STRING}->tooriginalstring();
+        $provenance->{ORIGINAL_STRING} =~ s/^(.*?)\;/$filler_string;/;
+      }
       my $inverse = $kb->add_assertion($assertion->{OBJECT}, $inverse_name, $assertion->{SUBJECT},
-				       $assertion->{PROVENANCE}, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+				       $provenance, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
       # And flag this as an inferred relation
       $inverse->{INFERRED} = 'true';
       # Make sure the visibility of the assertion and its inverse is in sync
