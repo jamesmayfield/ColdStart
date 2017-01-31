@@ -522,8 +522,9 @@ sub check_mention_string {
                                $kb->get_assertions($subject, 'canonical_mention', undef, $docid));
       # Read the file
       my $filename = $mentions[0]->{PROVENANCE}->get_docfile() if @mentions;
+      next unless $filename;
       my $entire_file;
-      if($filename) {
+      {
         local $/ = undef;
         open(my $infile, "<:utf8", $filename) or $kb->{LOGGER}->NIST_die("Source document expected at $filename: $!");
         $entire_file = <$infile>;
@@ -540,7 +541,7 @@ sub check_mention_string {
         $kb->{LOGGER}->record_problem('INACCURACTE_MENTION_STRING',
                                          $mention_string,
                                          $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring(),
-                                         $mention->{SOURCE});
+                                         $mention->{SOURCE}) if $mention_string ne $mention_string_from_file;
       }
     }
   }
