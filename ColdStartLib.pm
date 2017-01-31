@@ -96,6 +96,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   STRING_USED_FOR_ENTITY        ERROR    Expecting an entity, but got string %s
   SUBJECT_PREDICATE_MISMATCH    ERROR    Type of subject (%s) does not match type of predicate (%s)
   UNASSERTED_MENTION            WARNING  Failed to assert that %s in document %s is also a mention
+  INACCURACTE_MENTION_STRING    ERROR    Mention string '%s' not found at %s
   UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses entity %s, but that entity id has no mentions in provenance %s
   UNQUOTED_STRING               WARNING  String %s not surrounded by double quotes
   UNKNOWN_TYPE                  ERROR    Cannot infer type for Entity %s
@@ -383,6 +384,15 @@ sub new {
   $self;
 }
 
+# Get the complete path of the file containing the document used in the provenance
+sub get_docfile {
+  my ($self) = @_;
+  return unless $self->{DOCID};
+  my $docids = $Provenance::docids;
+  return $docids->{$self->{DOCID}}{FILE} if ($docids && $docids->{$self->{DOCID}});
+  return;
+}
+
 sub get_docid {
   my ($self) = @_;
   return "NO DOCUMENT" unless $self->{DOCID};
@@ -440,7 +450,7 @@ my $max_total_chars = 600;
 my $max_triples = 4;
 
 {
-  my $docids;
+  our $docids;
 
   sub set_docids {
     $docids = $_[0];

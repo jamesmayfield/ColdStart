@@ -502,6 +502,50 @@ sub check_definitions {
   }
 }
 
+# Make sure that the mention strings correspond to the text found at the given provenance
+sub check_mention_string {
+  my ($kb) = @_;
+  foreach my $subject ($kb->get_subjects()) {
+    my %docids;
+    foreach my $docid ($kb->get_docids($subject, 'mention'),
+         $kb->get_docids($subject, 'nominal_mention'),
+		     $kb->get_docids($subject, 'canonical_mention')) {
+      $docids{$docid}++;
+    }
+    unless (keys %docids) {
+      $kb->{LOGGER}->record_problem('NO_MENTIONS', $subject, 'NO_SOURCE');
+      next;
+    }
+    foreach my $docid (keys %docids) {
+      my @mentions = ($kb->get_assertions($subject, 'mention', undef, $docid),
+                               $kb->get_assertions($subject, 'nominal_mention', undef, $docid),
+                               $kb->get_assertions($subject, 'canonical_mention', undef, $docid));
+      # Read the file
+      my $filename = $mentions[0]->{PROVENANCE}->get_docfile() if @mentions;
+      my $entire_file;
+      if($filename) {
+        local $/ = undef;
+        open(my $infile, "<:utf8", $filename) or $kb->{LOGGER}->NIST_die("Source document expected at $filename: $!");
+        $entire_file = <$infile>;
+        close $infile;
+      }
+      # Check all mentions
+      foreach my $mention(@mentions) {
+        my $mention_string = $mention->{OBJECT};
+        $mention_string =~ s/^"|"$//g;
+        my $mention_string_from_file;
+        my $start = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
+        my $end = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end();
+        $mention_string_from_file = substr($entire_file, $start, $end-$start+1);
+        $kb->{LOGGER}->record_problem('INACCURACTE_MENTION_STRING',
+                                         $mention_string,
+                                         $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring(),
+                                         $mention->{SOURCE});
+      }
+    }
+  }
+}
+
 # Make sure that every assertion also has an asserted inverse
 sub assert_inverses {
   my ($kb) = @_;
@@ -712,6 +756,7 @@ sub check_integrity {
   $kb->check_entity_types();
   $kb->check_definitions();
   $kb->check_provenance_lists();
+  $kb->check_mention_string();
   $kb->assert_inverses();
   $kb->assert_mentions(!defined $predicate_constraints || $predicate_constraints->{'canonical_mention'});
   $kb->check_relation_endpoints();
