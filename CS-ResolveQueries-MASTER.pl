@@ -511,6 +511,8 @@ sub add_fill {
   my $filler_provenance;
   # Column 8: Confidence score
   my $confidence = $assertion->{confidence};
+  # Column 9: Node ID
+  my $node_id = $assertion->{object};
   # This routine either receives a single task and matching assertion
   # (if this a string-valued slot) or two such pairs, one for the
   # final hop in the query and one bearing the canonical_mention for
@@ -534,6 +536,7 @@ sub add_fill {
 			     $type,
   			     $filler_provenance,
   			     $confidence,
+             $node_id,
   			    )), "\n";
 }
 
