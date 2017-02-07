@@ -569,8 +569,13 @@ sub assert_inverses {
         $kb->{LOGGER}->record_problem('MISSING_CANONICAL_E', $subject, $docid, $assertion->{SOURCE})
           unless ($canonical_mention);
         $provenance->{FILLER_STRING} = $canonical_mention->{PROVENANCE}{PREDICATE_JUSTIFICATION};
-        my $filler_string = $provenance->{FILLER_STRING}->tooriginalstring();
-        $provenance->{ORIGINAL_STRING} =~ s/^(.*?)\;/$filler_string;/;
+        $kb->{LOGGER}->record_problem('MISSING_FILLER_STRING_PROV',
+          $provenance->tooriginalstring(),
+          $assertion->{SOURCE}) unless $provenance->{FILLER_STRING};
+        if($provenance->{FILLER_STRING}) {
+          my $filler_string = $provenance->{FILLER_STRING}->tooriginalstring();
+          $provenance->{ORIGINAL_STRING} =~ s/^(.*?)\;/$filler_string;/;
+        }
       }
       my $inverse = $kb->add_assertion($assertion->{OBJECT}, $inverse_name, $assertion->{SUBJECT},
 				       $provenance, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
