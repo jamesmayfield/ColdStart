@@ -596,6 +596,7 @@ sub parse_assertion {
     my @offset_values = split(";", $result->{offsets});
     my %offsets = map {$offset_fields[$_]=>$offset_values[$_]} (0..$#offset_fields);
     foreach my $offset_field(@offset_fields) {
+      next unless $offsets{$offset_field};
       my @offsets = split(/,/, $offsets{$offset_field});
       foreach (0..$#offsets) {
         next if $offsets[$_] eq 'NIL';
