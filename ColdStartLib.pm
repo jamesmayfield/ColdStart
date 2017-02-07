@@ -1469,61 +1469,61 @@ my $predicates_spec = <<'END_PREDICATES';
   CONFLICT.ATTACK                instrument        STRING                      none
   CONFLICT.ATTACK                target            PER,GPE,ORG,STRING          conflict.attack_target
   CONFLICT.ATTACK                date              STRING                      none
-  CONFLICT.ATTACK                location          GPE,STRING                  conflict.attack_location
+  CONFLICT.ATTACK                place             GPE,STRING                  conflict.attack_place
   CONFLICT.DEMONSTRATE           mention           STRING                      none
   CONFLICT.DEMONSTRATE           canonical_mention STRING                      none
   CONFLICT.DEMONSTRATE           entity            PER,ORG,STRING              conflict.demonstrate_entity
   CONFLICT.DEMONSTRATE           date              STRING                      none
-  CONFLICT.DEMONSTRATE           location          GPE,STRING                  conflict.demonstrate_location
+  CONFLICT.DEMONSTRATE           place             GPE,STRING                  conflict.demonstrate_place
   CONTACT.BROADCAST              mention           STRING                      none
   CONTACT.BROADCAST              canonical_mention STRING                      none
   CONTACT.BROADCAST              audience          PER,ORG,GPE,STRING          contact.broadcast_audience
   CONTACT.BROADCAST              entity            PER,ORG,GPE,STRING          contact.broadcast_entity
   CONTACT.BROADCAST              date              STRING                      none
-  CONTACT.BROADCAST              location          GPE,STRING                  contact.broadcast_location
+  CONTACT.BROADCAST              place             GPE,STRING                  contact.broadcast_place
   CONTACT.CONTACT                mention           STRING                      none
   CONTACT.CONTACT                canonical_mention STRING                      none
   CONTACT.CONTACT                entity            PER,ORG,GPE,STRING          contact.contact_entity
   CONTACT.CONTACT                date              STRING                      none
-  CONTACT.CONTACT                location          GPE,STRING                  contact.contact_location
+  CONTACT.CONTACT                place             GPE,STRING                  contact.contact_place
   CONTACT.CORRESPONDENCE         mention           STRING                      none
   CONTACT.CORRESPONDENCE         canonical_mention STRING                      none
   CONTACT.CORRESPONDENCE         entity            PER,ORG,GPE,STRING          contact.correspondence_entity
   CONTACT.CORRESPONDENCE         date              STRING                      none
-  CONTACT.CORRESPONDENCE         location          GPE,STRING                  contact.correspondence_location
+  CONTACT.CORRESPONDENCE         place             GPE,STRING                  contact.correspondence_place
   CONTACT.MEET                   mention           STRING                      none
   CONTACT.MEET                   canonical_mention STRING                      none
   CONTACT.MEET                   entity            PER,ORG,GPE,STRING          contact.meet_entity
   CONTACT.MEET                   date              STRING                      none
-  CONTACT.MEET                   location          GPE,STRING                  contact.meet_location
+  CONTACT.MEET                   place             GPE,STRING                  contact.meet_place
   JUSTICE.ARREST-JAIL            mention           STRING                      none
   JUSTICE.ARREST-JAIL            canonical_mention STRING                      none
   JUSTICE.ARREST-JAIL            agent             PER,ORG,GPE,STRING          justice.arrest-jail_agent
   JUSTICE.ARREST-JAIL            crime             STRING                      none
   JUSTICE.ARREST-JAIL            person            PER,STRING                  justice.arrest-jail_person
   JUSTICE.ARREST-JAIL            date              STRING                      none
-  JUSTICE.ARREST-JAIL            location          GPE,STRING                  justice.arrest-jail_location
+  JUSTICE.ARREST-JAIL            place             GPE,STRING                  justice.arrest-jail_place
   LIFE.DIE                       mention           STRING                      none
   LIFE.DIE                       canonical_mention STRING                      none
   LIFE.DIE                       agent             PER,ORG,GPE,STRING          life.die_agent
   LIFE.DIE                       instrument        STRING                      none
   LIFE.DIE                       victim            PER,STRING                  life.die_victim
   LIFE.DIE                       date              STRING                      none
-  LIFE.DIE                       location          GPE,STRING                  life.die_location
+  LIFE.DIE                       place             GPE,STRING                  life.die_place
   LIFE.INJURE                    mention           STRING                      none
   LIFE.INJURE                    canonical_mention STRING                      none
   LIFE.INJURE                    agent             PER,ORG,GPE,STRING          life.injure_agent
   LIFE.INJURE                    instrument        STRING                      none
   LIFE.INJURE                    victim            PER,STRING                  life.injure_victim
   LIFE.INJURE                    date              STRING                      none
-  LIFE.INJURE                    location          GPE,STRING                  life.injure_location
+  LIFE.INJURE                    place             GPE,STRING                  life.injure_place
   MANUFACTURE.ARTIFACT           mention           STRING                      none
   MANUFACTURE.ARTIFACT           canonical_mention STRING                      none
   MANUFACTURE.ARTIFACT           agent             PER,ORG,GPE,STRING          manufacture.artifact_agent
   MANUFACTURE.ARTIFACT           artifact          STRING                      none
   MANUFACTURE.ARTIFACT           instrument        STRING                      none
   MANUFACTURE.ARTIFACT           date              STRING                      none
-  MANUFACTURE.ARTIFACT           location          GPE,STRING                  manufacture.artifact_location
+  MANUFACTURE.ARTIFACT           place             GPE,STRING                  manufacture.artifact_place
   MOVEMENT.TRANSPORT-ARTIFACT    mention           STRING                      none
   MOVEMENT.TRANSPORT-ARTIFACT    canonical_mention STRING                      none
   MOVEMENT.TRANSPORT-ARTIFACT    agent             PER,ORG,GPE,STRING          movement.transport-artifact_agent
@@ -1546,28 +1546,28 @@ my $predicates_spec = <<'END_PREDICATES';
   PERSONNEL.ELECT                person            PER,STRING                  personnel.elect_person
   PERSONNEL.ELECT                position          STRING                      none
   PERSONNEL.ELECT                date              STRING                      none
-  PERSONNEL.ELECT                location          GPE,STRING                  personnel.elect_location
+  PERSONNEL.ELECT                place             GPE,STRING                  personnel.elect_place
   PERSONNEL.END-POSITION         mention           STRING                      none
   PERSONNEL.END-POSITION         canonical_mention STRING                      none
   PERSONNEL.END-POSITION         entity            ORG,GPE,STRING              personnel.end-position_entity
   PERSONNEL.END-POSITION         person            PER,STRING                  personnel.end-position_person
   PERSONNEL.END-POSITION         position          STRING                      none
   PERSONNEL.END-POSITION         date              STRING                      none
-  PERSONNEL.END-POSITION         location          GPE,STRING                  personnel.end-position_location
+  PERSONNEL.END-POSITION         place             GPE,STRING                  personnel.end-position_place
   PERSONNEL.START-POSITION       mention           STRING                      none
   PERSONNEL.START-POSITION       canonical_mention STRING                      none
   PERSONNEL.START-POSITION       entity            ORG,GPE,STRING              personnel.start-position_entity
   PERSONNEL.START-POSITION       person            PER,STRING                  personnel.start-position_person
   PERSONNEL.START-POSITION       position          STRING                      none
   PERSONNEL.START-POSITION       date              STRING                      none
-  PERSONNEL.START-POSITION       location          GPE,STRING                  personnel.start-position_location
+  PERSONNEL.START-POSITION       place             GPE,STRING                  personnel.start-position_place
   TRANSACTION.TRANSACTION        mention           STRING                      none
   TRANSACTION.TRANSACTION        canonical_mention STRING                      none
   TRANSACTION.TRANSACTION        beneficiary       PER,ORG,GPE,STRING          transaction.transaction_beneficiary
   TRANSACTION.TRANSACTION        giver             PER,ORG,GPE,STRING          transaction.transaction_giver
   TRANSACTION.TRANSACTION        recipient         PER,ORG,GPE,STRING          transaction.transaction_recipient
   TRANSACTION.TRANSACTION        date              STRING                      none
-  TRANSACTION.TRANSACTION        location          GPE,STRING                  transaction.transaction_location
+  TRANSACTION.TRANSACTION        place             GPE,STRING                  transaction.transaction_place
   TRANSACTION.TRANSFER-MONEY     mention           STRING                      none
   TRANSACTION.TRANSFER-MONEY     canonical_mention STRING                      none
   TRANSACTION.TRANSFER-MONEY     beneficiary       PER,ORG,GPE,STRING          transaction.transfer-money_beneficiary
@@ -1575,7 +1575,7 @@ my $predicates_spec = <<'END_PREDICATES';
   TRANSACTION.TRANSFER-MONEY     money             STRING                      none
   TRANSACTION.TRANSFER-MONEY     recipient         PER,ORG,GPE,STRING          transaction.transfer-money_recipient
   TRANSACTION.TRANSFER-MONEY     date              STRING                      none
-  TRANSACTION.TRANSFER-MONEY     location          GPE,STRING                  transaction.transfer-money_location
+  TRANSACTION.TRANSFER-MONEY     place             GPE,STRING                  transaction.transfer-money_place
   TRANSACTION.TRANSFER-OWNERSHIP mention           STRING                      none
   TRANSACTION.TRANSFER-OWNERSHIP canonical_mention STRING                      none
   TRANSACTION.TRANSFER-OWNERSHIP beneficiary       PER,ORG,GPE,STRING          transaction.transfer-ownership_beneficiary
@@ -1583,7 +1583,7 @@ my $predicates_spec = <<'END_PREDICATES';
   TRANSACTION.TRANSFER-OWNERSHIP recipient         PER,ORG,GPE,STRING          transaction.transfer-ownership_recipient
   TRANSACTION.TRANSFER-OWNERSHIP thing             STRING                      none
   TRANSACTION.TRANSFER-OWNERSHIP date              STRING                      none
-  TRANSACTION.TRANSFER-OWNERSHIP location          GPE,STRING                  transaction.transfer-ownership_location
+  TRANSACTION.TRANSFER-OWNERSHIP place             GPE,STRING                  transaction.transfer-ownership_place
 END_PREDICATES
 
 #####################################################################################
