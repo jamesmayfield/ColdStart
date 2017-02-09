@@ -913,7 +913,7 @@ sub infer_language_from_documentid{
   elsif($documentid =~ /^SPA/i) {
   	$language = "SPANISH";
   }
-  elsif($documentid =~ /ENG/i) {
+  elsif($documentid =~ /(^ENG_)|(_ENG_)/i) {
   	$language = "ENGLISH";
   }
   else {

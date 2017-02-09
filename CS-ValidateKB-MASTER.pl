@@ -959,10 +959,71 @@ sub is_valid_ea_export_assertion {
 	$retVal;
 }
 
+sub get_noun_type {
+  my ($verb) = @_;
+  return "NAM" if $verb eq "mention";
+  return "NOM" if $verb eq "nominal_mention";
+  return "PRO" if $verb eq "pronominal_mention";
+  return;
+}
+
+# Export sentiments
+sub export_sentiments {
+  my ($kb, $sentiments_dir) = @_;
+  my %verbs_of_interest = map {$_=>1} qw(mention nominal_mention pronominal_mention likes dislikes);
+  my %mentions;
+  my %sentiments;
+  foreach my $assertion ($kb->get_assertions()) {
+    next unless $verbs_of_interest{$assertion->{VERB}};
+    if($assertion->{VERB} =~ /mention/) {
+      push(@{$mentions{$assertion->{PROVENANCE}->get_docid()}{$assertion->{SUBJECT}}}, $assertion);
+    }
+    else{
+      push(@{$sentiments{$assertion->{PROVENANCE}->get_docid()}{$assertion->{SUBJECT}}}, $assertion);
+    }
+  }
+  foreach my $docid(sort keys %mentions) {
+    my $source_type = "newswire";
+    $source_type = "multi_post" if $docid =~ /_DF_/;
+    my $runid = $kb->{RUNID};
+    my $outputfile_mentions = "$sentiments_dir/predicted-ere/$docid.rich_ere.xml";
+    my $output;
+    open($output, ">:utf8", $outputfile_mentions) or $kb->{LOGGER}->NIST_die("Could not open $outputfile_mentions: $!");
+    print $output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    print $output "<deft_ere kit_id=\"$runid\" docid=\"$docid\" source_type=\"$source_type\">\n";
+    print $output "  <entities>\n";
+    foreach my $entity_nodeid(sort keys %{$mentions{$docid}}) {
+      my $entity_type = uc $kb->get_entity_type($entity_nodeid, {LINENUM=>$., FILENAME=>$0});
+      print $output "    <entity id=\"$entity_nodeid\" type=\"$entity_type\" specificity=\"specificIndividual\">\n";
+      my $mentionid_num = 500000;
+      foreach my $mention(@{$mentions{$docid}{$entity_nodeid}}) {
+        $mentionid_num++;
+        my $mentionid = "$entity_nodeid.$mentionid_num";
+        my $noun_type = &get_noun_type($mention->{VERB});
+        $kb->{LOGGER}->NIST_die("NOUN_TYPE undefined.") unless $noun_type;
+        my $source = $docid;
+        my $start = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
+        my $length = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$start+1;
+        my $mention_text = $mention->{OBJECT};
+        $mention_text =~ s/^\"|\"$//g;
+        print $output "      <entity_mention id=\"$mentionid\" noun_type=\"$noun_type\" source=\"$source\" offset=\"$start\" length=\"$length\">\n";
+        print $output "        <mention_text>$mention_text<\/mention_text>\n";
+        print $output "        <nom_head source=\"$source\" offset=\"$start\" length=\"$length\">$mention_text<\/nom_head>\n"
+          if $noun_type eq "NOM";
+        print $output "      <\/entity_mention>\n";
+      }
+      print $output "    <\/entity>\n";
+    }
+    print $output "  <\/entities>\n";
+    print $output "<\/deft_ere>\n";
+    close $output;
+  }
+}
+
 # Event Argument format.
 sub export_earg {
   my ($kb, $event_argument_dir) = @_;
-  my (%arguments, %linking, %corpuslinking);;
+  my (%arguments, %linking, %corpuslinking);
   my @fields = qw(
       ID
       DOCUMENT_ID
@@ -1185,6 +1246,7 @@ $switches->addVarSwitch('task', "Specify task to validate. Legal values are: " .
 $switches->put('task', 'CSKB');
 $switches->addVarSwitch('stats_file', "Specify a file into which statistics about the KB being validated will be placed");
 $switches->addVarSwitch('event_argument_dir', "Specify a directory into which event argument output will be placed");
+$switches->addVarSwitch('sentiments_dir', "Specify a directory into which sentiments output will be placed");
 $switches->addParam("filename", "required", "File containing input KB specification.");
 
 $switches->process(@ARGV);
@@ -1223,13 +1285,21 @@ else {
 
 my $event_argument_dir = $switches->get("event_argument_dir");
 if($event_argument_dir) {
-  if(-d $event_argument_dir) {
-    Logger->new()->NIST_die("Event argument output directory already exists at $event_argument_dir: $!");
-  }
+  Logger->new()->NIST_die("Event argument output directory already exists at $event_argument_dir: $!")
+    if(-d $event_argument_dir);
   system("mkdir $event_argument_dir");
   system("mkdir $event_argument_dir/arguments");
   system("mkdir $event_argument_dir/corpusLinking");
   system("mkdir $event_argument_dir/linking");
+}
+
+my $sentiments_dir = $switches->get("sentiments_dir");
+if($sentiments_dir) {
+	Logger->new()->NIST_die("Sentiments output directory already exists at $sentiments_dir: $!")
+	  if(-d $sentiments_dir);
+	system("mkdir $sentiments_dir");
+	system("mkdir $sentiments_dir/predicted-ere");
+	system("mkdir $sentiments_dir/predicted-best");
 }
 
 my $logger = Logger->new(undef, $error_output);
@@ -1311,9 +1381,9 @@ else {
     &{$output_fn}($kb, $output_options);
   }
   # Produce the event argument output if the output directory is specified
-  if ($event_argument_dir) {
-    &export_earg($kb, $event_argument_dir);
-  }
+  &export_earg($kb, $event_argument_dir) if ($event_argument_dir);
+  # Produce the sentiments if the output directory is specified
+  &export_sentiments($kb, $sentiments_dir) if($sentiments_dir);
 }
 
 if ($statsfile) {
