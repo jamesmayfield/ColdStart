@@ -972,6 +972,7 @@ sub export_sentiments {
   my ($kb, $sentiments_dir) = @_;
   my %verbs_of_interest = map {$_=>1} qw(mention nominal_mention pronominal_mention likes dislikes);
   my %mentions;
+  my %provenance_to_mention;
   my %sentiments;
   foreach my $assertion ($kb->get_assertions()) {
     next unless $verbs_of_interest{$assertion->{VERB}};
@@ -979,16 +980,17 @@ sub export_sentiments {
       push(@{$mentions{$assertion->{PROVENANCE}->get_docid()}{$assertion->{SUBJECT}}}, $assertion);
     }
     else{
-      push(@{$sentiments{$assertion->{PROVENANCE}->get_docid()}{$assertion->{SUBJECT}}}, $assertion);
+      push(@{$sentiments{$assertion->{PROVENANCE}->get_docid()}{$assertion->{OBJECT}}{$assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring()}}, $assertion);
     }
   }
   foreach my $docid(sort keys %mentions) {
     my $source_type = "newswire";
     $source_type = "multi_post" if $docid =~ /_DF_/;
     my $runid = $kb->{RUNID};
-    my $outputfile_mentions = "$sentiments_dir/predicted-ere/$docid.rich_ere.xml";
+    # ERE output
+    my $outputfile_ere = "$sentiments_dir/predicted-ere/$docid.rich_ere.xml";
     my $output;
-    open($output, ">:utf8", $outputfile_mentions) or $kb->{LOGGER}->NIST_die("Could not open $outputfile_mentions: $!");
+    open($output, ">:utf8", $outputfile_ere) or $kb->{LOGGER}->NIST_die("Could not open $outputfile_ere: $!");
     print $output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     print $output "<deft_ere kit_id=\"$runid\" docid=\"$docid\" source_type=\"$source_type\">\n";
     print $output "  <entities>\n";
@@ -999,6 +1001,9 @@ sub export_sentiments {
       foreach my $mention(@{$mentions{$docid}{$entity_nodeid}}) {
         $mentionid_num++;
         my $mentionid = "$entity_nodeid.$mentionid_num";
+        $mention->{MENTIONID} = $mentionid;
+        my $provenance_string = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring();
+        $provenance_to_mention{$provenance_string}{$entity_nodeid} = $mention;
         my $noun_type = &get_noun_type($mention->{VERB});
         $kb->{LOGGER}->NIST_die("NOUN_TYPE undefined.") unless $noun_type;
         my $source = $docid;
@@ -1016,6 +1021,45 @@ sub export_sentiments {
     }
     print $output "  <\/entities>\n";
     print $output "<\/deft_ere>\n";
+    close $output;
+    # BEST output
+    my $outputfile_best = "$sentiments_dir/predicted-best/$docid.best.xml";
+    open($output, ">:utf8", $outputfile_best) or $kb->{LOGGER}->NIST_die("Could not open $outputfile_best: $!");
+    print $output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    print $output "<belief_sentiment_doc id=\"$docid\">\n";
+    print $output "  <sentiment_annotations>\n";
+    print $output "    <entities>\n";
+    foreach my $target_nodeid(sort keys %{$sentiments{$docid}}) {
+      foreach my $target_provenance_string(sort keys %{$sentiments{$docid}{$target_nodeid}}) {
+        my $target_mentionid = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{MENTIONID};
+        my $target_mention_text = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{OBJECT};
+        $target_mention_text =~ s/^\"|\"$//g;
+        my $target_offset = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
+        my $target_length = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$target_offset+1;
+        print $output "      <entity ere_id=\"$target_mentionid\" offset=\"$target_offset\" length=\"$target_length\">\n";
+        print $output "        <text>$target_mention_text<\/text>\n";
+        print $output "        <sentiments>\n";
+        foreach my $sentiment(@{$sentiments{$docid}{$target_nodeid}{$target_provenance_string}}) {
+          my $source_nodeid = $sentiment->{SUBJECT};
+          my ($source_canonical_mention_assertion) = $kb->get_assertions($source_nodeid, 'canonical_mention', undef, $docid);
+          my $source_provenance_string = $source_canonical_mention_assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring();
+          my $source_mentionid = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{MENTIONID};
+          my $source_mention_text = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{OBJECT};
+          $source_mention_text =~ s/^\"|\"$//g;
+          my $source_offset = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
+          my $source_length = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$source_offset+1;
+          my $polarity = "pos";
+          $polarity = "neg" if $sentiment->{VERB} eq "dislikes";
+          print $output "          <sentiment polarity=\"$polarity\" sarcasm=\"no\">\n";
+          print $output "            <source ere_id=\"$source_mentionid\" offset=\"$source_offset\" length=\"$source_length\">$source_mention_text<\/source>\n";
+          print $output "          <\/sentiment>\n";
+        }
+        print $output "        <sentiments>\n";
+        print $output "      <\/entity>\n";
+      }
+    }
+    print $output "    <\/entities>\n";
+    print $output "  <\/sentiment_annotations>\n";
     close $output;
   }
 }
