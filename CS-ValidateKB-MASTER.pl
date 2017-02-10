@@ -503,6 +503,10 @@ sub check_definitions {
 }
 
 # Make sure that the mention strings correspond to the text found at the given provenance
+#
+# This function optionally checks for the consistency of mention string found in the KB with
+# the text found at the given offset in the document. This check is performed if the link to file
+# containing the document text is provided in the doclength file provided using -docs switch.
 sub check_mention_string {
   my ($kb) = @_;
   foreach my $subject ($kb->get_subjects()) {
