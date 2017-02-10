@@ -233,8 +233,13 @@ sub add_assertion {
   $verb = $predicate->get_name();
   my %verbs_with_restricted_prov = (
     mention => 1,
+    canonical_mention => 1,
+    nominal_mention => 1,
+    pronominal_mention => 1,
     likes => 1,
     dislikes => 1,
+    is_liked_by => 1,
+    is_disliked_by => 1,
   );
   foreach my $v(keys %verbs_with_restricted_prov) {
     if($verb =~ /$v/ ) {
