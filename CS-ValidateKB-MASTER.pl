@@ -674,7 +674,7 @@ sub check_confidence {
 # (1) if assertions invloving string object entities have filler string present
 # (2) if *mention* assertions have only predicate_justification provided
 # (3) if the same provenance has multiple strings in the mentions, no effort is made to check if the offsets indeed represent the string in actual document
-# (4) if filler_string and base_filler are both mentions of the object
+# (4) if filler_string is a mention of the object
 sub check_provenance_lists {
   my ($kb) = @_;
   foreach my $docid(keys %{$kb->{MENTIONS2}}) {
@@ -700,7 +700,7 @@ sub check_provenance_lists {
                                         $assertion->{PROVENANCE}{FILLER_STRING} ||
                                         $assertion->{PROVENANCE}{BASE_FILLER} ||
                                         $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}));
-    my @fields = qw(FILLER_STRING BASE_FILLER);
+    my @fields = qw(FILLER_STRING);
     foreach my $field(@fields) {
       $kb->{LOGGER}->record_problem('MISSING_MENTION_E', $field, $assertion->{PROVENANCE}{$field}->tooriginalstring(), $assertion->{OBJECT}, $assertion->{PROVENANCE}{WHERE})
         if(exists $assertion->{PROVENANCE}{$field} &&
