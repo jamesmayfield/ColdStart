@@ -445,7 +445,7 @@ sub tooriginalstring {
 package Provenance;
 
 # Bounds from "Task Description for English Slot Filling at TAC-KBP 2014"
-my $max_chars_per_triple = 150;
+my $max_chars_per_triple = 200;
 my $max_total_chars = 600;
 my $max_triples = 4;
 
