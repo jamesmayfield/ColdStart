@@ -65,6 +65,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
   TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
   UNEXPECTED_PROVENANCE         ERROR    Only PREDICATE_JUSTIFICATION is expected in the provenance: %s
+  TOO_MANY_PROVENANCES_IN_LIST  ERROR    Too many provenances in the list: %s. provided=(%d) expected=(%d)
 
 ########## Knowledge Base Errors
   AMBIGUOUS_PREDICATE           ERROR    %s: ambiguous predicate
@@ -347,41 +348,56 @@ package ProvenanceList;
 
 # Create a new ProvenanceList object
 sub new {
-  my ($class, $logger, $where, $text) = @_;
+  my ($class, $logger, $where, $text, $subject, $object) = @_;
   unless($text) {
     my $self = {LOGGER => $logger,
     WHERE => $where};
     bless($self, $class);
     return $self;
   }
-  my @elements = split(";", $text);
+  my $self = {LOGGER => $logger, WHERE => $where, ORIGINAL_STRING => $text};
+  bless($self, $class);
+  $self->populate_from_text($text, $subject, $object);
+  $self;
+}
+
+sub populate_from_text {
+  my ($self, $text, $subject, $object) = @_;
+  my $logger = $self->{LOGGER};
+  my $where = $self->{WHERE};
   my ($filler_string,$predicate_justification,$base_filler,$additional_justification);
-  $predicate_justification = Provenance->new($logger, $where, "PROVENANCETRIPLELIST+1", $elements[0])
-    if((scalar @elements) == 1);
-  if((scalar @elements) > 1) {
-    my @types = qw(PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
-    ($filler_string,$predicate_justification,$base_filler,$additional_justification) =
+  my @elements = split(";", $text);
+  $self->validate_list($subject, $object, scalar @elements);
+  if($object =~ /^:String/) {
+    $filler_string = $elements[0] eq 'NIL' ? undef : Provenance->new($logger, $where, 'PROVENANCETRIPLELIST+1', $elements[0]);
+    shift(@elements);
+  }
+  my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
+  ($predicate_justification,$base_filler,$additional_justification) =
       map {
         $elements[$_] eq 'NIL' ?
           undef : Provenance->new($logger, $where, $types[$_], $elements[$_])
       } (0..$#elements);
-  }
   my @docids = map {$_->get_docid() if $_}
     grep {defined $_}
-    ($filler_string,$predicate_justification,$base_filler,$additional_justification);
-  my $self = {LOGGER => $logger,
-    WHERE => $where,
-    DOCID => $docids[0],
-    FILLER_STRING => $filler_string,
-    PREDICATE_JUSTIFICATION => $predicate_justification,
-    BASE_FILLER => $base_filler,
-    ADDITIONAL_JUSTIFICATION => $additional_justification,
-    ORIGINAL_STRING => $text};
-  bless($self, $class);
+      ($filler_string,$predicate_justification,$base_filler,$additional_justification);
   unless (scalar keys ({map{$_=>1 if $_} @docids}) == 1) {
     $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $self->tooriginalstring(), $where);
   }
-  $self;
+  $self->{DOCID} = $docids[0];
+  $self->{FILLER_STRING} = $filler_string;
+  $self->{PREDICATE_JUSTIFICATION} = $predicate_justification;
+  $self->{BASE_FILLER} = $base_filler;
+  $self->{ADDITIONAL_JUSTIFICATION} = $additional_justification;
+}
+
+sub validate_list {
+  my ($self, $subject, $object, $count) = @_;
+  my ($b1,$b2) = (0,0);
+  $b1 = 1 if $subject =~ /^:Event/; 
+  $b2 = 1 if $object =~ /^:String/;
+  $self->{LOGGER}->record_problem('TOO_MANY_PROVENANCES_IN_LIST', $self->{ORIGINAL_STRING}, $count, 2*$b1+$b2+1, $self->{WHERE})
+    unless(2*$b1+$b2+1 == $count)
 }
 
 # Get the complete path of the file containing the document used in the provenance
