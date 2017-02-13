@@ -680,6 +680,7 @@ sub check_confidence {
 # (2) if *mention* assertions have only predicate_justification provided
 # (3) if the same provenance has multiple strings in the mentions, no effort is made to check if the offsets indeed represent the string in actual document
 # (4) if filler_string is a mention of the object
+# (5) if the provenance of a sentiment relation is a mention of the target
 sub check_provenance_lists {
   my ($kb) = @_;
   foreach my $docid(keys %{$kb->{MENTIONS2}}) {
@@ -711,6 +712,19 @@ sub check_provenance_lists {
         if(exists $assertion->{PROVENANCE}{$field} &&
           defined $assertion->{PROVENANCE}{$field} &&
           !$kb->mention_exists($assertion->{OBJECT}, $assertion->{PROVENANCE}{$field}));
+    }
+    # Verify if the provenance in sentiment assertion is a mention of the target (i.e. object for like and subject for dislike assertion)
+    if($assertion->{VERB} eq "likes" || $assertion->{VERB} eq "dislikes") {
+      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{OBJECT}, $assertion->{PROVENANCE}{WHERE})
+        if(exists $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
+          defined $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
+          !$kb->mention_exists($assertion->{OBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}));
+    }
+    elsif($assertion->{VERB} eq "is_liked_by" || $assertion->{VERB} eq "is_disliked_by") {
+      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion->{PROVENANCE}{WHERE})
+        if(exists $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
+          defined $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
+          !$kb->mention_exists($assertion->{SUBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}));
     }
   }
 }
