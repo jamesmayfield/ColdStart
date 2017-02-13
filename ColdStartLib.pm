@@ -606,7 +606,7 @@ sub new {
     # This is where we handle unlimited triple list
     # specified using PROVENANCETRIPLELIST++
     if ($max_triples ne "+" && @triple_list > $max_triples) {
-      $logger->record_problem('TOO_MANY_PROVENANCE_TRIPLES',
+      $logger->record_problem('TOO_MANY_PROVENANCE_TRIPLES_E',
 			      scalar @triple_list, $max_triples, $where);
       $#triple_list = $max_triples - 1;
     }
