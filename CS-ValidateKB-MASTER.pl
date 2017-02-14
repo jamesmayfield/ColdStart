@@ -729,6 +729,16 @@ sub check_provenance_lists {
   }
 }
 
+# Check if realis is present for Event assertions
+sub check_realis {
+  my ($kb) = @_;
+  foreach my $assertion(@{$kb->{ASSERTIONS0}}) {
+    next if ($assertion->{SUBJECT} !~ /:Event/ && $assertion->{OBJECT} !~ /:Event/);
+    $kb->{LOGGER}->record_problem('MISSING_REALIS', $assertion->{PRINT_STRING}, $assertion->{SOURCE})
+      unless $assertion->{REALIS};
+  }
+}
+
 my @do_not_check_endpoints = (
   'type',
   'mention',
@@ -786,6 +796,7 @@ sub check_integrity {
   $kb->check_definitions();
   $kb->check_provenance_lists();
   $kb->check_mention_string();
+  $kb->check_realis();
   $kb->assert_inverses();
   $kb->assert_mentions(!defined $predicate_constraints || $predicate_constraints->{'canonical_mention'});
   $kb->check_relation_endpoints();
@@ -1128,7 +1139,7 @@ sub export_earg {
       $base_filler = $assertion->{PROVENANCE}{BASE_FILLER}->toshortstring() if $assertion->{PROVENANCE}{BASE_FILLER};
       $additional_justification = $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}->toshortstring()
         if $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION};
-      my $realis = $assertion->{REALIS} ? ucfirst $assertion->{REALIS} : "Actual";
+      my $realis = $assertion->{REALIS};
       $predicate_string = ucfirst lc $predicate_string;
       my $id = $arguments{$document_id} ? scalar @{$arguments{$document_id}} + 1 : 1;
       my $node_id = $subject_string;

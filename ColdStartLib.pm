@@ -85,6 +85,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   # This is the WARNING version of ILLEGAL_CONFIDENCE_VALUE:
   MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
+  MISSING_REALIS                ERROR    Realis is missing in assertion: %s
   MISSING_RUNID                 ERROR    The first line of the file does not contain a legal runid
   MISSING_TYPEDEF               ERROR    No type asserted for Entity %s
   MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
