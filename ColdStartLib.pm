@@ -348,7 +348,7 @@ package ProvenanceList;
 
 # Create a new ProvenanceList object
 sub new {
-  my ($class, $logger, $where, $text, $subject, $object) = @_;
+  my ($class, $logger, $where, $text, $subject, $object, $verb) = @_;
   unless($text) {
     my $self = {LOGGER => $logger,
     WHERE => $where};
@@ -357,17 +357,17 @@ sub new {
   }
   my $self = {LOGGER => $logger, WHERE => $where, ORIGINAL_STRING => $text};
   bless($self, $class);
-  $self->populate_from_text($text, $subject, $object);
+  $self->populate_from_text($text, $subject, $object, $verb);
   $self;
 }
 
 sub populate_from_text {
-  my ($self, $text, $subject, $object) = @_;
+  my ($self, $text, $subject, $object, $verb) = @_;
   my $logger = $self->{LOGGER};
   my $where = $self->{WHERE};
   my ($filler_string,$predicate_justification,$base_filler,$additional_justification);
   my @elements = split(";", $text);
-  $self->validate_list($subject, $object, scalar @elements);
+  $self->validate_list($subject, $object, $verb, scalar @elements);
   if($object =~ /^:String/) {
     $filler_string = $elements[0] eq 'NIL' ? undef : Provenance->new($logger, $where, 'PROVENANCETRIPLELIST+1', $elements[0]);
     shift(@elements);
@@ -392,12 +392,14 @@ sub populate_from_text {
 }
 
 sub validate_list {
-  my ($self, $subject, $object, $count) = @_;
+  my ($self, $subject, $object, $verb, $count) = @_;
   my ($b1,$b2) = (0,0);
   $b1 = 1 if $subject =~ /^:Event/; 
   $b2 = 1 if $object =~ /^:String/;
   $self->{LOGGER}->record_problem('TOO_MANY_PROVENANCES_IN_LIST', $self->{ORIGINAL_STRING}, $count, 2*$b1+$b2+1, $self->{WHERE})
-    unless(2*$b1+$b2+1 == $count)
+    if($verb !~ /mention/ && 2*$b1+$b2+1 != $count);
+  $self->{LOGGER}->record_problem('TOO_MANY_PROVENANCES_IN_LIST', $self->{ORIGINAL_STRING}, $count, 2*$b1+$b2+1, $self->{WHERE})
+    if($verb =~ /mention/ && $count != 1);
 }
 
 # Get the complete path of the file containing the document used in the provenance

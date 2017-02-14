@@ -941,7 +941,7 @@ sub load_tac {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, scalar @entries, $source);
 	next;
       }
-      $provenance = ProvenanceList->new($logger, $source, $provenance_string, $subject, $object)
+      $provenance = ProvenanceList->new($logger, $source, $provenance_string, $subject, $object, $predicate)
     }
     $kb->add_assertion($subject, $predicate, $object, $provenance, $confidence, $source, $comment);
   }
