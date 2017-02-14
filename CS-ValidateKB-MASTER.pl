@@ -733,7 +733,7 @@ sub check_provenance_lists {
 sub check_realis {
   my ($kb) = @_;
   foreach my $assertion(@{$kb->{ASSERTIONS0}}) {
-    next if ($assertion->{SUBJECT} !~ /:Event/ && $assertion->{OBJECT} !~ /:Event/);
+    next if (($assertion->{SUBJECT} !~ /:Event/ && $assertion->{OBJECT} !~ /:Event/) || $assertion->{VERB} eq "type");
     $kb->{LOGGER}->record_problem('MISSING_REALIS', $assertion->{PRINT_STRING}, $assertion->{SOURCE})
       unless $assertion->{REALIS};
   }
