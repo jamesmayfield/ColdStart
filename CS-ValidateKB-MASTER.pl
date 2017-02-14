@@ -1308,11 +1308,13 @@ sub export_edl {
     next if $assertion->{OMIT_FROM_OUTPUT};
     # Only output assertions that have fully resolved predicates
     next unless ref $assertion->{PREDICATE};
+    next if $assertion->{SUBJECT} =~ /^:Event/;
     my $predicate_string = $assertion->{PREDICATE}{NAME};
     my $domain_string = "";
     next unless $predicate_string eq 'mention' || $predicate_string eq 'nominal_mention';
     my $runid = $kb->{RUNID};
     my $mention_id = $next_mentionid++;
+    $mention_id = $assertion->{SUBJECT}."_".$mention_id;
     my $mention_string = $assertion->{OBJECT};
     my $provenance = $assertion->{PROVENANCE}->tooriginalstring();
     my $kbid = $entity2link{$assertion->{SUBJECT}};
