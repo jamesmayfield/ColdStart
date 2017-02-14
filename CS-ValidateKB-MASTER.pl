@@ -1098,6 +1098,51 @@ sub export_sentiments {
   }
 }
 
+# Export Event Nuggets
+sub export_enug {
+  my ($kb, $event_nuggets_file) = @_;
+  my %allowed_assertions = map {$_=>1} qw(mention nominal_mention pronominal_mention);
+  my $run_id = $kb->{RUNID};
+  my (%lines, %mentionids, %clusters, $output);
+  foreach my $assertion(sort assertion_comparator $kb->get_assertions()) {
+    next if $assertion->{OMIT_FROM_OUTPUT};
+    next if $assertion->{SUBJECT} !~ /^:Event/;
+    next unless exists $allowed_assertions{$assertion->{VERB}};
+    my $docid = $assertion->{PROVENANCE}->get_docid();
+    my $subject = $assertion->{SUBJECT};
+    my $start = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
+    my $end = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end();
+    my $span = "$start,$end";
+    my $mention_string = $assertion->{OBJECT};
+    $mention_string =~ s/^\"|\"$//g;
+    $mentionids{$docid} = 1 unless exists $mentionids{$docid};
+    my $mentionid = "E$mentionids{$docid}";
+    $mentionids{$docid}++;
+    my $type = $kb->get_entity_type($subject);
+    $type = join("_", map {ucfirst $_} split(/\./, $type));
+    my $realis = ucfirst $assertion->{REALIS};
+    my $line = join("\t", ($run_id, $docid, $mentionid, $span, $mention_string, $type, $realis));
+    $clusters{$docid}{$subject}{$mentionid} = 1;
+    push(@{$lines{$docid}{$subject}}, $line);
+  }
+  open($output, ">:utf8", $event_nuggets_file) or $kb->{LOGGER}->NIST_die("Could not open $event_nuggets_file: $!");
+  foreach my $docid(sort keys %lines) {
+    print $output "#BeginOfDocument $docid\n";
+    foreach my $subject(sort keys %{$lines{$docid}}) {
+      foreach my $line(sort @{$lines{$docid}{$subject}}) {
+        print $output "$line\n";
+      }
+    }
+    my $clusterid = 1;
+    foreach my $subject(sort keys %{$lines{$docid}}) {
+      print $output "\@Coreference\t$subject\t", join(",", sort keys %{$clusters{$docid}{$subject}}), "\n"
+        if scalar(keys %{$clusters{$docid}{$subject}}) > 1;
+    }
+    print $output "#EndOfDocument\n";
+  }
+  close($output);
+}
+
 # Event Argument format.
 sub export_earg {
   my ($kb, $event_argument_dir) = @_;
@@ -1323,8 +1368,9 @@ $switches->addVarSwitch('ignore', "Colon-separated list of warnings to ignore. L
 $switches->addVarSwitch('task', "Specify task to validate. Legal values are: " . join(", ", map {"$_ ($tasks{$_}{DESCRIPTION})"} sort keys %tasks) . ".");
 $switches->put('task', 'CSKB');
 $switches->addVarSwitch('stats_file', "Specify a file into which statistics about the KB being validated will be placed");
-$switches->addVarSwitch('event_argument_dir', "Specify a directory into which event argument output will be placed");
-$switches->addVarSwitch('sentiments_dir', "Specify a directory into which sentiments output will be placed");
+$switches->addVarSwitch('event_arguments', "Specify a directory into which event argument output will be placed");
+$switches->addVarSwitch('event_nuggets', "Specify a file into which event nugget output will be placed");
+$switches->addVarSwitch('sentiments', "Specify a directory into which sentiments output will be placed");
 $switches->addParam("filename", "required", "File containing input KB specification.");
 
 $switches->process(@ARGV);
@@ -1361,7 +1407,7 @@ else {
   open($error_output, ">:utf8", $error_filename) or Logger->new()->NIST_die("Could not open $error_filename: $!");
 }
 
-my $event_argument_dir = $switches->get("event_argument_dir");
+my $event_argument_dir = $switches->get("event_arguments");
 if($event_argument_dir) {
   Logger->new()->NIST_die("Event argument output directory already exists at $event_argument_dir: $!")
     if(-d $event_argument_dir);
@@ -1371,7 +1417,11 @@ if($event_argument_dir) {
   system("mkdir $event_argument_dir/linking");
 }
 
-my $sentiments_dir = $switches->get("sentiments_dir");
+my $event_nugget_file = $switches->get("event_nuggets");
+Logger->new()->NIST_die("Event nugget output file already exists at $event_nugget_file: $!")
+  if($event_nugget_file && -e $event_nugget_file);
+
+my $sentiments_dir = $switches->get("sentiments");
 if($sentiments_dir) {
 	Logger->new()->NIST_die("Sentiments output directory already exists at $sentiments_dir: $!")
 	  if(-d $sentiments_dir);
@@ -1460,6 +1510,8 @@ else {
   }
   # Produce the event argument output if the output directory is specified
   &export_earg($kb, $event_argument_dir) if ($event_argument_dir);
+  # Produce the event nugget output if the output directory is specified
+  &export_enug($kb, $event_nugget_file) if ($event_nugget_file);
   # Produce the sentiments if the output directory is specified
   &export_sentiments($kb, $sentiments_dir) if($sentiments_dir);
 }
