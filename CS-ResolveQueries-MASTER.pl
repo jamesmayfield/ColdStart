@@ -608,7 +608,12 @@ sub parse_assertion {
     }
   }
   # Remove realis from the predicate
-  $result->{predicate} =~ s/\.(actual|generic|other)$//;
+  my $realis;
+  if($result->{predicate} =~ /\.(actual|generic|other)$/) {
+    $realis = $1;
+    $result->{predicate} =~ s/\.(actual|generic|other)$//;
+    $result->{realis} = lc $realis;
+  }
   # Add the description and position fields, which are metadata about
   # the assertion that do not appear in it
   $result->{description} = "$result->{predicate}($result->{entity}, $result->{object}) ---> <<$line>>";
@@ -683,6 +688,7 @@ sub process_runfile {
     s/$main::comment_pattern/$1/;
     next unless /\S/;
     my $assertion = &parse_assertion($_, $tell);
+    next if ($assertion->{realis} && lc($assertion->{realis}) eq "generic");
     # Find any open tasks that are fulfilled by this assertion
     my @tasks = $taskset->retrieve_tasks($assertion);
     # If any are found, run the execute method on them
