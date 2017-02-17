@@ -235,6 +235,7 @@ sub add_assertion {
     mention => 1,
     canonical_mention => 1,
     nominal_mention => 1,
+    normalized_mention => 1,
     pronominal_mention => 1,
     likes => 1,
     dislikes => 1,
@@ -295,7 +296,7 @@ sub add_assertion {
 #  unless ($verb eq 'link') {
 #  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type') {
 ### DO INCLUDE
-  unless ($verb eq 'mention' || $verb eq 'nominal_mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
+  unless ($verb eq 'mention' || $verb eq 'nominal_mention' || $verb eq 'canonical_mention' || $verb eq 'normalized_mention' || $verb eq 'type' || $verb eq 'link') {
   existing:
     # We don't consider inferred assertions to be duplicates
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {
@@ -681,6 +682,7 @@ sub check_confidence {
 # (3) if the same provenance has multiple strings in the mentions, no effort is made to check if the offsets indeed represent the string in actual document
 # (4) if filler_string is a mention of the object
 # (5) if the provenance of a sentiment relation is a mention of the target
+# (6) if the provenance of a normalized mention is a mention of the subject
 sub check_provenance_lists {
   my ($kb) = @_;
   foreach my $docid(keys %{$kb->{MENTIONS2}}) {
@@ -725,6 +727,10 @@ sub check_provenance_lists {
         if(exists $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
           defined $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
           !$kb->mention_exists($assertion->{SUBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}));
+    }
+    if($assertion->{VERB} eq "normalized_mention"){
+      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'Provenance', $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion->{PROVENANCE}{WHERE})
+        unless $kb->mention_exists($assertion->{SUBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION});
     }
   }
 }
@@ -1175,6 +1181,11 @@ sub export_earg {
       my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
       $object_string_canonical_mention = $kb->{ASSERTIONS3}{$subject_string}{$predicate_string}{$object_string}[0]{OBJECT}
         unless $object_string_canonical_mention;
+      if($object_string =~ /^:String.+?/) {
+        my ($normalized_mention) = grep {$_->{PROVENANCE}{DOCID} eq $document_id}
+                                     $kb->get_assertions($object_string, 'normalized_mention', undef, undef);
+        $object_string_canonical_mention = $normalized_mention->{OBJECT} if $normalized_mention;
+      }
       $object_string_canonical_mention =~ s/^\"|\"$//g;
       my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
       my $confidence = $assertion->{CONFIDENCE};
@@ -1252,6 +1263,7 @@ sub export_tac {
 	$predicate_string ne 'mention' &&
 	$predicate_string ne 'canonical_mention' &&
 	$predicate_string ne 'nominal_mention' &&
+	$predicate_string ne 'normalized_mention' &&
 	$predicate_string ne 'link') {
       $domain_string = $kb->get_entity_type($assertion->{SUBJECT_ENTITY});
       next if $domain_string eq 'unknown';

@@ -1475,6 +1475,7 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE,FAC,LOC,STRING    mention                   STRING       none
   PER,ORG,GPE,FAC,LOC,STRING    canonical_mention         STRING       none
   PER,ORG,GPE,FAC,LOC,STRING    pronominal_mention        STRING       none
+  STRING                        normalized_mention        STRING       none
   PER,ORG,GPE,FAC,LOC,STRING    type                      TYPE         none
   PER,ORG,GPE,FAC,LOC           link                      STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
