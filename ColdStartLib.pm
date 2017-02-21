@@ -1476,7 +1476,6 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE,FAC,LOC,STRING    canonical_mention         STRING       none
   PER,ORG,GPE,FAC,LOC,STRING    pronominal_mention        STRING       none
   STRING                        normalized_mention        STRING       none
-  PER,ORG,GPE,FAC,LOC,STRING    type                      TYPE         none
   PER,ORG,GPE,FAC,LOC           link                      STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
   PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
@@ -1729,6 +1728,10 @@ sub add_predicates {
     my $predicate = Predicate->new($self, $domain, $name, $range, $inverse, $label);
     $self->add_predicate($predicate);
   }
+  # All entity types have a type assertion
+  my $domain = join (",", keys %legal_entity_types);
+  my $predicate = Predicate->new($self, $domain, "type", "type", "none", $label);
+  $self->add_predicate($predicate);
   $self;
 }
 
