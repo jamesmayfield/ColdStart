@@ -1195,7 +1195,7 @@ sub export_earg {
       $base_filler = $assertion->{PROVENANCE}{BASE_FILLER}->toshortstring() if $assertion->{PROVENANCE}{BASE_FILLER};
       $additional_justification = $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}->toshortstring()
         if $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION};
-      my $realis = $assertion->{REALIS};
+      my $realis = ucfirst lc $assertion->{REALIS};
       $predicate_string = ucfirst lc $predicate_string;
       my $id = $arguments{$document_id} ? scalar @{$arguments{$document_id}} + 1 : 1;
       my $node_id = $subject_string;
