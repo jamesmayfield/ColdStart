@@ -73,7 +73,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   DUPLICATE_ASSERTION           WARNING  The same assertion is made more than once (%s)
   ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
   IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s 
-  ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s
+  ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s. (Accepted: :EntityXXXX, :EventXXXX, :StringXXXX, :mXXXX; Rejected: when a dash '-' is part of the entity name)
   ILLEGAL_ENTITY_TYPE           ERROR    Illegal entity type: %s
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
