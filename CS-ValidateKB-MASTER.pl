@@ -565,6 +565,9 @@ sub assert_inverses {
     next unless $assertion->{OBJECT_ENTITY};
     next unless ref $assertion->{PREDICATE};
     next unless &PredicateSet::is_compatible($assertion->{PREDICATE}{RANGE}, \%PredicateSet::legal_entity_types);
+    # Accomodating the requirement for 2017
+    # Duplicate assertions are allowed therefore generate missing inverses for all duplicates
+    # An assertion is a duplicate if subject, verb, object matches but the provenance differ
     unless (grep {$assertion->{PROVENANCE}->tooriginalstring() eq $_->{PROVENANCE}->tooriginalstring()}
               $kb->get_assertions($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT})) {
       $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
