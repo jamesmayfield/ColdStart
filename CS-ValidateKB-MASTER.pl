@@ -565,7 +565,8 @@ sub assert_inverses {
     next unless $assertion->{OBJECT_ENTITY};
     next unless ref $assertion->{PREDICATE};
     next unless &PredicateSet::is_compatible($assertion->{PREDICATE}{RANGE}, \%PredicateSet::legal_entity_types);
-    unless ($kb->get_assertions($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT})) {
+    unless (grep {$assertion->{PROVENANCE}->tooriginalstring() eq $_->{PROVENANCE}->tooriginalstring()}
+              $kb->get_assertions($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT})) {
       $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
 			    $assertion->{SUBJECT}, $assertion->{OBJECT}, $assertion->{SOURCE});
       # Assert the inverse if it's not already there
