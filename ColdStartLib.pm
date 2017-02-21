@@ -395,7 +395,7 @@ sub populate_from_text {
 sub validate_list {
   my ($self, $subject, $object, $verb, $count) = @_;
   my ($b1,$b2) = (0,0);
-  $b1 = 1 if $subject =~ /^:Event/; 
+  $b1 = 1 if $subject =~ /^:Event/ || $object =~ /^:Event/;
   $b2 = 1 if $object =~ /^:String/;
   $self->{LOGGER}->record_problem('TOO_MANY_PROVENANCES_IN_LIST', $self->{ORIGINAL_STRING}, $count, 2*$b1+$b2+1, $self->{WHERE})
     if($verb !~ /mention/ && 2*$b1+$b2+1 != $count);
