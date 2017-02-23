@@ -78,6 +78,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
   ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
+  ILLEGAL_REALIS                ERROR    Illegal realis: %s
   MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
   MISSING_CANONICAL_E           ERROR    Canonical mention of entity %s in document %s required for inferring inverse
   MISSING_MENTION               WARNING  Entity %s has no mention in document %s
@@ -100,6 +101,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   UNASSERTED_MENTION            WARNING  Failed to assert that %s in document %s is also a mention
   INACCURACTE_MENTION_STRING    ERROR    Mention string '%s' not found at %s
   UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses entity %s, but that entity id has no mentions in provenance %s
+  UNEXPECTED_REALIS             ERROR    Unexpected value of realis (expected %s, got %s)
   UNQUOTED_STRING               WARNING  String %s not surrounded by double quotes
   UNKNOWN_TYPE                  ERROR    Cannot infer type for Entity %s
 

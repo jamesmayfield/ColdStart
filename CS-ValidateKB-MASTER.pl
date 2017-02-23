@@ -220,9 +220,7 @@ sub add_assertion {
   my $subject_type = $kb->get_entity_type($subject_entity);
   $subject_type = undef unless $PredicateSet::legal_entity_types{$subject_type};
   my $realis;
-  if($verb =~ /^(.*?)\.(actual|generic|other)$/i) {
-    ($verb, $realis) = ($1, $2);
-  }
+  ($verb, $realis) = $kb->validate_realis($subject, $verb, $object, $source);
   my $object_entity;
   my $predicate = $kb->{PREDICATES}->get_predicate($verb, $subject_type, $source);
   unless (ref $predicate) {
@@ -629,7 +627,9 @@ sub assert_mentions {
 		$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
 		# Pick the only named mention as the canonical mention. 
 		my ($mention) = values %mentions;
-		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
+		my $realis = "";
+		$realis = ".".$mention->{REALIS} if $mention->{REALIS};
+		my $assertion = $kb->add_assertion($mention->{SUBJECT}, "canonical_mention$realis", $mention->{OBJECT},
 						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
@@ -637,7 +637,9 @@ sub assert_mentions {
 		$kb->{LOGGER}->record_problem('MISSING_CANONICAL', $subject, $docid, 'NO_SOURCE');
 		# Pick the only nominal mention as the canonical mention. 
 		my ($mention) = values %nominal_mentions;
-		my $assertion = $kb->add_assertion($mention->{SUBJECT}, 'canonical_mention', $mention->{OBJECT},
+		my $realis = "";
+		$realis = ".".$mention->{REALIS} if $mention->{REALIS};
+		my $assertion = $kb->add_assertion($mention->{SUBJECT}, "canonical_mention$realis", $mention->{OBJECT},
 						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
@@ -648,10 +650,12 @@ sub assert_mentions {
 	# Find the mention that matches this canonical mention, if any
 	my $mention = $mentions{$string};
 	my $nominal_mention = $nominal_mentions{$string};
+	my $realis = "";
+	$realis = ".".$canonical_mention->{REALIS} if $canonical_mention->{REALIS};
 	unless ($mention || $nominal_mention) {
 	  # Canonical mention without a corresponding mention
 	  $kb->{LOGGER}->record_problem('UNASSERTED_MENTION', $canonical_mention->{PRINT_STRING}, $docid, $canonical_mention->{SOURCE});
-	  my $assertion = $kb->add_assertion($canonical_mention->{SUBJECT}, 'mention', $canonical_mention->{OBJECT},
+	  my $assertion = $kb->add_assertion($canonical_mention->{SUBJECT}, "mention$realis", $canonical_mention->{OBJECT},
 					     $canonical_mention->{PROVENANCE},
 					     $canonical_mention->{CONFIDENCE},
 					     $canonical_mention->{SOURCE});
@@ -740,13 +744,105 @@ sub check_provenance_lists {
 }
 
 # Check if realis is present for Event assertions
-sub check_realis {
-  my ($kb) = @_;
-  foreach my $assertion(@{$kb->{ASSERTIONS0}}) {
-    next if (($assertion->{SUBJECT} !~ /:Event/ && $assertion->{OBJECT} !~ /:Event/) || $assertion->{VERB} eq "type");
-    $kb->{LOGGER}->record_problem('MISSING_REALIS', $assertion->{PRINT_STRING}, $assertion->{SOURCE})
-      unless $assertion->{REALIS};
+sub validate_realis {
+  my ($kb, $subject, $verb, $object, $source) = @_;
+  my ($retval_verb, $retval_realis);
+  my %acceptable_realis = map {$_=>1} qw(actual generic other);
+  my @elements = split(/\./, $verb);
+  if(@elements > 1) {
+    # there is a dot in the verb
+    # a realis could potentially be there
+    my $potential_realis = $elements[$#elements];
+    my $potential_verb = join(".", map {$elements[$_]} (0..$#elements-1));
+    # remove the subject_type from the potential_verb
+    $potential_verb =~ s/^.*?://;
+    # There are following possible cases
+    # and notice that we are not going to check the legitimacy of the verb here
+
+    # if verb is a type
+    if($potential_verb eq "type") {
+      # throw an error because the realis should not be provided
+      $kb->{LOGGER}->record_problem("UNEXPECTED_REALIS", "none", $potential_realis, $source);
+
+      # if the value of realis is illegal
+      $kb->{LOGGER}->record_problem("ILLEGAL_REALIS", $potential_realis, $source)
+        unless (exists $acceptable_realis{$potential_realis});
+
+      $retval_verb = $potential_verb;
+      $retval_realis = $potential_realis;
+    }
+
+    # if both the verb and the realis are legitimate
+    # then check if the realis was required
+    elsif(exists $acceptable_realis{$potential_realis} && exists $kb->{PREDICATES}{$potential_verb}) {
+      # throw an error if the realis should not be provided
+      $kb->{LOGGER}->record_problem("UNEXPECTED_REALIS", "none", $potential_realis, $source)
+        unless(($subject =~ /^:Event/ || $object =~ /^:Event/) && $potential_verb ne "type");
+
+      $retval_verb = $potential_verb;
+      $retval_realis = $potential_realis;
+    }
+
+    # if none are legitimate ------ (A)
+    # then check if the original verb is legitimate
+    #   - in this case the realis is missing
+    #   - therefore verify if realis was required
+    # otherwise there are possibly two problems here:
+    #   (1) the realis is not legitimate,
+    #   (2) the realis could be unexpected
+    elsif(not exists $acceptable_realis{$potential_realis} && not exists $kb->{PREDICATES}{$potential_verb}) {
+      if(exists $kb->{PREDICATES}{$potential_verb.".".$potential_realis}) {
+        # if the original verb is legitimate
+        # the realis is not there, throw an error if it was required
+        $kb->{LOGGER}->record_problem("UNEXPECTED_REALIS", "actual, generic, or other", "none", $source)
+          if(($subject =~ /^:Event/ || $object =~ /^:Event/) && $potential_verb ne "type");
+      }
+      else{
+        # the realis is not legitimate
+        $kb->{LOGGER}->record_problem("ILLEGAL_REALIS", $potential_realis, $source);
+        # throw an error if the realis should not be provided
+        $kb->{LOGGER}->record_problem("UNEXPECTED_REALIS", "none", $potential_realis, $source)
+          unless(($subject =~ /^:Event/ || $object =~ /^:Event/) && $potential_verb ne "type");
+      }
+      $retval_verb = $potential_verb.".".$potential_realis;
+    }
+
+    # if verb is legitimate but the realis is not
+    elsif(not exists $acceptable_realis{$potential_realis} && exists $kb->{PREDICATES}{$potential_verb}) {
+      # Illegal realis used
+      $kb->{LOGGER}->record_problem("ILLEGAL_REALIS", $potential_realis, $source);
+      # throw an error if the realis should not be provided
+      $kb->{LOGGER}->record_problem("UNEXPECTED_REALIS", "none", $potential_realis, $source)
+        if(($subject =~ /^:Event/ || $object =~ /^:Event/) && $potential_verb ne "type");
+
+      $retval_verb = $potential_verb;
+      $retval_realis = $potential_realis;
+    }
+
+    # if verb is not legitimate but the realis is
+    elsif(exists $acceptable_realis{$potential_realis} && not exists $kb->{PREDICATES}{$potential_verb}) {
+      # throw an error if the realis should not be provided
+      $kb->{LOGGER}->record_problem("UNEXPECTED_REALIS", "none", $potential_realis, $source)
+        if(($subject =~ /^:Event/ || $object =~ /^:Event/) && $potential_verb ne "type");
+
+      $retval_verb = $potential_verb;
+      $retval_realis = $potential_realis;
+    }
   }
+  else {
+    my $potential_verb = $verb;
+    # remove the subject_type from the potential_verb
+    $potential_verb =~ s/^.*?://;
+
+    # the realis is not there, throw an error if it was required
+    # notice that we are not verfying here if the verb is acceptable
+    $kb->{LOGGER}->record_problem("UNEXPECTED_REALIS", "actual, generic, or other", "none", $source)
+      if(($subject =~ /^:Event/ || $object =~ /^:Event/) && $potential_verb ne "type");
+
+    $retval_verb = $potential_verb;
+  }
+
+  ($retval_verb, $retval_realis);
 }
 
 my @do_not_check_endpoints = (
@@ -806,7 +902,6 @@ sub check_integrity {
   $kb->check_definitions();
   $kb->check_provenance_lists();
   $kb->check_mention_string();
-  $kb->check_realis();
   $kb->assert_inverses();
   $kb->assert_mentions(!defined $predicate_constraints || $predicate_constraints->{'canonical_mention'});
   $kb->check_relation_endpoints();
@@ -950,7 +1045,8 @@ sub load_tac {
 ### DO NOT INCLUDE
 #    if (lc $predicate eq 'type') {
 ### DO INCLUDE
-    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
+    my ($verb, $realis) = split(/\./, $predicate);
+    if (lc $verb eq 'type' || lc $verb eq 'link') {
       unless (@entries == 3) {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
 	next;
