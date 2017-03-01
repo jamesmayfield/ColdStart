@@ -61,11 +61,11 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_DOCIDS_IN_PROV       ERROR    %s contains multiple DOCIDs
   MULTIPLE_STRINGS_FOR_PROV     ERROR    Multiple strings provided for provenance: %s (%s)
   TOO_MANY_PROVENANCE_TRIPLES   WARNING  Too many provenance triples (%d) provided; only the first %d will be used
-  TOO_MANY_PROVENANCE_TRIPLES_E ERROR    Too many provenance triples: provided=(%d) expected=(%d)
+  TOO_MANY_PROVENANCE_TRIPLES_E ERROR    Unexpected number of provenance triples: provided=(%d) expected=(%d)
   TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
   TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
   UNEXPECTED_PROVENANCE         ERROR    Only PREDICATE_JUSTIFICATION is expected in the provenance: %s
-  TOO_MANY_PROVENANCES_IN_LIST  ERROR    Too many provenances in the list: %s. provided=(%d) expected=(%d)
+  TOO_MANY_PROVENANCES_IN_LIST  ERROR    Unexpected number of provenances in the list: %s. provided=(%d) expected=(%d)
 
 ########## Knowledge Base Errors
   AMBIGUOUS_PREDICATE           ERROR    %s: ambiguous predicate
@@ -73,7 +73,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   DUPLICATE_ASSERTION           WARNING  The same assertion is made more than once (%s)
   ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
   IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s 
-  ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s. (Accepted: :EntityXXXX, :EventXXXX, :StringXXXX, :mXXXX; Rejected: when a dash '-' is part of the entity name)
+  ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s. (Accepted: :EntityXXXX, :EventXXXX, :StringXXXX, :mXXXX; A dash '-' is not acceptable as part of the name)
   ILLEGAL_ENTITY_TYPE           ERROR    Illegal entity type: %s
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
