@@ -746,7 +746,12 @@ sub check_provenance_lists {
 # Check if realis is present for Event assertions
 sub validate_realis {
   my ($kb, $subject, $verb, $object, $source) = @_;
-  my ($retval_verb, $retval_realis);
+  my ($retval_verb, $retval_realis, $domain);
+  # remove the domain from the potential_verb
+  if($verb =~ /^(.*?):/) {
+    $domain = $1;
+    $verb =~ s/^.*?://;
+  }
   my %acceptable_realis = map {$_=>1} qw(actual generic other);
   my @elements = split(/\./, $verb);
   if(@elements > 1) {
@@ -754,8 +759,6 @@ sub validate_realis {
     # a realis could potentially be there
     my $potential_realis = $elements[$#elements];
     my $potential_verb = join(".", map {$elements[$_]} (0..$#elements-1));
-    # remove the subject_type from the potential_verb
-    $potential_verb =~ s/^.*?://;
     # There are following possible cases
     # and notice that we are not going to check the legitimacy of the verb here
 
@@ -831,8 +834,6 @@ sub validate_realis {
   }
   else {
     my $potential_verb = $verb;
-    # remove the subject_type from the potential_verb
-    $potential_verb =~ s/^.*?://;
 
     # the realis is not there, throw an error if it was required
     # notice that we are not verfying here if the verb is acceptable
@@ -841,6 +842,8 @@ sub validate_realis {
 
     $retval_verb = $potential_verb;
   }
+
+	$retval_verb = "$domain:$retval_verb" if $domain;
 
   ($retval_verb, $retval_realis);
 }
