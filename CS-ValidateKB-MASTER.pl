@@ -60,7 +60,7 @@ my %multiple_attestations = (
   ONEPERDOC => "at most one allowed per document",
   MANY =>      "any number of duplicate assertions allowed",
 );
-my $multiple_attestations = 'ONE';
+my $multiple_attestations = 'MANY';
 
 # Which triple labels should be output?
 my %output_labels = ();
