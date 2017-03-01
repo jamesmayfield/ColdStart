@@ -1031,7 +1031,7 @@ sub load_tac {
     next unless /\S/;
     my @entries = map {&trim($_)} split(/\t/);
     # Get the confidence out of the way if it is provided
-    $confidence = pop(@entries) if @entries && $entries[-1] =~ /^\d+\.\d+$/;
+    $confidence = pop(@entries) if @entries && ($entries[-1] =~ /^\d+\.\d+$/ || $entries[-1] =~ /^\d+$/);
    
     if(@entries && $entries[-1] =~ /^\d+\.\d+e[-+]?\d\d$/) {
      $kb->{LOGGER}->record_problem('IMPROPER_CONFIDENCE_VALUE', $entries[-1], $source);
