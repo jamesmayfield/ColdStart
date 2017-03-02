@@ -376,6 +376,7 @@ sub add_assertion {
   if ($is_duplicate_of) {
     # Make sure this isn't exactly the same assertion
     if ($provenance->tostring() eq $is_duplicate_of->{PROVENANCE}->tostring()) {
+      $kb->{LOGGER}->record_problem('DUPLICATE_ASSERTION', "$is_duplicate_of->{SOURCE}{FILENAME} line $is_duplicate_of->{SOURCE}{LINENUM}", $source);
       $kb->{STATS}{REJECTED_ASSERTIONS}{DUPLICATE}++;
       return;
     }
