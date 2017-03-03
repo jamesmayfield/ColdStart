@@ -1742,7 +1742,7 @@ foreach (grep {!/^\s*#/} split(/\n/, lc $predicate_aliases)) {
 
 sub build_hash { map {$_ => 'true'} @_ }
 # Set of legal range types (e.g., {PER, ORG, GPE})
-our %legal_range_types = &build_hash(qw(per gpe org string type conflict.attack 
+our %legal_range_types = &build_hash(qw(per gpe org fac loc string type conflict.attack
   conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet 
   justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact 
   movement.transport-person personnel.elect personnel.end-position personnel.start-position 
