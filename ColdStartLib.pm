@@ -261,7 +261,7 @@ sub report_all_problems {
     foreach my $message (sort keys %{$self->{PROBLEMS}{$problem}}) {
       my $num_instances = scalar keys %{$self->{PROBLEMS}{$problem}{$message}};
       print $error_output "$message";
-      my $example = (keys %{$self->{PROBLEMS}{$problem}{$message}})[0];
+      my $example = (sort keys %{$self->{PROBLEMS}{$problem}{$message}})[0];
       if ($example ne 'NO_SOURCE') {
 	print $error_output " ($example";
 	print $error_output " and ", $num_instances - 1, " other place" if $num_instances > 1;
