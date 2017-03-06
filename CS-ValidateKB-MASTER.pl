@@ -1426,7 +1426,7 @@ sub export_edl {
     my $runid = $kb->{RUNID};
     my $mention_id = $next_mentionid++;
     $mention_id = $assertion->{SUBJECT}."_".$mention_id;
-    my $mention_string = $assertion->{OBJECT};
+    my $mention_string = &main::remove_quotes($assertion->{OBJECT});
     my $provenance = $assertion->{PROVENANCE}->tooriginalstring();
     my $kbid = $entity2link{$assertion->{SUBJECT}};
     my $entity_type = $entity2type{$assertion->{SUBJECT}};
