@@ -4814,6 +4814,14 @@ sub max {
   $result;
 }
 
+sub remove_quotes {
+  my ($string) = @_;
+  if($string =~ /^"(.*)"$/) {
+    return $1;
+  }
+  return $string;
+}
+
 # Pull DOCUMENTATION strings out of a table and format for the help screen
 sub build_documentation {
   my ($structure, $sort_key) = @_;
