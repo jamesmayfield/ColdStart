@@ -220,8 +220,8 @@ else{
         unless $ec_mention_type_language;
       $mention_type{$assessment->{VALUE_EC}}{$language} = $ec_mention_type
         if($ec_mention_type_language eq $language);
-      $mention_type{$assessment->{VALUE_EC}}{'XLING'} = $ec_mention_type;
     }
+    $mention_type{$assessment->{VALUE_EC}}{'XLING'} = $ec_mention_type;
   }
   # filter all the assessments into language-specific assessments
   foreach my $assessment(@{$assessments->{ALL_ENTRIES}}) {
