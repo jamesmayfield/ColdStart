@@ -287,6 +287,10 @@ sub add_assertion {
       $kb->entity_typedef($object_entity, $predicate->get_range(), 'OBJECT', $source);
     }
   }
+  # Remove double quotes if they're present
+  if ($object =~ /^"(.*)"$/) {
+    $object = $1;
+  }
   # Check for duplicate assertions
   my $is_duplicate_of;
 ### DO NOT INCLUDE
@@ -542,7 +546,6 @@ sub check_mention_string {
       # Check all mentions
       foreach my $mention(@mentions) {
         my $mention_string = $mention->{OBJECT};
-        $mention_string =~ s/^"|"$//g;
         my $mention_string_from_file;
         my $start = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
         my $end = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end();
@@ -1154,7 +1157,6 @@ sub export_sentiments {
         my $start = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
         my $length = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$start+1;
         my $mention_text = $mention->{OBJECT};
-        $mention_text =~ s/^\"|\"$//g;
         print $output "      <entity_mention id=\"$mentionid\" noun_type=\"$noun_type\" source=\"$source\" offset=\"$start\" length=\"$length\">\n";
         print $output "        <mention_text>$mention_text<\/mention_text>\n";
         print $output "        <nom_head source=\"$source\" offset=\"$start\" length=\"$length\">$mention_text<\/nom_head>\n"
@@ -1177,7 +1179,6 @@ sub export_sentiments {
       foreach my $target_provenance_string(sort keys %{$sentiments{$docid}{$target_nodeid}}) {
         my $target_mentionid = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{MENTIONID};
         my $target_mention_text = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{OBJECT};
-        $target_mention_text =~ s/^\"|\"$//g;
         my $target_offset = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
         my $target_length = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$target_offset+1;
         print $output "      <entity ere_id=\"$target_mentionid\" offset=\"$target_offset\" length=\"$target_length\">\n";
@@ -1189,7 +1190,6 @@ sub export_sentiments {
           my $source_provenance_string = $source_canonical_mention_assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring();
           my $source_mentionid = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{MENTIONID};
           my $source_mention_text = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{OBJECT};
-          $source_mention_text =~ s/^\"|\"$//g;
           my $source_offset = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
           my $source_length = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$source_offset+1;
           my $polarity = "pos";
@@ -1224,7 +1224,6 @@ sub export_enug {
     my $end = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end();
     my $span = "$start,$end";
     my $mention_string = $assertion->{OBJECT};
-    $mention_string =~ s/^\"|\"$//g;
     $mentionids{$docid} = 1 unless exists $mentionids{$docid};
     my $mentionid = "E$mentionids{$docid}";
     $mentionids{$docid}++;
@@ -1290,7 +1289,6 @@ sub export_earg {
                                      $kb->get_assertions($object_string, 'normalized_mention', undef, undef);
         $object_string_canonical_mention = $normalized_mention->{OBJECT} if $normalized_mention;
       }
-      $object_string_canonical_mention =~ s/^\"|\"$//g;
       my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
       my $confidence = $assertion->{CONFIDENCE};
       my ($predicate_justification, $base_filler, $additional_justification) = ("NIL", "NIL", "NIL");
