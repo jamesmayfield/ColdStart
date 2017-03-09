@@ -1135,7 +1135,7 @@ sub export_sentiments {
     my $output;
     open($output, ">:utf8", $outputfile_ere) or $kb->{LOGGER}->NIST_die("Could not open $outputfile_ere: $!");
     print $output "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    print $output "<deft_ere kit_id=\"$runid\" docid=\"$docid\" source_type=\"$source_type\">\n";
+    print $output "<deft_ere kit_id=\"$runid\" doc_id=\"$docid\" source_type=\"$source_type\">\n";
     print $output "  <entities>\n";
     foreach my $entity_nodeid(sort keys %{$mentions{$docid}}) {
       my $entity_type = uc $kb->get_entity_type($entity_nodeid, {LINENUM=>$., FILENAME=>$0});
@@ -1194,12 +1194,13 @@ sub export_sentiments {
           print $output "            <source ere_id=\"$source_mentionid\" offset=\"$source_offset\" length=\"$source_length\">$source_mention_text<\/source>\n";
           print $output "          <\/sentiment>\n";
         }
-        print $output "        <sentiments>\n";
+        print $output "        <\/sentiments>\n";
         print $output "      <\/entity>\n";
       }
     }
     print $output "    <\/entities>\n";
     print $output "  <\/sentiment_annotations>\n";
+    print $output "<\/belief_sentiment_doc>\n";
     close $output;
   }
 }
