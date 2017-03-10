@@ -163,10 +163,16 @@ sub entity_use {
 sub entity_typedef {
   my ($kb, $name, $type, $def_type, $source) = @_;
   $kb->{LOGGER}->NIST_die("Unknown def type: $def_type") unless $use_priority{$def_type};
-  # A type specification with multiple types doesn't give us any information, so ignore it
+  my $entity = $kb->intern($name, $source);
+  # A type specification with multiple types doesn't give us explicit type information, but
+  # it does provide some information for immediate or later validation, so store this in
+  # POSSIBLETYPES
   if (ref $type) {
     my @types = keys %{$type};
-    return if (@types > 1);
+    if(@types > 1) {
+      push(@{$entity->{POSSIBLETYPES}}, {TYPES=>$type, SOURCE=>$source});
+      return;
+    }
     $kb->{LOGGER}->NIST_die("type set with no entries in entity_typedef") unless @types;
     $type = $types[0];
   }
@@ -176,7 +182,6 @@ sub entity_typedef {
     $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_TYPE', $type, $source);
     return;
   }
-  my $entity = $kb->intern($name, $source);
   # Do nothing if the name is malformed
   return unless defined $entity;
   $def_type = uc $def_type;
@@ -490,6 +495,17 @@ sub check_entity_types {
       $kb->{LOGGER}->record_problem('MULTITYPED_ENTITY', $name,
 			    join(", ", map {"$_ at line $entity->{BESTDEF}{$_}{SOURCE}{LINENUM}"}
 				 sort keys %{$entity->{BESTDEF}}), 'NO_SOURCE');
+    }
+    # Check if possible types are compatible with declared type
+    if(exists $entity->{POSSIBLETYPES}) {
+      foreach my $possible_types(@{$entity->{POSSIBLETYPES}}) {
+        $kb->{LOGGER}->record_problem('MULTITYPED_ENTITY', $name,
+            join(" or ", map {"$_"} sort keys %{$possible_types->{TYPES}})
+            . " at line " . $possible_types->{SOURCE}{LINENUM} .
+            " and $type at line " . $entity->{BESTUSE}{SOURCE}{LINENUM}
+            , 'NO_SOURCE')
+          unless exists $possible_types->{TYPES}{$type};
+      }
     }
   }
 }

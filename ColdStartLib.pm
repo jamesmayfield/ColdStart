@@ -1946,7 +1946,9 @@ sub new {
 				    "$domain_string:$name from $predicate->{QUANTITY} " .
 				    "to $quantity")
 	unless $predicate->{QUANTITY} eq $quantity;
-    my @inverses = $predicates->lookup_predicate($inverse_name, $range, $domain);
+	  my $inverse_domain = map {$_=>$range->{$_}} grep {$_ ne "string"} keys %{$range};
+	  my $invers_range = $domain;
+    my @inverses = $predicates->lookup_predicate($inverse_name, $inverse_domain, $invers_range);
     $predicates->{LOGGER}->NIST_die("Multiple inverses with form " .
 				    "$inverse_name($range_string, $domain_string)")
       if (@inverses > 1);
