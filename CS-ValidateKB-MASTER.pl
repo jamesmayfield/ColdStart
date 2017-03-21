@@ -407,7 +407,7 @@ sub add_assertion {
     push(@{$kb->{MENTIONS0}{$provenance->get_docid()}{$provenance->{PREDICATE_JUSTIFICATION}->toshortstring()}}, $assertion);
   }
   push(@{$kb->{DOCIDS}{$subject}{$verb}{$provenance->get_docid()}}, $assertion)
-    if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention' || $predicate->{NAME} eq 'nominal_mention');
+    if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention' || $predicate->{NAME} eq 'nominal_mention' || $predicate->{NAME} eq 'pronominal_mention');
   if ($predicate->{NAME} eq 'link') {
     $assertion->{OBJECT} =~ /^(.*?):(.*)$/;
     push(@{$kb->{LINKS}{$subject}{$1}}, $2);
@@ -534,6 +534,7 @@ sub check_mention_string {
     my %docids;
     foreach my $docid ($kb->get_docids($subject, 'mention'),
          $kb->get_docids($subject, 'nominal_mention'),
+         $kb->get_docids($subject, 'pronominal_mention'),
 		     $kb->get_docids($subject, 'canonical_mention')) {
       $docids{$docid}++;
     }
@@ -544,6 +545,7 @@ sub check_mention_string {
     foreach my $docid (keys %docids) {
       my @mentions = ($kb->get_assertions($subject, 'mention', undef, $docid),
                                $kb->get_assertions($subject, 'nominal_mention', undef, $docid),
+                               $kb->get_assertions($subject, 'pronominal_mention', undef, $docid),
                                $kb->get_assertions($subject, 'canonical_mention', undef, $docid));
       # Read the file
       my $filename = $mentions[0]->{PROVENANCE}->get_docfile() if @mentions;
@@ -565,7 +567,8 @@ sub check_mention_string {
         $kb->{LOGGER}->record_problem('INACCURACTE_MENTION_STRING',
                                          $mention_string,
                                          $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring(),
-                                         $mention->{SOURCE}) if $mention_string ne $mention_string_from_file;
+                                         $mention->{SOURCE})
+          if $mention_string ne $mention_string_from_file;
       }
     }
   }
