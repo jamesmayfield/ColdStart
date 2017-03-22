@@ -1475,7 +1475,7 @@ my $predicates_spec = <<'END_PREDICATES';
 # to support the export of a Cold Start Run as an EDL submission
   PER,ORG,GPE,FAC,LOC,STRING    mention                   STRING       none
   PER,ORG,GPE,FAC,LOC,STRING    canonical_mention         STRING       none
-  PER,ORG,GPE,FAC,LOC,STRING    pronominal_mention        STRING       none
+  PER,ORG,GPE,FAC,LOC           pronominal_mention        STRING       none
   STRING                        normalized_mention        STRING       none
   PER,ORG,GPE,FAC,LOC           link                      STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
@@ -1489,7 +1489,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   CONFLICT.ATTACK                mention                                    STRING                         none
   CONFLICT.ATTACK                canonical_mention                          STRING                         none
-  CONFLICT.ATTACK                pronominal_mention                         STRING                         none
   CONFLICT.ATTACK                attacker                                   PER,GPE,ORG,STRING             conflict.attack_attacker
   CONFLICT.ATTACK                instrument                                 STRING                         none
   CONFLICT.ATTACK                target                                     PER,GPE,ORG,FAC,STRING         conflict.attack_target
@@ -1501,7 +1500,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   CONFLICT.DEMONSTRATE           mention                                    STRING                         none
   CONFLICT.DEMONSTRATE           canonical_mention                          STRING                         none
-  CONFLICT.DEMONSTRATE           pronominal_mention                         STRING                         none
   CONFLICT.DEMONSTRATE           entity                                     PER,ORG,STRING                 conflict.demonstrate_entity
   CONFLICT.DEMONSTRATE           time                                       STRING                         none
   CONFLICT.DEMONSTRATE           place                                      GPE,LOC,FAC,STRING             conflict.demonstrate_place
@@ -1510,7 +1508,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   CONTACT.BROADCAST              mention                                    STRING                         none
   CONTACT.BROADCAST              canonical_mention                          STRING                         none
-  CONTACT.BROADCAST              pronominal_mention                         STRING                         none
   CONTACT.BROADCAST              audience                                   PER,ORG,GPE,STRING             contact.broadcast_audience
   CONTACT.BROADCAST              entity                                     PER,ORG,GPE,STRING             contact.broadcast_entity
   CONTACT.BROADCAST              time                                       STRING                         none
@@ -1521,7 +1518,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   CONTACT.CONTACT                mention                                    STRING                         none
   CONTACT.CONTACT                canonical_mention                          STRING                         none
-  CONTACT.CONTACT                pronominal_mention                         STRING                         none
   CONTACT.CONTACT                entity                                     PER,ORG,GPE,STRING             contact.contact_entity
   CONTACT.CONTACT                time                                       STRING                         none
   CONTACT.CONTACT                place                                      GPE,LOC,FAC,STRING             contact.contact_place
@@ -1530,7 +1526,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   CONTACT.CORRESPONDENCE         mention                                    STRING                         none
   CONTACT.CORRESPONDENCE         canonical_mention                          STRING                         none
-  CONTACT.CORRESPONDENCE         pronominal_mention                         STRING                         none
   CONTACT.CORRESPONDENCE         entity                                     PER,ORG,GPE,STRING             contact.correspondence_entity
   CONTACT.CORRESPONDENCE         time                                       STRING                         none
   CONTACT.CORRESPONDENCE         place                                      GPE,LOC,FAC,STRING             contact.correspondence_place
@@ -1539,7 +1534,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   CONTACT.MEET                   mention                                    STRING                         none
   CONTACT.MEET                   canonical_mention                          STRING                         none
-  CONTACT.MEET                   pronominal_mention                         STRING                         none
   CONTACT.MEET                   entity                                     PER,ORG,GPE,STRING             contact.meet_entity
   CONTACT.MEET                   time                                       STRING                         none
   CONTACT.MEET                   place                                      GPE,LOC,FAC,STRING             contact.meet_place
@@ -1548,7 +1542,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   JUSTICE.ARREST-JAIL            mention                                    STRING                         none
   JUSTICE.ARREST-JAIL            canonical_mention                          STRING                         none
-  JUSTICE.ARREST-JAIL            pronominal_mention                         STRING                         none
   JUSTICE.ARREST-JAIL            agent                                      PER,ORG,GPE,STRING             justice.arrest-jail_agent
   JUSTICE.ARREST-JAIL            crime                                      STRING                         none
   JUSTICE.ARREST-JAIL            person                                     PER,STRING                     justice.arrest-jail_person
@@ -1560,7 +1553,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   LIFE.DIE                       mention                                    STRING                         none
   LIFE.DIE                       canonical_mention                          STRING                         none
-  LIFE.DIE                       pronominal_mention                         STRING                         none
   LIFE.DIE                       agent                                      PER,ORG,GPE,STRING             life.die_agent
   LIFE.DIE                       instrument                                 STRING                         none
   LIFE.DIE                       victim                                     PER,STRING                     life.die_victim
@@ -1572,7 +1564,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   LIFE.INJURE                    mention                                    STRING                         none
   LIFE.INJURE                    canonical_mention                          STRING                         none
-  LIFE.INJURE                    pronominal_mention                         STRING                         none
   LIFE.INJURE                    agent                                      PER,ORG,GPE,STRING             life.injure_agent
   LIFE.INJURE                    instrument                                 STRING                         none
   LIFE.INJURE                    victim                                     PER,STRING                     life.injure_victim
@@ -1584,7 +1575,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   MANUFACTURE.ARTIFACT           mention                                    STRING                         none
   MANUFACTURE.ARTIFACT           canonical_mention                          STRING                         none
-  MANUFACTURE.ARTIFACT           pronominal_mention                         STRING                         none
   MANUFACTURE.ARTIFACT           agent                                      PER,ORG,GPE,STRING             manufacture.artifact_agent
   MANUFACTURE.ARTIFACT           artifact                                   FAC,STRING                     manufacture.artifact_artifact
   MANUFACTURE.ARTIFACT           instrument                                 STRING                         none
@@ -1596,7 +1586,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   MOVEMENT.TRANSPORT-ARTIFACT    mention                                    STRING                         none
   MOVEMENT.TRANSPORT-ARTIFACT    canonical_mention                          STRING                         none
-  MOVEMENT.TRANSPORT-ARTIFACT    pronominal_mention                         STRING                         none
   MOVEMENT.TRANSPORT-ARTIFACT    agent                                      PER,ORG,GPE,STRING             movement.transport-artifact_agent
   MOVEMENT.TRANSPORT-ARTIFACT    artifact                                   FAC,STRING                     movement.transport-artifact_artifact
   MOVEMENT.TRANSPORT-ARTIFACT    destination                                GPE,LOC,FAC,STRING             movement.transport-artifact_destination
@@ -1610,7 +1599,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   MOVEMENT.TRANSPORT-PERSON      mention                                    STRING                         none
   MOVEMENT.TRANSPORT-PERSON      canonical_mention                          STRING                         none
-  MOVEMENT.TRANSPORT-PERSON      pronominal_mention                         STRING                         none
   MOVEMENT.TRANSPORT-PERSON      agent                                      PER,ORG,GPE,STRING             movement.transport-person_agent
   MOVEMENT.TRANSPORT-PERSON      destination                                GPE,LOC,FAC,STRING             movement.transport-person_destination
   MOVEMENT.TRANSPORT-PERSON      instrument                                 STRING                         none
@@ -1624,7 +1612,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   PERSONNEL.ELECT                mention                                    STRING                         none
   PERSONNEL.ELECT                canonical_mention                          STRING                         none
-  PERSONNEL.ELECT                pronominal_mention                         STRING                         none
   PERSONNEL.ELECT                agent                                      PER,ORG,GPE,STRING             personnel.elect_agent
   PERSONNEL.ELECT                person                                     PER,STRING                     personnel.elect_person
   PERSONNEL.ELECT                position                                   STRING                         none
@@ -1636,7 +1623,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   PERSONNEL.END-POSITION         mention                                    STRING                         none
   PERSONNEL.END-POSITION         canonical_mention                          STRING                         none
-  PERSONNEL.END-POSITION         pronominal_mention                         STRING                         none
   PERSONNEL.END-POSITION         entity                                     ORG,GPE,STRING                 personnel.end-position_entity
   PERSONNEL.END-POSITION         person                                     PER,STRING                     personnel.end-position_person
   PERSONNEL.END-POSITION         position                                   STRING                         none
@@ -1648,7 +1634,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   PERSONNEL.START-POSITION       mention                                    STRING                         none
   PERSONNEL.START-POSITION       canonical_mention                          STRING                         none
-  PERSONNEL.START-POSITION       pronominal_mention                         STRING                         none
   PERSONNEL.START-POSITION       entity                                     ORG,GPE,STRING                 personnel.start-position_entity
   PERSONNEL.START-POSITION       person                                     PER,STRING                     personnel.start-position_person
   PERSONNEL.START-POSITION       position                                   STRING                         none
@@ -1660,7 +1645,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   TRANSACTION.TRANSACTION        mention                                    STRING                         none
   TRANSACTION.TRANSACTION        canonical_mention                          STRING                         none
-  TRANSACTION.TRANSACTION        pronominal_mention                         STRING                         none
   TRANSACTION.TRANSACTION        beneficiary                                PER,ORG,GPE,STRING             transaction.transaction_beneficiary
   TRANSACTION.TRANSACTION        giver                                      PER,ORG,GPE,STRING             transaction.transaction_giver
   TRANSACTION.TRANSACTION        recipient                                  PER,ORG,GPE,STRING             transaction.transaction_recipient
@@ -1673,7 +1657,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   TRANSACTION.TRANSFER-MONEY     mention                                    STRING                         none
   TRANSACTION.TRANSFER-MONEY     canonical_mention                          STRING                         none
-  TRANSACTION.TRANSFER-MONEY     pronominal_mention                         STRING                         none
   TRANSACTION.TRANSFER-MONEY     beneficiary                                PER,ORG,GPE,STRING             transaction.transfer-money_beneficiary
   TRANSACTION.TRANSFER-MONEY     giver                                      PER,ORG,GPE,STRING             transaction.transfer-money_giver
   TRANSACTION.TRANSFER-MONEY     money                                      STRING                         none
@@ -1687,7 +1670,6 @@ my $predicates_spec = <<'END_PREDICATES';
 #
   TRANSACTION.TRANSFER-OWNERSHIP mention                                    STRING                         none
   TRANSACTION.TRANSFER-OWNERSHIP canonical_mention                          STRING                         none
-  TRANSACTION.TRANSFER-OWNERSHIP pronominal_mention                         STRING                         none
   TRANSACTION.TRANSFER-OWNERSHIP beneficiary                                PER,ORG,GPE,STRING             transaction.transfer-ownership_beneficiary
   TRANSACTION.TRANSFER-OWNERSHIP giver                                      PER,ORG,GPE,STRING             transaction.transfer-ownership_giver
   TRANSACTION.TRANSFER-OWNERSHIP recipient                                  PER,ORG,GPE,STRING             transaction.transfer-ownership_recipient
