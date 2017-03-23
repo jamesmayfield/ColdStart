@@ -1724,16 +1724,23 @@ foreach (grep {!/^\s*#/} split(/\n/, lc $predicate_aliases)) {
 sub build_hash { map {$_ => 'true'} @_ }
 # Set of legal range types (e.g., {PER, ORG, GPE})
 our %legal_range_types = &build_hash(qw(per gpe org fac loc string type conflict.attack
-  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet 
-  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact 
-  movement.transport-person personnel.elect personnel.end-position personnel.start-position 
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position
   transaction.transaction transaction.transfer-money transaction.transfer-ownership));
-# Set of types that are entities
-our %legal_entity_types = &build_hash(qw(per gpe org fac loc string conflict.attack 
-  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet 
-  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact 
-  movement.transport-person personnel.elect personnel.end-position personnel.start-position 
+# Set of types that are nodes
+our %legal_node_types = &build_hash(qw(per gpe org fac loc string conflict.attack
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position
   transaction.transaction transaction.transfer-money transaction.transfer-ownership));
+our %legal_entity_types = &build_hash(qw(per gpe org fac loc));
+our %legal_event_types = &build_hash(qw(conflict.attack
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position
+  transaction.transaction transaction.transfer-money transaction.transfer-ownership));
+our %legal_string_types = &build_hash(qw(stringp));
 
 # Is one type specification compatible with another?  The second
 # argument must be a hash representing a set of types. The first
@@ -1788,7 +1795,7 @@ sub add_predicates {
     $self->add_predicate($predicate);
   }
   # All entity types have a type assertion
-  my $domain = join (",", keys %legal_entity_types);
+  my $domain = join (",", keys %legal_node_types);
   my $predicate = Predicate->new($self, $domain, "type", "type", "none", $label);
   $self->add_predicate($predicate);
   $self;
@@ -1818,14 +1825,14 @@ sub get_predicate {
   if ($verb =~ /^(.*?):(.*)$/) {
     $domain_string = lc $1;
     $verb = $2;
-    unless($PredicateSet::legal_entity_types{$domain_string}) {
+    unless($PredicateSet::legal_node_types{$domain_string}) {
       $self->{LOGGER}->record_problem('ILLEGAL_PREDICATE_TYPE', $domain_string, $source);
       return;
     }
   }
   if (defined $domain_string &&
       defined $subject_type &&
-      $PredicateSet::legal_entity_types{$subject_type} &&
+      $PredicateSet::legal_node_types{$subject_type} &&
       $domain_string ne $subject_type) {
     $self->{LOGGER}->record_problem('SUBJECT_PREDICATE_MISMATCH',
 				    $subject_type,
@@ -1888,7 +1895,7 @@ sub new {
   # Make sure each type is legal
   foreach my $type (keys %{$domain}) {
     $predicates->{LOGGER}->NIST_die("Illegal domain type: $type")
-      unless $PredicateSet::legal_entity_types{$type};
+      unless $PredicateSet::legal_node_types{$type};
   }
   # Do the same for the range
   my $range = {map {$_ => 'true'} split(/,/, lc $range_string)};

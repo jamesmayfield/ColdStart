@@ -178,7 +178,7 @@ sub entity_typedef {
   }
   $type = lc $type;
   # Only legal types may be asserted
-  unless ($PredicateSet::legal_entity_types{$type}) {
+  unless ($PredicateSet::legal_node_types{$type}) {
     $kb->{LOGGER}->record_problem('ILLEGAL_NODE_TYPE', $type, $source);
     return;
   }
@@ -223,7 +223,7 @@ sub add_assertion {
   }
   $subject = $subject_entity->{NAME};
   my $subject_type = $kb->get_entity_type($subject_entity);
-  $subject_type = undef unless $PredicateSet::legal_entity_types{$subject_type};
+  $subject_type = undef unless $PredicateSet::legal_node_types{$subject_type};
   my $realis;
   ($verb, $realis) = $kb->validate_realis($subject, $verb, $object, $source);
   my $object_entity;
@@ -281,7 +281,7 @@ sub add_assertion {
 	$object = "\"$object\"";
       }
     }
-    elsif (&PredicateSet::is_compatible($predicate->get_range(), \%PredicateSet::legal_entity_types)) {
+    elsif (&PredicateSet::is_compatible($predicate->get_range(), \%PredicateSet::legal_node_types)) {
       $object_entity = $kb->intern($object, $source);
       unless (defined $object_entity) {
 	$kb->{STATS}{REJECTED_ASSERTIONS}{NO_OBJECT}++;
@@ -581,7 +581,7 @@ sub assert_inverses {
     next if $assertion->{OBJECT} =~ /:String/;
     next unless $assertion->{OBJECT_ENTITY};
     next unless ref $assertion->{PREDICATE};
-    next unless &PredicateSet::is_compatible($assertion->{PREDICATE}{RANGE}, \%PredicateSet::legal_entity_types);
+    next unless &PredicateSet::is_compatible($assertion->{PREDICATE}{RANGE}, \%PredicateSet::legal_node_types);
     # Accomodating the requirement for 2017
     # Duplicate assertions are allowed therefore generate missing inverses for all duplicates
     # An assertion is a duplicate if subject, verb, object matches but the provenance differ
