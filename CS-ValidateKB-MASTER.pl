@@ -1485,7 +1485,7 @@ $switches->addVarSwitch("output", "Specify the output format. Legal formats are 
 		                  " Use 'none' to perform error checking with no output.");
 $switches->put("output", 'none');
 $switches->addVarSwitch("linkkb", "Specify which links should be used to produce KB IDs for the \"-output edl\" option. Legal values depend upon the prefixes found in the argument to 'link' relations in the KB being validated. This option has no effect unless \"-output edl\" has been specified.");
-$switches->put("linkkb", "none");
+$switches->put("linkkb", "LDC2015E42");
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch("predicates", "File containing specification of additional predicates to allow");
