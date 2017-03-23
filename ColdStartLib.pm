@@ -1740,7 +1740,7 @@ our %legal_event_types = &build_hash(qw(conflict.attack
   justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact
   movement.transport-person personnel.elect personnel.end-position personnel.start-position
   transaction.transaction transaction.transfer-money transaction.transfer-ownership));
-our %legal_string_types = &build_hash(qw(stringp));
+our %legal_string_types = &build_hash(qw(string));
 
 # Is one type specification compatible with another?  The second
 # argument must be a hash representing a set of types. The first
