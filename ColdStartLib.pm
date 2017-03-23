@@ -74,6 +74,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
   IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s 
   ILLEGAL_NODE_NAME             ERROR    Illegal node name: %s. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name)
+  INCOMPATIBLE_NODE_NAME        ERROR    Node name %s is not compatible with type %s
   ILLEGAL_NODE_TYPE             ERROR    Illegal node type: %s
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s

@@ -182,6 +182,14 @@ sub entity_typedef {
     $kb->{LOGGER}->record_problem('ILLEGAL_NODE_TYPE', $type, $source);
     return;
   }
+  # Check if the node name is compatible with its type
+  my $node_name = $entity->{NAME};
+  unless ( ($PredicateSet::legal_entity_types{$type} && $node_name =~ /^:Entity.+?/) ||
+   ($PredicateSet::legal_event_types{$type} && $node_name =~ /^:Event.+?/) ||
+   ($PredicateSet::legal_string_types{$type} && $node_name =~ /^:String.+?/)) {
+    $kb->{LOGGER}->record_problem('INCOMPATIBLE_NODE_NAME', $node_name, uc $type, $source);
+    return;
+  }
   # Do nothing if the name is malformed
   return unless defined $entity;
   $def_type = uc $def_type;
