@@ -121,7 +121,7 @@ sub intern {
     return;
   }
   unless ($name =~ /^:?(Entity|Event|String).+$/i && $name !~ /-/) {
-    $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_NAME', $name, $source);
+    $kb->{LOGGER}->record_problem('ILLEGAL_NODE_NAME', $name, $source);
     return;
   }
   unless ($name =~ /^:/) {
@@ -179,7 +179,7 @@ sub entity_typedef {
   $type = lc $type;
   # Only legal types may be asserted
   unless ($PredicateSet::legal_entity_types{$type}) {
-    $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_TYPE', $type, $source);
+    $kb->{LOGGER}->record_problem('ILLEGAL_NODE_TYPE', $type, $source);
     return;
   }
   # Do nothing if the name is malformed

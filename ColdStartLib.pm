@@ -69,40 +69,40 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Knowledge Base Errors
   AMBIGUOUS_PREDICATE           ERROR    %s: ambiguous predicate
-  COLON_OMITTED                 WARNING  Initial colon omitted from name of entity %s
+  COLON_OMITTED                 WARNING  Initial colon omitted from name of node %s
   DUPLICATE_ASSERTION           WARNING  The same assertion is made more than once (%s)
   ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
   IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s 
-  ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name)
-  ILLEGAL_ENTITY_TYPE           ERROR    Illegal entity type: %s
+  ILLEGAL_NODE_NAME             ERROR    Illegal node name: %s. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name)
+  ILLEGAL_NODE_TYPE             ERROR    Illegal node type: %s
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
   ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
   ILLEGAL_REALIS                ERROR    Illegal realis: %s
   MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
-  MISSING_CANONICAL_E           ERROR    Canonical mention of entity %s in document %s required for inferring inverse
-  MISSING_MENTION               WARNING  Entity %s has no mention in document %s
-  MISSING_MENTION_E             ERROR    %s: '%s' is not a mention of entity %s
+  MISSING_CANONICAL_E           ERROR    Canonical mention of node %s in document %s required for inferring inverse
+  MISSING_MENTION               WARNING  Node %s has no mention in document %s
+  MISSING_MENTION_E             ERROR    %s: '%s' is not a mention of node %s
   MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
   MISSING_REALIS                ERROR    Realis is missing in assertion: %s
   MISSING_RUNID                 ERROR    The first line of the file does not contain a legal runid
-  MISSING_TYPEDEF               ERROR    No type asserted for Entity %s
-  MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
-  MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
-  MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
-  MULTIPLE_MENTIONS_NO_CANONICAL ERROR   Entity %s has more than one named/nominal mention in document %s but has no canonical mention
-  MULTITYPED_ENTITY             ERROR    Entity %s has more than one type: %s
-  NO_MENTIONS                   WARNING  Entity %s has no mentions
+  MISSING_TYPEDEF               ERROR    No type asserted for Node %s
+  MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Node %s in document %s
+  MULTIPLE_FILLS_ENTITY         WARNING  Node %s has multiple %s fills, but should be single-valued
+  MULTIPLE_LINKS                WARNING  More than one link from node %s to KB %s
+  MULTIPLE_MENTIONS_NO_CANONICAL ERROR   Node %s has more than one named/nominal mention in document %s but has no canonical mention
+  MULTITYPED_ENTITY             ERROR    Node %s has more than one type: %s
+  NO_MENTIONS                   WARNING  Node %s has no mentions
   PREDICATE_ALIAS               WARNING  Use of %s predicate; %s replaced with %s
-  STRING_USED_FOR_ENTITY        ERROR    Expecting an entity, but got string %s
+  STRING_USED_FOR_ENTITY        ERROR    Expecting a node, but got string %s
   SUBJECT_PREDICATE_MISMATCH    ERROR    Type of subject (%s) does not match type of predicate (%s)
   UNASSERTED_MENTION            WARNING  Failed to assert that %s in document %s is also a mention
   INACCURACTE_MENTION_STRING    ERROR    Mention string '%s' not found at %s
-  UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses entity %s, but that entity id has no mentions in provenance %s
+  UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses node %s, but that node has no mentions in provenance %s
   UNEXPECTED_REALIS             ERROR    Unexpected value of realis (expected %s, got %s)
   UNQUOTED_STRING               WARNING  String %s not surrounded by double quotes
-  UNKNOWN_TYPE                  ERROR    Cannot infer type for Entity %s
+  UNKNOWN_TYPE                  ERROR    Cannot infer type for Node %s
 
 ########## Query File Errors
   DUPLICATE_QUERY               WARNING  Queries %s and %s share entry point(s)
