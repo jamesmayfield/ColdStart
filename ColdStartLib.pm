@@ -4007,12 +4007,18 @@ sub column2string {
 
 # Convert this EvaluationQueryOutput back to its proper printed representation
 sub tostring {
-  my ($self, $schema_name) = @_;
+  my ($self, $schema_name, $prefix) = @_;
   # Prevent duplicate adjacent lines from appearing in output
   my $previous = "";
   $schema_name = '2015SFsubmissions' unless defined $schema_name;
   my $schema = $schemas{$schema_name};
   $self->{LOGGER}->NIST_die("Unknown file schema: $schema_name") unless $schema;
+  unless($prefix) {
+    # Generate a prefix, if not provided
+    my @chars = ("A".."Z", "a".."z");
+    $prefix .= $chars[rand @chars] for 1..4;
+  }
+  my $count = $prefix."000000001";
   my $string = "";
   if (defined $self->{ENTRIES_BY_TYPE}) {
 ### DO NOT INCLUDE
@@ -4030,6 +4036,8 @@ sub tostring {
       }
       my $entry_string = join("\t", map {$self->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
       # Could use hash here to prevent duplicates
+      $entry_string .= "\t:NIL_$count";
+      $count++;
       $string .= "$entry_string\n" unless $entry_string eq $previous;
       $previous = $entry_string;
     }

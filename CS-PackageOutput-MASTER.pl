@@ -122,8 +122,8 @@ my ($num_errors, $num_warnings) = $logger->report_all_problems();
 if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
-print $program_output $sf_output1->tostring("2015SFsubmissions");
-print $program_output $sf_output2->tostring("2015SFsubmissions");
+print $program_output $sf_output1->tostring("2015SFsubmissions", "R1");
+print $program_output $sf_output2->tostring("2015SFsubmissions", "R2");
 close $program_output;
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;
