@@ -718,6 +718,7 @@ sub check_confidence {
 # (4) if filler_string is a mention of the object
 # (5) if the provenance of a sentiment relation is a mention of the target
 # (6) if the provenance of a normalized mention is a mention of the subject
+# (7) if the BASE_FILLER is NILL (NILL is not an allowed value for BASE_FILLER provenance for event assertions)
 sub check_provenance_lists {
   my ($kb) = @_;
   foreach my $docid(keys %{$kb->{MENTIONS2}}) {
@@ -766,6 +767,12 @@ sub check_provenance_lists {
     if($assertion->{VERB} eq "normalized_mention"){
       $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'Provenance', $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion->{PROVENANCE}{WHERE})
         unless $kb->mention_exists($assertion->{SUBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION});
+    }
+    # check if the BASE_FILLER is NILL (NILL is not an allowed value for BASE_FILLER provenance for event assertions)
+    if($assertion->{SUBJECT} =~ /^:Event.+$/ or $assertion->{OBJECT} =~ /^:Event.+$/) {
+      next if $assertion->{VERB} eq "type" or $assertion->{VERB} =~ /mention/;
+      $kb->{LOGGER}->record_problem('UNEXPECTED_BASE_FILLER', 'NIL', $assertion->{PROVENANCE}{WHERE})
+        if (not defined $assertion->{PROVENANCE}{BASE_FILLER} ) or ($assertion->{PROVENANCE}{BASE_FILLER}->tooriginalstring() eq 'NIL');
     }
   }
 }

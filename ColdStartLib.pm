@@ -65,6 +65,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
   TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
   UNEXPECTED_PROVENANCE         ERROR    Only PREDICATE_JUSTIFICATION is expected in the provenance: %s
+  UNEXPECTED_BASE_FILLER        ERROR    %s is not an allowed value for BASE_FILLER provenance for event assertions
   TOO_MANY_PROVENANCES_IN_LIST  ERROR    Unexpected number of provenances in the list: %s. provided=(%d) expected=(%d)
 
 ########## Knowledge Base Errors
