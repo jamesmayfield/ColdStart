@@ -681,7 +681,7 @@ sub parse_assertion {
         $result->{$offset_field}{"start_$_"} = $start;
         $result->{$offset_field}{"end_$_"} = $end;
         $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $result->{offsets}, $position)
-          if($result->{docid} && $result->{docid} ne $docid);
+          if(exists $result->{docid} && defined $result->{docid} && $result->{docid} ne $docid);
         $result->{docid} = $docid;
       }
     }
