@@ -93,6 +93,72 @@ my $logger;
 ### DO INCLUDE EvaluationQueryOutput  ColdStartLib.pm
 ### DO INCLUDE Switches               ColdStartLib.pm
 
+##################################################################################### 
+# EntityDefs
+##################################################################################### 
+
+# This is the class for storing various entity definition
+
+package EntityDefs;
+
+{
+
+  sub new {
+    my ($class, $runfile) = @_;
+    my $self = {FILENAME => $runfile};
+    bless($self, $class);
+    $self->load_definitions();
+    $self;
+  }
+
+  sub load_definitions {
+    my ($self) = @_;
+    open(my $infile, "<:utf8", $self->{FILENAME}) or $logger->NIST_die("Could not open $self->{FILENAME}: $!");
+    my $runid_line = <$infile>;
+    while (<$infile>) {
+      chomp;
+      my $source = {FILENAME => $self->{FILENAME}, LINENUM => $.};
+      my $confidence = '1.0';
+      # Eliminate comments, ensuring that pound signs in the middle of
+      # strings are not treated as comment characters
+      s/$main::comment_pattern/$1/;
+      my $comment = $2 || "";
+      next unless /\S/;
+      my @entries = map {&trim($_)} split(/\t/);
+      # Get the confidence out of the way if it is provided
+      $confidence = pop(@entries) if @entries && ($entries[-1] =~ /^\d+\.\d+$/ || $entries[-1] =~ /^\d+$/);
+      # Now assign the entries to the appropriate fields
+      my ($subject, $predicate, $object, $provenance_string) = @entries;
+      next if $predicate ne 'canonical_mention';
+      my $provenance = Provenance->new($logger, $source, 'PROVENANCETRIPLELIST', $provenance_string);
+      $self->{CANONICAL_MENTIONS}{$subject}{$provenance->get_docid()} = $provenance;
+    }
+    close($infile);
+  }
+
+  sub get_CANONICAL_OFFSET {
+    my ($self, $subject, $docid) = @_;
+    return unless $self->{CANONICAL_MENTIONS}{$subject}{$docid};
+    return $self->{CANONICAL_MENTIONS}{$subject}{$docid}->tostring();
+  }
+
+  # Return the field if it's defined. Otherwise, invoke the corresponding get method
+  sub get {
+    my ($self, $field, @args) = @_;
+    return $self->{$field} if defined $self->{$field};
+    my $method = $self->can("get_$field");
+    return $method->($self, @args) if $method;
+    return;
+  }
+
+  sub trim {
+    my ($string) = @_;
+    $string =~ s/^\s+//;
+    $string =~ s/\s+$//;
+    $string;
+  }
+
+}
 
 ##################################################################################### 
 # Task
@@ -356,8 +422,8 @@ package TaskSet;
 # COUNT is the number of open tasks currently in the TaskSet
 # OUTFILE is the file handle to which output should be sent
 sub new {
-  my ($class, $infile, $outfile) = @_;
-  my $self = {COUNT => 0, INFILE => $infile, OUTFILE => $outfile};
+  my ($class, $infile, $outfile, $logger, $entitydefs) = @_;
+  my $self = {COUNT => 0, INFILE => $infile, OUTFILE => $outfile, LOGGER => $logger, ENTITYDEFS => $entitydefs};
   bless($self, $class);
   $self;
 }
@@ -513,6 +579,15 @@ sub add_fill {
   my $confidence = $assertion->{confidence};
   # Column 9: Node ID
   my $node_id = $assertion->{object};
+
+  # Get the canonical_mention_offset to be used as the first triple in the provenance
+  my $canonical_mention_offset =
+    $self->{ENTITYDEFS}->get('CANONICAL_OFFSET', $task->{ENTITY}, $assertion->{docid});
+
+  my $full_provenance = ProvenanceList->new($self->{LOGGER}, $assertion->{position}, $full_provenance_string, $assertion->{subject}, $assertion->{object}, $assertion->{predicate});
+  my $sf_provenance = $full_provenance->{PREDICATE_JUSTIFICATION}->tostring();
+  $sf_provenance = "$canonical_mention_offset,$sf_provenance";
+
   # This routine either receives a single task and matching assertion
   # (if this a string-valued slot) or two such pairs, one for the
   # final hop in the query and one bearing the canonical_mention for
@@ -525,13 +600,14 @@ sub add_fill {
     $filler = &normalize_filler($assertion->{object});
     $filler_provenance = "$assertion->{predicate_justification}{docid_0}:$assertion->{predicate_justification}{start_0}-$assertion->{predicate_justification}{end_0}";
   }
+  $filler_provenance = "$filler_provenance";
   # We've calculated all of the necessary values, so print the result
   my $outfile = $self->{OUTFILE};
   # FIXME: Should probably use the appropriate schema from ColdStartLib here
   print $outfile join("\t", ($query_id,
   			     $slot_name,
   			     $run_id,
-  			     $full_provenance_string,
+  			     $sf_provenance,
   			     $filler,
 			     $type,
   			     $filler_provenance,
@@ -570,7 +646,7 @@ my %predicate2labels = (
 my $counter = "assertion0001";
 
 sub parse_assertion {
-  my ($line, $position) = @_;
+  my ($line, $position, $logger) = @_;
   # The spec didn't actually require a single tab between entries, so
   # we must ditch any fields that don't contain text
   my (@entries) = map {s/^\s+//; s/\s+$//; $_} grep {/\S/} split(/\t/, $line);
@@ -604,6 +680,9 @@ sub parse_assertion {
         $result->{$offset_field}{"docid_$_"} = $docid;
         $result->{$offset_field}{"start_$_"} = $start;
         $result->{$offset_field}{"end_$_"} = $end;
+        $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $result->{offsets}, $position)
+          if($result->{docid} && $result->{docid} ne $docid);
+        $result->{docid} = $docid;
       }
     }
   }
@@ -618,7 +697,6 @@ sub parse_assertion {
   # the assertion that do not appear in it
   $result->{description} = "$result->{predicate}($result->{entity}, $result->{object}) ---> <<$line>>";
   $result->{position} = $position;
-
   # To allow the new query ID to be generated, we must have the same
   # fields as a SF variant submission. These include: QUERY, QUERY_ID,
   # QUERY_ID_BASE, TARGET_UUID, VALUE, VALUE_PROVENANCE and TYPE.
@@ -654,10 +732,11 @@ sub seek_to_start {
 
 # Look to fulfill each of the evaluation queries in the current run file
 sub process_runfile {
-  my ($runfile, $evaluation_queries, $outfile) = @_;
+  my ($runfile, $evaluation_queries, $outfile, $logger) = @_;
+  my $entitydefs = EntityDefs->new($runfile);
   open(my $infile, "<:utf8", $runfile) or die "Could not open $runfile: $!";
   # Create a new task set
-  my $taskset = TaskSet->new($infile, $outfile);
+  my $taskset = TaskSet->new($infile, $outfile, $logger, $entitydefs);
   # Call seek_to_start to skip over the run ID.  seek_to_start wipes
   # out tasks at position 0, so add evaluation queries afterward
   my $runid = &seek_to_start($infile, $taskset);
@@ -687,7 +766,7 @@ sub process_runfile {
     # handle double-quoted strings properly
     s/$main::comment_pattern/$1/;
     next unless /\S/;
-    my $assertion = &parse_assertion($_, $tell);
+    my $assertion = &parse_assertion($_, $tell, $logger);
     next if ($assertion->{realis} && lc($assertion->{realis}) eq "generic");
     # Find any open tasks that are fulfilled by this assertion
     my @tasks = $taskset->retrieve_tasks($assertion);
@@ -772,7 +851,7 @@ else {
   $outfile_opened = 'true';
 }
 print STDERR "WARNING: $runfile might not be a validated Cold Start run file (it doesn't contain .valid)\n" if $runfile =~ /\./ && $runfile !~ /\.valid/;
-&process_runfile($runfile, $queries, $outfile);
+&process_runfile($runfile, $queries, $outfile, $logger);
 close $outfile if $outfile_opened;
 
 1;
