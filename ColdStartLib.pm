@@ -132,7 +132,8 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
-  UNEXPECTED_JUSTIFICATION_NUM  ERROR    Unexpected number of justifications: %s
+  ONE_JUSTIFICATION_EXPECTED    ERROR    Only one justification expected; multiple provided containing NODIEID %s
+  ONE_JUSTIFICATION_PER_DOC_EXPECTED  ERROR    Only one justification per document expected; multiple provided for DOCID %s containing NODEID %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -3567,12 +3568,14 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     }
 
     # Verify if the number of justifications are according to the specification
-    if($self->{JUSTIFICATIONS_ALLOWED} eq 'ONE' && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}) {
-      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification is allowed', $where);
+    if($self->{JUSTIFICATIONS_ALLOWED} eq 'ONE'
+        && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}) {
+      $logger->record_problem('ONE_JUSTIFICATION_EXPECTED', $entry->{NODEID}, $where);
       next;
     }
-    elsif($self->{JUSTIFICATIONS_ALLOWED} eq 'ONEPERDOC' && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}) {
-      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification per document is allowed', $where);
+    elsif($self->{JUSTIFICATIONS_ALLOWED} eq 'ONEPERDOC'
+           && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}) {
+      $logger->record_problem('ONE_JUSTIFICATION_PER_DOC_EXPECTED', $entry->{DOCID}, $entry->{NODEID}, $where);
       next;
     }
     push( @{$justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry );
