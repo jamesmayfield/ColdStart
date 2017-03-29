@@ -108,8 +108,8 @@ open($program_output, ">:utf8", $outputfilename) or $logger->NIST_die("Could not
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $sf_output1 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $round1file);
-my $sf_output2 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $round2file);
+my $sf_output1 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, 'ONE', $round1file);
+my $sf_output2 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, 'ONE', $round2file);
 my $runid1 = $sf_output1->get_runid();
 my $runid2 = $sf_output2->get_runid();
 if ($runid1 ne $runid2) {

@@ -131,6 +131,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
+  UNEXPECTED_JUSTIFICATION_NUM  ERROR    Unexpected number of justifications: %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -3478,6 +3479,7 @@ sub load {
 ### DO INCLUDE
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $columns = $schema->{COLUMNS};
+  my %justifications;
   input_line:
   while (<$infile>) {
     chomp;
@@ -3554,6 +3556,19 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
 	next input_line;
       }
     }
+
+    # Verify if the number of justifications are according to the specification
+    if($self->{JUSTIFICATIONS_ALLOWED} eq 'ONE') {
+      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification is allowed', $where)
+        if(exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}});
+      next;
+    }
+    elsif($self->{JUSTIFICATIONS_ALLOWED} eq 'ONEPERDOC') {
+      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification per document is allowed', $where)
+        if(exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}});
+      next;
+    }
+    push( @{$justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry );
 
     # Make sure that the submitted slot matches the slot requested by the query
     if ($entry->{SLOT_NAME} ne $entry->{QUERY}{SLOT}) {
@@ -3959,7 +3974,7 @@ sub score_query {
 
 # Create a new EvaluationQueryOutput object
 sub new {
-  my ($class, $logger, $discipline, $queries, @rawfilenames) = @_;
+  my ($class, $logger, $discipline, $queries, $justifications_allowed, @rawfilenames) = @_;
   $logger->NIST_die("$class->new called with no filenames") unless @rawfilenames;
   # Poor man's find
 ### DO NOT INCLUDE
@@ -3969,6 +3984,7 @@ sub new {
   my $self = {QUERIES => $queries,
 	      DISCIPLINE => $discipline,
 	      RAW_FILENAMES => \@rawfilenames,
+	      JUSTIFICATIONS_ALLOWED => $justifications_allowed,
 	      LOGGER => $logger};
   bless($self, $class);
   foreach my $filename (@filenames) {

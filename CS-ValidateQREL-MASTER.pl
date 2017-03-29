@@ -179,7 +179,7 @@ $logger->NIST_die("File $filename does not exist") unless -e $filename;
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $assessments = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $filename);
+my $assessments = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, 'MANY', $filename);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();

@@ -27,6 +27,17 @@ my $version = "2.0";
 my $program_output = *STDOUT{IO};
 my $error_output = *STDERR{IO};
 
+##################################################################################### 
+# Default values
+##################################################################################### 
+
+# Are multiple justifications allowed?
+my %justifications_allowed = (
+  ONE =>       "only one allowed",
+  ONEPERDOC => "at most one allowed per document",
+  MANY =>      "any number of justifications allowed",
+);
+my $justifications_allowed = 'ONE';
 
 ### DO NOT INCLUDE
 ##################################################################################### 
@@ -64,6 +75,9 @@ $switches->put('error_file', "STDERR");
 $switches->addConstantSwitch('allow_comments', 'true', "Enable comments introduced by a pound sign in the middle of an input line");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addConstantSwitch('groundtruth', 'true', "Treat input file as ground truth (so don't, e.g., enforce single-valued slots)");
+$switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
+			"Legal values are: " . join(", ", map {"$_ ($justifications_allowed{$_})"} sort keys %justifications_allowed));
+$switches->put('justifications', $justifications_allowed);
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("queryfile", "required", "File containing queries used to generate the file being validated");
 $switches->addParam("filename", "required", "File containing query output.");
@@ -112,6 +126,11 @@ if (defined $docids_file) {
   Provenance::set_docids($docids);
 }
 
+# How should multiple justifications be handled?
+$justifications_allowed = uc $switches->get("justifications");
+$logger->NIST_die("Argument to -justifications switch must be one of [" . join(", ", sort keys %justifications_allowed) . "]")
+  unless $justifications_allowed{$justifications_allowed};
+
 # The input file to process
 my $filename = $switches->get("filename");
 $logger->NIST_die("File $filename does not exist") unless -e $filename;
@@ -119,7 +138,7 @@ $logger->NIST_die("File $filename does not exist") unless -e $filename;
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $filename);
+my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $filename);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
