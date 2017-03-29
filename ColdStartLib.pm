@@ -2684,6 +2684,23 @@ my %schemas = (
     )],
   },
 
+  '2017SFsubmissions' => {
+    YEAR => 2017,
+    TYPE => 'SUBMISSION',
+    SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	PER	NYT_ENG_20101103.0024:815-833	1.0	:Entity_2345"],
+    COLUMNS => [qw(
+      FULL_QUERY_ID
+      SLOT_NAME
+      RUNID
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
+      VALUE_TYPE
+      VALUE_PROVENANCE_TRIPLES
+      CONFIDENCE
+      NODEID
+    )],
+  },
+
 );
 
 # Build a pattern that will recognize assessment codes (we just build
@@ -2846,6 +2863,11 @@ my %columns = (
 
   LINENUM => {
     DESCRIPTION => "The line number in FILENAME containing LINE - added by load",  },
+
+  NODEID => {
+    DESCRIPTION => "Node ID of the filler",
+    PATTERN => $anything_pattern
+  },
 
   OBJECT_ASSESSMENT => {
     DESCRIPTION => "Additional assessment",
@@ -3278,11 +3300,11 @@ my %columns = (
   VALUE_TYPE => {
     DESCRIPTION => "{PER, ORG, GPE, STRING}",
     YEARS => [2015],
-    PATTERN => qr/^(PER|ORG|GPE|STRING)$/i,
+    PATTERN => $anything_pattern,
     NORMALIZE => sub {
       my ($logger, $where, $value) = @_;
       $logger->record_problem('ILLEGAL_VALUE_TYPE', $value, $where)
-        if ($value !~ qr/^(PER|ORG|GPE|STRING)$/i);
+        unless $PredicateSet::legal_node_types{lc $value};
       uc $value;
     },
   },
