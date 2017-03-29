@@ -128,6 +128,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
   MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
+  MULTIPLE_DOCIDS_IN_RESPONSE   ERROR    Multiple DOCIDs used in response: %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
@@ -3084,8 +3085,12 @@ my %columns = (
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
       if (defined $entry->{RELATION_PROVENANCE_TRIPLES}) {
-	$entry->{RELATION_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
-							$entry->{RELATION_PROVENANCE_TRIPLES});
+        $entry->{RELATION_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
+				  $entry->{RELATION_PROVENANCE_TRIPLES});
+				if(exists $entry->{DOCID} && $entry->{DOCID} ne $entry->{RELATION_PROVENANCE}->get_docid()) {
+          $logger->record_problem('MULTIPLE_DOCIDS_IN_RESPONSE', "\n$entry->{LINE}", $where);
+        }
+        $entry->{DOCID} = $entry->{RELATION_PROVENANCE}->get_docid();
       }
     },
     DEPENDENCIES => [qw(RELATION_PROVENANCE_TRIPLES)],
@@ -3286,6 +3291,10 @@ my %columns = (
 	$entry->{VALUE_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
 						     $entry->{VALUE_PROVENANCE_TRIPLES});
       }
+      if(exists $entry->{DOCID} && $entry->{DOCID} ne $entry->{VALUE_PROVENANCE}->get_docid()) {
+        $logger->record_problem('MULTIPLE_DOCIDS_IN_RESPONSE', "\n$entry->{LINE}", $where);
+      }
+      $entry->{DOCID} = $entry->{VALUE_PROVENANCE}->get_docid();
     },
     DEPENDENCIES => [qw(DOCID OBJECT_OFFSET_START OBJECT_OFFSET_END
 			OBJECT_OFFSETS VALUE_PROVENANCE_TRIPLES)],
@@ -3558,14 +3567,12 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     }
 
     # Verify if the number of justifications are according to the specification
-    if($self->{JUSTIFICATIONS_ALLOWED} eq 'ONE') {
-      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification is allowed', $where)
-        if(exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}});
+    if($self->{JUSTIFICATIONS_ALLOWED} eq 'ONE' && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}) {
+      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification is allowed', $where);
       next;
     }
-    elsif($self->{JUSTIFICATIONS_ALLOWED} eq 'ONEPERDOC') {
-      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification per document is allowed', $where)
-        if(exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}});
+    elsif($self->{JUSTIFICATIONS_ALLOWED} eq 'ONEPERDOC' && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}) {
+      $logger->record_problem('UNEXPECTED_JUSTIFICATION_NUM', 'Only one justification per document is allowed', $where);
       next;
     }
     push( @{$justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry );
