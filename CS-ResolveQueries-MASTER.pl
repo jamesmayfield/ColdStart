@@ -500,6 +500,15 @@ sub get_num_active_tasks {
   $_[0]->{COUNT};
 }
 
+# Check if the assertion is an event assertion
+sub is_event {
+  my ($self, $assertion) = @_;
+  my $retVal = 0;
+  $retVal = 1 if($assertion->{entity} && $assertion->{entity} =~ /^:Event.+$/);
+  $retVal = 1 if($assertion->{object} && $assertion->{object} =~ /^:Event.+$/);
+  $retVal;
+}
+
 # Find any open tasks that match the assertion, by invoking each of
 # the retrieval routines stored in @retrievers
 sub retrieve_tasks {
@@ -583,10 +592,9 @@ sub add_fill {
   # Get the canonical_mention_offset to be used as the first triple in the provenance
   my $canonical_mention_offset =
     $self->{ENTITYDEFS}->get('CANONICAL_OFFSET', $task->{ENTITY}, $assertion->{docid});
-
-  my $full_provenance = ProvenanceList->new($self->{LOGGER}, $assertion->{position}, $full_provenance_string, $assertion->{subject}, $assertion->{object}, $assertion->{predicate});
+  my $full_provenance = ProvenanceList->new($self->{LOGGER}, $assertion->{position}, $full_provenance_string, $assertion->{entity}, $assertion->{object}, $assertion->{predicate});
   my $sf_provenance = $full_provenance->{PREDICATE_JUSTIFICATION}->tostring();
-  $sf_provenance = "$canonical_mention_offset,$sf_provenance";
+  $sf_provenance = "$canonical_mention_offset,$sf_provenance" if $self->is_event($assertion);
 
   # This routine either receives a single task and matching assertion
   # (if this a string-valued slot) or two such pairs, one for the
