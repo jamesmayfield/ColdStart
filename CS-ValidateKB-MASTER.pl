@@ -44,8 +44,11 @@ my %use_priority = (
 ##################################################################################### 
 
 my %type2export = (
-  tac => \&export_tac,
-  edl => \&export_edl,
+  TAC => \&export_tac,
+  EDL => \&export_edl,
+  EAG => \&export_eag,
+  ENG => \&export_eng,
+  SEN => \&export_sen,
 );
 
 my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
@@ -66,7 +69,6 @@ my $multiple_attestations = 'MANY';
 my %output_labels = ();
 
 # Filehandles for program and error output
-my $program_output;
 my $error_output = *STDERR{IO};
 
 ##################################################################################### 
@@ -948,7 +950,7 @@ sub check_integrity {
 # Print out all assertions
 sub dump_assertions {
   my ($kb) = @_;
-  my $outfile = $program_output || *STDERR{IO};
+  my $outfile = *STDERR{IO};
   foreach my $assertion ($kb->get_assertions()) {
     if (defined $assertion->{PREDICATE}) {
       print $outfile "p:$assertion->{PREDICATE}{NAME}";
@@ -1145,8 +1147,9 @@ sub get_noun_type {
 }
 
 # Export sentiments
-sub export_sentiments {
-  my ($kb, $sentiments_dir) = @_;
+sub export_sen {
+  my ($kb, $options) = @_;
+  my $sentiments_dir = $options->{SEN_OUTPUT_DIR};
   my %verbs_of_interest = map {$_=>1} qw(mention nominal_mention pronominal_mention likes dislikes);
   my %mentions;
   my %provenance_to_mention;
@@ -1240,8 +1243,9 @@ sub export_sentiments {
 }
 
 # Export Event Nuggets
-sub export_enug {
-  my ($kb, $event_nuggets_file) = @_;
+sub export_eng {
+  my ($kb, $options) = @_;
+  my $event_nuggets_file = $options->{ENG_OUTPUT_FILE};
   my %allowed_assertions = map {$_=>1} qw(mention nominal_mention pronominal_mention);
   my $run_id = $kb->{RUNID};
   my (%lines, %mentionids, %clusters, $output);
@@ -1284,8 +1288,9 @@ sub export_enug {
 }
 
 # Event Argument format.
-sub export_earg {
-  my ($kb, $event_argument_dir) = @_;
+sub export_eag {
+  my ($kb, $options) = @_;
+  my $event_argument_dir = $options->{EAG_OUTPUT_DIR};
   my (%arguments, %linking, %corpuslinking);
   my @fields = qw(
       ID
@@ -1385,6 +1390,9 @@ sub export_earg {
 sub export_tac {
   my ($kb, $options) = @_;
   my $output_labels = $options->{OUTPUT_LABELS};
+  my $output_filename = $options->{TAC_OUTPUT_FILE};
+  my $program_output;
+  open($program_output, ">:utf8", $output_filename) or Logger->new()->NIST_die("Could not open $output_filename: $!");
   print $program_output "$kb->{RUNID_LINE}\n\n";
   foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
     next if $assertion->{OMIT_FROM_OUTPUT};
@@ -1427,6 +1435,9 @@ sub export_tac {
 sub export_edl {
   my ($kb, $options) = @_;
   my $linkkbname = $options->{LINK_KB};
+  my $output_filename = $options->{EDL_OUTPUT_FILE};
+  my $program_output;
+  open($program_output, ">:utf8", $output_filename) or Logger->new()->NIST_die("Could not open $output_filename: $!");
   # Collect type information
   my %entity2type;
   my %entity2link;
@@ -1494,9 +1505,8 @@ my $switches = SwitchProcessor->new($0,
    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
-$switches->addVarSwitch('output_file', "Specify a file to which output should be redirected");
-$switches->put('output_file', 'STDOUT');
-$switches->addVarSwitch("output", "Specify the output format. Legal formats are $output_formats." .
+$switches->addVarSwitch('output_dir', "Specify a directory to which output files should be written. Default would be the directory containing the KB to be validated.");
+$switches->addVarSwitch("output", "Colon-separated list of output formats. Legal formats are $output_formats." .
 		                  " Use 'none' to perform error checking with no output.");
 $switches->put("output", 'none');
 $switches->addVarSwitch("linkkb", "Specify which links should be used to produce KB IDs for the \"-output edl\" option. Legal values depend upon the prefixes found in the argument to 'link' relations in the KB being validated. This option has no effect unless \"-output edl\" has been specified.");
@@ -1516,9 +1526,6 @@ $switches->addVarSwitch('ignore', "Colon-separated list of warnings to ignore. L
 $switches->addVarSwitch('task', "Specify task to validate. Legal values are: " . join(", ", map {"$_ ($tasks{$_}{DESCRIPTION})"} sort keys %tasks) . ".");
 $switches->put('task', 'CSKB');
 $switches->addVarSwitch('stats_file', "Specify a file into which statistics about the KB being validated will be placed");
-$switches->addVarSwitch('event_arguments', "Specify a directory into which event argument output will be placed");
-$switches->addVarSwitch('event_nuggets', "Specify a file into which event nugget output will be placed");
-$switches->addVarSwitch('sentiments', "Specify a directory into which sentiments output will be placed");
 $switches->addParam("filename", "required", "File containing input KB specification.");
 
 $switches->process(@ARGV);
@@ -1526,22 +1533,34 @@ $switches->process(@ARGV);
 # This holds the "knowledge base"
 my $kb;
 
+my $logger = Logger->new(undef, $error_output);
+
+# The input file to process
+my $filename = $switches->get("filename");
+my ($input_dir, $output_prefix) = $filename =~ /^(.*?\/)+(.*?)$/;
+$input_dir =~ s/\/+$//g;
+$logger->NIST_die("File $filename does not exist") unless -e $filename;
+
 my $task = uc $switches->get("task");
 Logger->new()->NIST_die("Unknown task: $task (known tasks are [" . join(", ", keys %tasks) . "]")
   unless defined $tasks{$task};
 my $predicate_constraints;
 $predicate_constraints = {map {$_ => 'true'} @{$tasks{$task}{LEGAL_PREDICATES}}} if defined $tasks{$task}{LEGAL_PREDICATES};
 
-# Allow redirection of stdout and stderr
-my $output_filename = $switches->get("output_file");
-if (lc $output_filename eq 'stdout') {
-  $program_output = *STDOUT{IO};
+# Setup $output_dir
+my $output_dir = $switches->get("output_dir");
+if($output_dir) {
+	# If the output directory is provided
+  unless(-d $output_dir) {
+    # If the output directory does not exist
+    Logger->new()->NIST_die("$output_dir exists but its not a directory") if(-e $output_dir);
+    system("mkdir $output_dir") or Logger->new()->NIST_die("Could not create directory $output_dir: $!");;
+  }
 }
-elsif (lc $output_filename eq 'stderr') {
-  $program_output = *STDERR{IO};
-}
-elsif (lc $output_filename ne 'none') {
-  open($program_output, ">:utf8", $output_filename) or Logger->new()->NIST_die("Could not open $output_filename: $!");
+else {
+  # Set the output directory to the directory containing input file
+  $output_dir = ".";
+  $output_dir = $input_dir unless $input_dir =~ /^\s*$/;
 }
 
 my $error_filename = $switches->get("error_file");
@@ -1555,8 +1574,14 @@ else {
   open($error_output, ">:utf8", $error_filename) or Logger->new()->NIST_die("Could not open $error_filename: $!");
 }
 
-my $event_argument_dir = $switches->get("event_arguments");
-if($event_argument_dir) {
+my $output_modes = lc $switches->get('output');
+my %output_modes_selected = map {$_=>1} split(/:/, uc $output_modes);
+foreach my $output_mode (keys %output_modes_selected) {
+  $logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{$output_mode} || $output_mode eq 'NONE';
+}
+
+my $event_argument_dir = "$output_dir/event_arguments";
+if(exists $output_modes_selected{EAG}) {
   Logger->new()->NIST_die("Event argument output directory already exists at $event_argument_dir: $!")
     if(-d $event_argument_dir);
   system("mkdir $event_argument_dir");
@@ -1565,12 +1590,12 @@ if($event_argument_dir) {
   system("mkdir $event_argument_dir/linking");
 }
 
-my $event_nugget_file = $switches->get("event_nuggets");
+my $event_nugget_file = "$output_dir/event_nuggets";
 Logger->new()->NIST_die("Event nugget output file already exists at $event_nugget_file: $!")
-  if($event_nugget_file && -e $event_nugget_file);
+  if(exists $output_modes_selected{ENG} && -e $event_nugget_file);
 
-my $sentiments_dir = $switches->get("sentiments");
-if($sentiments_dir) {
+my $sentiments_dir = "$output_dir/sentiments";
+if(exists $output_modes_selected{SEN}) {
 	Logger->new()->NIST_die("Sentiments output directory already exists at $sentiments_dir: $!")
 	  if(-d $sentiments_dir);
 	system("mkdir $sentiments_dir");
@@ -1578,22 +1603,12 @@ if($sentiments_dir) {
 	system("mkdir $sentiments_dir/predicted-best");
 }
 
-my $logger = Logger->new(undef, $error_output);
-
 my $stats_filename = $switches->get("stats_file");
 if ($stats_filename) {
   open($statsfile, ">:utf8", $stats_filename) or die "Could not open $stats_filename: $!";
 }
 
-my $output_mode = lc $switches->get('output');
-$logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{$output_mode} || $output_mode eq 'none';
-my $output_fn = $type2export{$output_mode};
-
 my $predicates = PredicateSet->new($logger);
-
-# The input file to process
-my $filename = $switches->get("filename");
-$logger->NIST_die("File $filename does not exist") unless -e $filename;
 
 # What triple labels should be output?
 my $labels = $switches->get("labels");
@@ -1608,6 +1623,11 @@ print $error_output "WARNING: 'TAC' not included in output labels\n" unless $tac
 my $output_options = {
   OUTPUT_LABELS => \%output_labels,
   LINK_KB => uc $switches->get("linkkb"),
+  TAC_OUTPUT_FILE => "$output_dir/$output_prefix.tac.valid",
+  EDL_OUTPUT_FILE => "$output_dir/$output_prefix.edl.valid",
+  EAG_OUTPUT_DIR => "$output_dir/event_arguments",
+  ENG_OUTPUT_FILE => "$output_dir/$output_prefix.eng",
+  SEN_OUTPUT_DIR => "$output_dir/sentiments",
 };
 
 # Load any additional predicate specifications
@@ -1653,15 +1673,10 @@ if ($num_errors) {
 else {
   print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
   # Output the KB if so desired
-  if ($output_fn) {
-    &{$output_fn}($kb, $output_options);
+  foreach my $output_mode (split(/:/, uc $output_modes)) {
+    my $output_fn = $type2export{$output_mode};
+    &{$output_fn}($kb, $output_options) if $output_fn;
   }
-  # Produce the event argument output if the output directory is specified
-  &export_earg($kb, $event_argument_dir) if ($event_argument_dir);
-  # Produce the event nugget output if the output directory is specified
-  &export_enug($kb, $event_nugget_file) if ($event_nugget_file);
-  # Produce the sentiments if the output directory is specified
-  &export_sentiments($kb, $sentiments_dir) if($sentiments_dir);
 }
 
 if ($statsfile) {
