@@ -1539,6 +1539,7 @@ my $logger = Logger->new(undef, $error_output);
 my $filename = $switches->get("filename");
 my ($input_dir, $output_prefix) = $filename =~ /^(.*?\/)+(.*?)$/;
 $input_dir =~ s/\/+$//g;
+$output_prefix =~ s/\.tac$//;
 $logger->NIST_die("File $filename does not exist") unless -e $filename;
 
 my $task = uc $switches->get("task");
@@ -1575,9 +1576,10 @@ else {
 }
 
 my $output_modes = lc $switches->get('output');
-my %output_modes_selected = map {$_=>1} split(/:/, uc $output_modes);
-foreach my $output_mode (keys %output_modes_selected) {
-  $logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{$output_mode} || $output_mode eq 'NONE';
+my %output_modes_selected;
+foreach my $output_mode (split(/:/, $output_modes)) {
+	$output_modes_selected{uc $output_mode} = 1;
+  $logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{uc $output_mode} || lc $output_mode eq 'none';
 }
 
 my $event_argument_dir = "$output_dir/event_arguments";
@@ -1626,7 +1628,7 @@ my $output_options = {
   TAC_OUTPUT_FILE => "$output_dir/$output_prefix.tac.valid",
   EDL_OUTPUT_FILE => "$output_dir/$output_prefix.edl.valid",
   EAG_OUTPUT_DIR => "$output_dir/event_arguments",
-  ENG_OUTPUT_FILE => "$output_dir/$output_prefix.eng",
+  ENG_OUTPUT_FILE => "$output_dir/$output_prefix.eng.valid",
   SEN_OUTPUT_DIR => "$output_dir/sentiments",
 };
 
