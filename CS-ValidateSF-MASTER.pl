@@ -27,18 +27,6 @@ my $version = "2.0";
 my $program_output = *STDOUT{IO};
 my $error_output = *STDERR{IO};
 
-##################################################################################### 
-# Default values
-##################################################################################### 
-
-# Are multiple justifications allowed?
-my %justifications_allowed = (
-  ONE =>       "only one allowed",
-  ONEPERDOC => "at most one allowed per document",
-  MANY =>      "any number of justifications allowed",
-);
-my $justifications_allowed = 'ONE';
-
 ### DO NOT INCLUDE
 ##################################################################################### 
 # Library inclusions
@@ -76,8 +64,10 @@ $switches->addConstantSwitch('allow_comments', 'true', "Enable comments introduc
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addConstantSwitch('groundtruth', 'true', "Treat input file as ground truth (so don't, e.g., enforce single-valued slots)");
 $switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
-			"Legal values are: " . join(", ", map {"$_ ($justifications_allowed{$_})"} sort keys %justifications_allowed));
-$switches->put('justifications', $justifications_allowed);
+			"Legal values are of the form A:B where A represents justifications per document and B represents total justifications. " .
+			"Use \'M\' to allow any number of justifications, for e.g., \'M:10\' to allow multiple justifications per document ".
+			"but overall not more than 10 (best or top) justifications.");
+$switches->put('justifications', "1:3");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("queryfile", "required", "File containing queries used to generate the file being validated");
 $switches->addParam("filename", "required", "File containing query output.");
@@ -127,9 +117,10 @@ if (defined $docids_file) {
 }
 
 # How should multiple justifications be handled?
-$justifications_allowed = uc $switches->get("justifications");
-$logger->NIST_die("Argument to -justifications switch must be one of [" . join(", ", sort keys %justifications_allowed) . "]")
-  unless $justifications_allowed{$justifications_allowed};
+my $justifications_allowed = $switches->get("justifications");
+$logger->NIST_die("Argument to -justifications switch must be of the form A:B where A and B are " .
+                  "either positive numbers or character \'M\' representing infinity.")
+  unless $justifications_allowed =~ /^[\dM]:[\dM]$/;
 
 # The input file to process
 my $filename = $switches->get("filename");
@@ -146,7 +137,7 @@ if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
 else{
-  print $program_output $sf_output->tostring() if defined $program_output;
+  print $program_output $sf_output->tostring("2017SFsubmissions") if defined $program_output;
 }
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;

@@ -123,6 +123,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Submission File/Assessment File Errors
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
+  DISCARDED_ENTRY               WARNING  Following line has been discarded due to constraints on multiple justifications: %s
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
@@ -132,8 +133,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
-  ONE_JUSTIFICATION_EXPECTED    ERROR    Only one justification expected; multiple provided containing NODIEID %s
-  ONE_JUSTIFICATION_PER_DOC_EXPECTED  ERROR    Only one justification per document expected; multiple provided for DOCID %s containing NODEID %s
+  UNEXPECTED_JUSTIFICATIONS     WARNING  Unexpected number of justification provided per document (expected %s) for query %s and node %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -2691,6 +2691,7 @@ my %schemas = (
     YEAR => 2017,
     TYPE => 'SUBMISSION',
     SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	PER	NYT_ENG_20101103.0024:815-833	1.0	:Entity_2345"],
+    CHECK_MULTIPLE_JUSTIFICATIONS => 1,
     COLUMNS => [qw(
       FULL_QUERY_ID
       SLOT_NAME
@@ -3489,7 +3490,6 @@ sub load {
 ### DO INCLUDE
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $columns = $schema->{COLUMNS};
-  my %justifications;
   input_line:
   while (<$infile>) {
     chomp;
@@ -3567,19 +3567,6 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
       }
     }
 
-    # Verify if the number of justifications are according to the specification
-    if($self->{JUSTIFICATIONS_ALLOWED} eq 'ONE'
-        && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}) {
-      $logger->record_problem('ONE_JUSTIFICATION_EXPECTED', $entry->{NODEID}, $where);
-      next;
-    }
-    elsif($self->{JUSTIFICATIONS_ALLOWED} eq 'ONEPERDOC'
-           && exists $justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}) {
-      $logger->record_problem('ONE_JUSTIFICATION_PER_DOC_EXPECTED', $entry->{DOCID}, $entry->{NODEID}, $where);
-      next;
-    }
-    push( @{$justifications{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry );
-
     # Make sure that the submitted slot matches the slot requested by the query
     if ($entry->{SLOT_NAME} ne $entry->{QUERY}{SLOT}) {
       $logger->record_problem('WRONG_SLOT_NAME', $entry->{SLOT_NAME}, $entry->{QUERY_ID}, $entry->{QUERY}{SLOT}, $where);
@@ -3628,6 +3615,7 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
     push(@{$self->{ENTRIES_BY_QUERY_ID_BASE}{$schema->{TYPE}}{$entry->{QUERY_ID_BASE}}}, $entry);
     push(@{$self->{ENTRIES_BY_ANSWER}{$entry->{QUERY_ID}}{$entry->{TARGET_QUERY_ID}}{$schema->{TYPE}}}, $entry);
+    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry);
     push(@{$self->{ENTRIES_BY_EC}{$entry->{QUERY_ID}}{$entry->{VALUE_EC}}}, $entry)
 	if $entry->{TYPE} eq 'ASSESSMENT' &&
 	   ($entry->{ASSESSMENT} eq 'CORRECT' || $entry->{ASSESSMENT} eq 'INEXACT');
@@ -3982,6 +3970,78 @@ sub score_query {
   @scores;
 }
 
+# This function marks all entries (and dependents) that should be discarded based on the required parameters
+sub mark_multiple_justifications {
+  my ($self, $justifications_allowed) = @_;
+  my ($justifications_perdoc, $justifications_total) = $justifications_allowed =~ /^(.*?):(.*?)$/;
+  my %discarded_dependents;
+  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+      my @entries;
+      # Discard extra justifications per document
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+        my $k = 0;
+        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+                            @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
+           push(@entries, $entry);
+           if ($justifications_perdoc ne 'M' && $k == $justifications_perdoc) {
+             $entry->{DISCARD} = 1;
+             $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $entry->{QUERY}->get("FULL_QUERY_ID"), $nodeid,
+               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+             $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
+               if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
+                    $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
+           }
+           else {
+             # Don't discard the dependent since this parent is not discarded and as per the requirement if
+             # one of the parents is not discarded all the dependents should not be discarded
+             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
+           }
+           $k++;
+        }
+      }
+      # Discard extra justifications over all
+      my $k = 0;
+      foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+                          grep {not exists $_->{DISCARD} || $_->{DISCARD} != 1 } @entries) {
+        if ($justifications_total ne 'M' && $k == $justifications_total) {
+          $entry->{DISCARD} = 1;
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
+            if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
+                  $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
+        }
+        else{
+          # Don't discard the dependent since this parent is not discarded and as per the requirement if
+          # one of the parents is not discarded all the dependents should not be discarded
+          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
+        }
+        $k++;
+      }
+    }
+  }
+
+  # Discard dependents having all discarded parents
+  # If any of the parents is not discarded the dependent should not be discarded
+  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
+          if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
+            $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
+              $entry->{DISCARD} = 1;
+              $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+          }
+        }
+      }
+    }
+  }
+}
+
 # Create a new EvaluationQueryOutput object
 sub new {
   my ($class, $logger, $discipline, $queries, $justifications_allowed, @rawfilenames) = @_;
@@ -4010,6 +4070,10 @@ sub new {
       next;
     }
     $self->load($logger, $queries, $filename, $schema);
+    # Following function would mark all responses as to be discarded if they were
+    # found to be a duplicate of another based on NODEID (and DOCID).
+    # The dependents of such would also be marked as to be discarded
+    $self->mark_multiple_justifications($justifications_allowed) if $schema->{CHECK_MULTIPLE_JUSTIFICATIONS};
   }
   $self;
 }
@@ -4083,9 +4147,13 @@ sub tostring {
 	$self->{LOGGER}->record_problem('BAD_QUERY', $query_id, 'NO_SOURCE');
 	next;
       }
+      # Don't output this entry as this might be a duplicate assertion, or dependent of such
+      next if $entry->{DISCARD};
+      unless ($entry->{NODEID}) {
+        $entry->{NODEID} = ":NIL_$count";
+      }
       my $entry_string = join("\t", map {$self->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
       # Could use hash here to prevent duplicates
-      $entry_string .= "\t:NIL_$count";
       $count++;
       $string .= "$entry_string\n" unless $entry_string eq $previous;
       $previous = $entry_string;
