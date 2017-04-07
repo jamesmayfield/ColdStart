@@ -124,6 +124,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 ########## Submission File/Assessment File Errors
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
   DISCARDED_ENTRY               WARNING  Following line has been discarded due to constraints on multiple justifications: %s
+  DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies will be removed: %s
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
@@ -3488,6 +3489,7 @@ sub load {
 ### DO NOT INCLUDE
 #print STDERR ">>>>>>>>>>>>>>>>>> Loading $filename\n";
 ### DO INCLUDE
+  my %line_encodings;
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $columns = $schema->{COLUMNS};
   input_line:
@@ -3517,6 +3519,16 @@ sub load {
     my $where = {FILENAME => $filename, LINENUM => $.};
     # Align the tab-separated elements on the line with the expected set of columns
     my @elements = split(/\t/);
+    # Get line encoding
+    my $md5 = &main::generate_uuid_from_string($_, 12);
+    # Check if the line is an exact duplicate
+    if(exists $line_encodings{$md5}) {
+      # Remove the duplicate
+      $logger->record_problem('DUPLICATE_LINE', "\n" . $_, $where);
+      next;
+    }
+    # Store line encoding for future lookup
+    $line_encodings{$md5} = 1;
     if (@elements != @{$columns}) {
 ### DO NOT INCLUDE
 print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
