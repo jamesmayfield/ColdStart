@@ -3984,7 +3984,7 @@ sub mark_multiple_justifications {
         foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
                             @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
            push(@entries, $entry);
-           if ($justifications_perdoc ne 'M' && $k == $justifications_perdoc) {
+           if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
              $entry->{DISCARD} = 1;
              my $justifications_provided = scalar @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
              $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $justifications_provided, $entry->{QUERY}->get("FULL_QUERY_ID"), $nodeid,
@@ -3993,7 +3993,8 @@ sub mark_multiple_justifications {
                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
              $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
                if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-                    $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
+                    (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
+                      $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
            }
            else {
              # Don't discard the dependent since this parent is not discarded and as per the requirement if
@@ -4007,7 +4008,7 @@ sub mark_multiple_justifications {
       my $k = 0;
       foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
                           grep {not exists $_->{DISCARD}} @entries) {
-        if ($justifications_total ne 'M' && $k == $justifications_total) {
+        if ($justifications_total ne 'M' && $k >= $justifications_total) {
           $entry->{DISCARD} = 1;
           $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
             {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
