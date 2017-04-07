@@ -133,7 +133,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
-  UNEXPECTED_JUSTIFICATIONS     WARNING  Unexpected number of justification provided per document (expected %s) for query %s and node %s
+  UNEXPECTED_JUSTIFICATIONS     WARNING  Unexpected number of justification per document (expected %d, got %d) for query %s and node %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -3986,7 +3986,8 @@ sub mark_multiple_justifications {
            push(@entries, $entry);
            if ($justifications_perdoc ne 'M' && $k == $justifications_perdoc) {
              $entry->{DISCARD} = 1;
-             $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $entry->{QUERY}->get("FULL_QUERY_ID"), $nodeid,
+             my $justifications_provided = scalar @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
+             $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $justifications_provided, $entry->{QUERY}->get("FULL_QUERY_ID"), $nodeid,
                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
              $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
@@ -4005,7 +4006,7 @@ sub mark_multiple_justifications {
       # Discard extra justifications over all
       my $k = 0;
       foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
-                          grep {not exists $_->{DISCARD} || $_->{DISCARD} != 1 } @entries) {
+                          grep {not exists $_->{DISCARD}} @entries) {
         if ($justifications_total ne 'M' && $k == $justifications_total) {
           $entry->{DISCARD} = 1;
           $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
