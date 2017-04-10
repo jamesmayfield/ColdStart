@@ -1149,7 +1149,7 @@ sub get_noun_type {
 # Export sentiments
 sub export_sen {
   my ($kb, $options) = @_;
-  my $sentiments_dir = $options->{SEN_OUTPUT_DIR};
+  my $sentiments_dir = $options->{SEN_OUTPUT}{PATH};
   my %verbs_of_interest = map {$_=>1} qw(mention nominal_mention pronominal_mention likes dislikes);
   my %mentions;
   my %provenance_to_mention;
@@ -1245,7 +1245,7 @@ sub export_sen {
 # Export Event Nuggets
 sub export_eng {
   my ($kb, $options) = @_;
-  my $event_nuggets_file = $options->{ENG_OUTPUT_FILE};
+  my $event_nuggets_file = $options->{ENG_OUTPUT}{PATH};
   my %allowed_assertions = map {$_=>1} qw(mention nominal_mention pronominal_mention);
   my $run_id = $kb->{RUNID};
   my (%lines, %mentionids, %clusters, $output);
@@ -1290,7 +1290,7 @@ sub export_eng {
 # Event Argument format.
 sub export_eag {
   my ($kb, $options) = @_;
-  my $event_argument_dir = $options->{EAG_OUTPUT_DIR};
+  my $event_argument_dir = $options->{EAG_OUTPUT}{PATH};
   my (%arguments, %linking, %corpuslinking);
   my @fields = qw(
       ID
@@ -1390,7 +1390,7 @@ sub export_eag {
 sub export_tac {
   my ($kb, $options) = @_;
   my $output_labels = $options->{OUTPUT_LABELS};
-  my $output_filename = $options->{TAC_OUTPUT_FILE};
+  my $output_filename = $options->{TAC_OUTPUT}{PATH};
   my $program_output;
   open($program_output, ">:utf8", $output_filename) or Logger->new()->NIST_die("Could not open $output_filename: $!");
   print $program_output "$kb->{RUNID_LINE}\n\n";
@@ -1435,7 +1435,7 @@ sub export_tac {
 sub export_edl {
   my ($kb, $options) = @_;
   my $linkkbname = $options->{LINK_KB};
-  my $output_filename = $options->{EDL_OUTPUT_FILE};
+  my $output_filename = $options->{EDL_OUTPUT}{PATH};
   my $program_output;
   open($program_output, ">:utf8", $output_filename) or Logger->new()->NIST_die("Could not open $output_filename: $!");
   # Collect type information
@@ -1543,7 +1543,7 @@ $output_prefix =~ s/\.tac$//;
 $logger->NIST_die("File $filename does not exist") unless -e $filename;
 
 my $task = uc $switches->get("task");
-Logger->new()->NIST_die("Unknown task: $task (known tasks are [" . join(", ", keys %tasks) . "]")
+$logger->NIST_die("Unknown task: $task (known tasks are [" . join(", ", keys %tasks) . "]")
   unless defined $tasks{$task};
 my $predicate_constraints;
 $predicate_constraints = {map {$_ => 'true'} @{$tasks{$task}{LEGAL_PREDICATES}}} if defined $tasks{$task}{LEGAL_PREDICATES};
@@ -1554,8 +1554,8 @@ if($output_dir) {
 	# If the output directory is provided
   unless(-d $output_dir) {
     # If the output directory does not exist
-    Logger->new()->NIST_die("$output_dir exists but its not a directory") if(-e $output_dir);
-    system("mkdir $output_dir") or Logger->new()->NIST_die("Could not create directory $output_dir: $!");;
+    $logger->NIST_die("$output_dir exists but its not a directory") if(-e $output_dir);
+    system("mkdir $output_dir") or $logger->NIST_die("Could not create directory $output_dir: $!");;
   }
 }
 else {
@@ -1575,43 +1575,6 @@ else {
   open($error_output, ">:utf8", $error_filename) or Logger->new()->NIST_die("Could not open $error_filename: $!");
 }
 
-my $output_modes = lc $switches->get('output');
-my %output_modes_selected;
-foreach my $output_mode (split(/:/, $output_modes)) {
-	$output_modes_selected{uc $output_mode} = 1;
-  $logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{uc $output_mode} || lc $output_mode eq 'none';
-}
-
-my $event_argument_dir = "$output_dir/event_arguments";
-if(exists $output_modes_selected{EAG}) {
-  Logger->new()->NIST_die("Event argument output directory already exists at $event_argument_dir: $!")
-    if(-d $event_argument_dir);
-  system("mkdir $event_argument_dir");
-  system("mkdir $event_argument_dir/arguments");
-  system("mkdir $event_argument_dir/corpusLinking");
-  system("mkdir $event_argument_dir/linking");
-}
-
-my $event_nugget_file = "$output_dir/event_nuggets";
-Logger->new()->NIST_die("Event nugget output file already exists at $event_nugget_file: $!")
-  if(exists $output_modes_selected{ENG} && -e $event_nugget_file);
-
-my $sentiments_dir = "$output_dir/sentiments";
-if(exists $output_modes_selected{SEN}) {
-	Logger->new()->NIST_die("Sentiments output directory already exists at $sentiments_dir: $!")
-	  if(-d $sentiments_dir);
-	system("mkdir $sentiments_dir");
-	system("mkdir $sentiments_dir/predicted-ere");
-	system("mkdir $sentiments_dir/predicted-best");
-}
-
-my $stats_filename = $switches->get("stats_file");
-if ($stats_filename) {
-  open($statsfile, ">:utf8", $stats_filename) or die "Could not open $stats_filename: $!";
-}
-
-my $predicates = PredicateSet->new($logger);
-
 # What triple labels should be output?
 my $labels = $switches->get("labels");
 # Courtesy check that basic TAC relations are being output
@@ -1625,12 +1588,41 @@ print $error_output "WARNING: 'TAC' not included in output labels\n" unless $tac
 my $output_options = {
   OUTPUT_LABELS => \%output_labels,
   LINK_KB => uc $switches->get("linkkb"),
-  TAC_OUTPUT_FILE => "$output_dir/$output_prefix.tac.valid",
-  EDL_OUTPUT_FILE => "$output_dir/$output_prefix.edl.valid",
-  EAG_OUTPUT_DIR => "$output_dir/event_arguments",
-  ENG_OUTPUT_FILE => "$output_dir/$output_prefix.eng.valid",
-  SEN_OUTPUT_DIR => "$output_dir/sentiments",
+  TAC_OUTPUT => {TYPE => "FILE", PATH => "$output_dir/$output_prefix.tac.valid"},
+  EDL_OUTPUT => {TYPE => "FILE", PATH => "$output_dir/$output_prefix.edl.valid"},
+  EAG_OUTPUT => {TYPE => "DIR", PATH => "$output_dir/event_arguments", SUBDIR => [qw(arguments corpusLinking linking)]},
+  ENG_OUTPUT => {TYPE => "FILE", PATH => "$output_dir/$output_prefix.eng.valid"},
+  SEN_OUTPUT => {TYPE => "DIR", PATH => "$output_dir/sentiments", SUBDIR => [qw(predicted-ere predicted-best)]},
 };
+
+my $output_modes = lc $switches->get('output');
+my %output_modes_selected;
+foreach my $output_mode (split(/:/, $output_modes)) {
+	$output_modes_selected{uc $output_mode} = 1;
+  $logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{uc $output_mode} || lc $output_mode eq 'none';
+  my $output_option = uc $output_mode . "_OUTPUT";
+  my $output_path = $output_options->{$output_option}{PATH};
+  # Generate an error if the output file already exists
+  $logger->NIST_die("Output file already exists at $output_path: $!")
+    if $output_options->{$output_option}{TYPE} eq "FILE" && -e $output_path;
+  # Generate an error if the output directory already exists
+  $logger->NIST_die("Output directory already exists at $output_path: $!")
+    if $output_options->{$output_option}{TYPE} eq "DIR" && -d $output_path;
+  if ($output_options->{$output_option}{TYPE} eq "DIR") {
+    # Create the output directories
+    system("mkdir $output_path");
+    foreach my $subdir(@{$output_options->{$output_option}{SUBDIR}}) {
+      system("mkdir $output_path/$subdir");
+    }
+  }
+}
+
+my $stats_filename = $switches->get("stats_file");
+if ($stats_filename) {
+  open($statsfile, ">:utf8", $stats_filename) or die "Could not open $stats_filename: $!";
+}
+
+my $predicates = PredicateSet->new($logger);
 
 # Load any additional predicate specifications
 my $predicates_file = $switches->get("predicates");
