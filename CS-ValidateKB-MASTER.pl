@@ -51,7 +51,7 @@ my %type2export = (
   SEN => \&export_sen,
 );
 
-my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
+my $output_formats = "[" . join(", ", map {lc $_} sort keys %type2export) . ", none]";
 
 ##################################################################################### 
 # Default values
