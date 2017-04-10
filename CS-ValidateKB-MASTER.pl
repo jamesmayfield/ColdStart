@@ -1537,7 +1537,7 @@ my $logger = Logger->new(undef, $error_output);
 
 # The input file to process
 my $filename = $switches->get("filename");
-my ($input_dir, $output_prefix) = $filename =~ /^(.*?\/)+(.*?)$/;
+my ($input_dir, $output_prefix) = $filename =~ /((?:[^\/]*\/)*)(.*)/;
 $input_dir =~ s/\/+$//g;
 $output_prefix =~ s/\.tac$//;
 $logger->NIST_die("File $filename does not exist") unless -e $filename;
