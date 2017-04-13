@@ -3627,7 +3627,7 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
     push(@{$self->{ENTRIES_BY_QUERY_ID_BASE}{$schema->{TYPE}}{$entry->{QUERY_ID_BASE}}}, $entry);
     push(@{$self->{ENTRIES_BY_ANSWER}{$entry->{QUERY_ID}}{$entry->{TARGET_QUERY_ID}}{$schema->{TYPE}}}, $entry);
-    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry);
+    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry) if $entry->{NODEID};
     push(@{$self->{ENTRIES_BY_EC}{$entry->{QUERY_ID}}{$entry->{VALUE_EC}}}, $entry)
 	if $entry->{TYPE} eq 'ASSESSMENT' &&
 	   ($entry->{ASSESSMENT} eq 'CORRECT' || $entry->{ASSESSMENT} eq 'INEXACT');
