@@ -51,7 +51,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Provenance Errors
   FAILED_LANG_INFERENCE         WARNING  Unable to infer language from DOCID %s. Using default language %s.
-  ILLEGAL_DOCID                 ERROR    DOCID %s is not a valid DOCID for this task
+  ILLEGAL_DOCID                 FATAL_ERROR    DOCID %s is not a valid DOCID for this task
   ILLEGAL_OFFSET                ERROR    %s is not a valid offset
   ILLEGAL_OFFSET_IN_DOC         ERROR    %s is not a valid offset for DOCID %s
   ILLEGAL_OFFSET_PAIR           ERROR    (%s, %s) is not a valid offset pair
@@ -219,7 +219,7 @@ sub record_problem {
   my $type = $format->{TYPE};
   my $message = "$type: " . sprintf($format->{FORMAT}, @args);
   my $where = (ref $source ? "$source->{FILENAME} line $source->{LINENUM}" : $source);
-  $self->NIST_die("$message$where") if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
+  $self->NIST_die("$message\n$where") if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
   $self->{PROBLEMS}{$problem}{$message}{$where}++;
 }
 
