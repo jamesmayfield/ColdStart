@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "5.3";
+my $version = "2017.1.0";
 
 my $statsfile;
 
@@ -1723,4 +1723,5 @@ exit 0;
 # 5.1 - nominal_mention error reporting updated; minor bug fixes
 # 5.2 - MULTIPLE_MENTIONS_NO_CANONICAL error handling added. named-mention missing warnings removed when nominal and canonical are both present.
 # 5.3 - Fixing the handling of multiple nominal_mentions for an entity from the same document
+# 2017.1.0 - First release of 2017
 1;

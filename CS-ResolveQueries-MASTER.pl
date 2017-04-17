@@ -9,7 +9,7 @@ use ColdStartLib;
 
 # ResolveQueries.pl
 # Author: James Mayfield (jamesmayfield "at" gmail "dot" com)
-my $version = "2016.1.0";
+my $version = "2017.1.0";
 
 binmode(STDOUT, ":utf8");
 
@@ -873,3 +873,4 @@ close $outfile if $outfile_opened;
 # 2015.1.0: Added type column to output
 # 2016.1.0: Add FULL_QUERY_ID and another minor change to make the code work
 #			with new library
+# 2017.1.0: First release of 2017

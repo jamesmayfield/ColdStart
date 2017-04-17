@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.2";
+my $version = "2017.1.0";
 
 # Filehandles for program and error output
 my %program_output;
@@ -256,5 +256,6 @@ exit 0;
 # 1.1 - Applying correction of EC_MENTION_TYPE within monolingual QREL split when the NAMed mention was found 
 #       in another language but not in the language of the split.
 # 1.2 - Removed a bug where filtering based on language identifiers were missing "_".
+# 2017.1.0 - First release of 2017
 
 1;

@@ -19,10 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "4.2";        # (1) Fixed categorization of duplicate entries into
-                            #     right, wrong, and ignored, for single-valued slots.
-                            #     This problem arised when a single-valued slots has
-                            #     multiple responses from different languages.
+my $version = "2017.1.0";   # (1) First release of 2017
 
 ### BEGIN INCLUDE Switches
 
