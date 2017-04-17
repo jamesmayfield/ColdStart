@@ -21,12 +21,11 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.0";
+my $version = "2017.1.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
 my $error_output = *STDERR{IO};
-
 
 ### DO NOT INCLUDE
 ##################################################################################### 
@@ -64,6 +63,11 @@ $switches->put('error_file', "STDERR");
 $switches->addConstantSwitch('allow_comments', 'true', "Enable comments introduced by a pound sign in the middle of an input line");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addConstantSwitch('groundtruth', 'true', "Treat input file as ground truth (so don't, e.g., enforce single-valued slots)");
+$switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
+			"Legal values are of the form A:B where A represents justifications per document and B represents total justifications. " .
+			"Use \'M\' to allow any number of justifications, for e.g., \'M:10\' to allow multiple justifications per document ".
+			"but overall not more than 10 (best or top) justifications.");
+$switches->put('justifications', "1:3");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("queryfile", "required", "File containing queries used to generate the file being validated");
 $switches->addParam("filename", "required", "File containing query output.");
@@ -105,12 +109,18 @@ if (defined $docids_file) {
   open(my $infile, "<:utf8", $docids_file) or $logger->NIST_die("Could not open $docids_file: $!");
   while(<$infile>) {
     chomp;
-    my ($docid, $document_length) = split(/\t/);
-    $docids->{$docid} = $document_length;
+    my ($docid, $document_length, $file) = split(/\t/);
+    $docids->{$docid} = {LENGTH=>$document_length, FILE=>$file};
   }
   close $infile;
   Provenance::set_docids($docids);
 }
+
+# How should multiple justifications be handled?
+my $justifications_allowed = $switches->get("justifications");
+$logger->NIST_die("Argument to -justifications switch must be of the form A:B where A and B are " .
+                  "either positive numbers or character \'M\' representing infinity.")
+  unless $justifications_allowed =~ /^[\dM]:[\dM]$/;
 
 # The input file to process
 my $filename = $switches->get("filename");
@@ -119,7 +129,7 @@ $logger->NIST_die("File $filename does not exist") unless -e $filename;
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $filename);
+my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $filename);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
@@ -127,7 +137,7 @@ if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
 else{
-  print $program_output $sf_output->tostring() if defined $program_output;
+  print $program_output $sf_output->tostring("2017SFsubmissions") if defined $program_output;
 }
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;
@@ -147,5 +157,6 @@ exit 0;
 # 1.8 - Enabled WRONG_SLOT_NAME and BAD_QUERY warnings
 # 1.9 - Verion upped due to change in library.
 # 2.0 - Validated output is produced only if there were no errors
+# 2017.1.0 - First release of 2017
 
 1;

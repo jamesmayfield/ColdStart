@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "1.2";
+my $version = "2017.1.0";
 
 # Filehandles for program and error output
 my %program_output;
@@ -165,8 +165,8 @@ if (defined $docids_file) {
   open(my $infile, "<:utf8", $docids_file) or $logger->NIST_die("Could not open $docids_file: $!");
   while(<$infile>) {
     chomp;
-    my ($docid, $document_length) = split(/\t/);
-    $docids->{$docid} = $document_length;
+    my ($docid, $document_length, $file) = split(/\t/);
+    $docids->{$docid} = {LENGTH=>$document_length, FILE=>$file};
   }
   close $infile;
   Provenance::set_docids($docids);
@@ -179,7 +179,7 @@ $logger->NIST_die("File $filename does not exist") unless -e $filename;
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $assessments = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $filename);
+my $assessments = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, 'MANY', $filename);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
@@ -220,8 +220,8 @@ else{
         unless $ec_mention_type_language;
       $mention_type{$assessment->{VALUE_EC}}{$language} = $ec_mention_type
         if($ec_mention_type_language eq $language);
-      $mention_type{$assessment->{VALUE_EC}}{'XLING'} = $ec_mention_type;
     }
+    $mention_type{$assessment->{VALUE_EC}}{'XLING'} = $ec_mention_type;
   }
   # filter all the assessments into language-specific assessments
   foreach my $assessment(@{$assessments->{ALL_ENTRIES}}) {
@@ -256,5 +256,6 @@ exit 0;
 # 1.1 - Applying correction of EC_MENTION_TYPE within monolingual QREL split when the NAMed mention was found 
 #       in another language but not in the language of the split.
 # 1.2 - Removed a bug where filtering based on language identifiers were missing "_".
+# 2017.1.0 - First release of 2017
 
 1;

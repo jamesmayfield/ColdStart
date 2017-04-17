@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.0";
+my $version = "2017.1.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -120,6 +120,11 @@ $switches->addVarSwitch('error_file', "Specify a file to which error output shou
 $switches->addConstantSwitch('valid', 'true', "Ensure valid XML output by escaping angle brackets and ampersands");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
+$switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
+			"Legal values are of the form A:B where A represents justifications per document and B represents total justifications. " .
+			"Use \'M\' to allow any number of justifications, for e.g., \'M:10\' to allow multiple justifications per document ".
+			"but overall not more than 10 (best or top) justifications.");
+$switches->put('justifications', "M:M");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("queryfile", "required", "File containing queries used to generate the file being validated");
 $switches->addParam("outputfile", "required", "File into which new queries are to be placed.");
@@ -168,13 +173,19 @@ if (defined $docids_file) {
   open(my $infile, "<:utf8", $docids_file) or $logger->NIST_die("Could not open $docids_file: $!");
   while(<$infile>) {
     chomp;
-    my ($docid, $document_length) = split(/\t/);
-    $docids->{$docid} = $document_length;
+    my ($docid, $document_length, $file) = split(/\t/);
+    $docids->{$docid} = {LENGTH=>$document_length, FILE=>$file};
   }
   close $infile;
 }
 
 my $queries = QuerySet->new($logger, $queryfile);
+# How should multiple justifications be handled?
+
+my $justifications_allowed = $switches->get("justifications");
+$logger->NIST_die("Argument to -justifications switch must be of the form A:B where A and B are " .
+                  "either positive numbers or character \'M\' representing infinity.")
+  unless $justifications_allowed =~ /^[\dM]:[\dM]$/;
 
 # The input file to process
 my $filename = $switches->get("runfile");
@@ -186,7 +197,7 @@ if (!defined $program_output && !defined $filename) {
 if (defined $filename) {
   $logger->NIST_die("File $filename does not exist") unless -e $filename;
   # FIXME: parameterize discipline
-  my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $filename);
+  my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $filename);
 
   # Problems were identified while the KB was loaded; now report them
   my ($num_errors, $num_warnings) = $logger->report_all_problems();
@@ -237,4 +248,5 @@ else {
 # 1.8 - General Release
 # 1.9 - Code modified to work with new library
 # 2.0 - ParentQuery pointer added to newly created round#2 query
+# 2017.1.0 - First release of 2017
 1;
