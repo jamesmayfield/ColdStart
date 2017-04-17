@@ -3104,7 +3104,7 @@ my %columns = (
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
       if (defined $entry->{RELATION_PROVENANCE_TRIPLES}) {
-        $entry->{RELATION_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
+        $entry->{RELATION_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST+4',
 				  $entry->{RELATION_PROVENANCE_TRIPLES});
 				if(exists $entry->{DOCID} && $entry->{DOCID} ne $entry->{RELATION_PROVENANCE}->get_docid()) {
           $logger->record_problem('MULTIPLE_DOCIDS_IN_RESPONSE', "\n$entry->{LINE}", $where);
@@ -3307,7 +3307,7 @@ my %columns = (
 						     $entry->{OBJECT_OFFSETS});
       }
       elsif (defined $entry->{VALUE_PROVENANCE_TRIPLES}) {
-	$entry->{VALUE_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
+	$entry->{VALUE_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST+2',
 						     $entry->{VALUE_PROVENANCE_TRIPLES});
       }
       if(exists $entry->{DOCID} && $entry->{DOCID} ne $entry->{VALUE_PROVENANCE}->get_docid()) {
