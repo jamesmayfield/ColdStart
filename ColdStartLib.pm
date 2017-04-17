@@ -3597,7 +3597,7 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
 
     # Make sure that the submitted slot matches the slot requested by the query
     if ($entry->{SLOT_NAME} ne $entry->{QUERY}{SLOT}) {
-      $logger->record_problem('WRONG_SLOT_NAME', $entry->{SLOT_NAME}, $entry->{QUERY_ID}, $entry->{QUERY}{SLOT}, $where);
+      $logger->record_problem('WRONG_SLOT_NAME', $entry->{SLOT_NAME}, $entry->{FULL_QUERY_ID}, $entry->{QUERY}{SLOT}, $where);
       $self->{BAD_QUERIES}{$entry->{TARGET_QUERY_ID}}++;
       next;
     }
