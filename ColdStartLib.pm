@@ -134,6 +134,8 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
+  SEMICOLON_IN_PROVENANCE_E     ERROR    A semicolon is used in the provenance %s
+  SEMICOLON_AS_SEPARATOR        WARNING  A semicolon is used as a triple separator in the provenance %s. The semicolon will be replaced with a comma. 
   UNEXPECTED_JUSTIFICATIONS     WARNING  Unexpected number of justification per document (expected %d, got %d) for query %s and node %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
@@ -628,6 +630,20 @@ sub new {
   }
   elsif ($type eq 'PROVENANCETRIPLELIST') {
     my ($triple_list) = @values;
+    # If a semicolon is present in the triple_list, determine if its used as a separator (may be in addition to a comma);
+    # Determine if it can be repaired; generate an ERROR or WARNING accordingly
+    if($triple_list =~ /;/) {
+      if($triple_list =~ qr/^(?:[^:;]+:\d+-\d+[,;]){0,3}[^:;]+:\d+-\d+$/) {
+        # Generate a WARNING and repair
+        $logger->record_problem('SEMICOLON_AS_SEPARATOR', $triple_list, $where);
+        # Replace the semicolons with commas
+        $triple_list =~ s/;/,/g;
+      }
+      else{
+        # Cannot be repaired; generate an ERROR
+        $logger->record_problem('SEMICOLON_IN_PROVENANCE_E', $triple_list, $where);
+      }
+    }
     my @triple_list = split(/,/, $triple_list);
     # This is where we handle unlimited triple list
     # specified using PROVENANCETRIPLELIST++
