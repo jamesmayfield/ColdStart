@@ -93,6 +93,72 @@ my $logger;
 ### DO INCLUDE EvaluationQueryOutput  ColdStartLib.pm
 ### DO INCLUDE Switches               ColdStartLib.pm
 
+##################################################################################### 
+# EntityDefs
+##################################################################################### 
+
+# This is the class for storing various entity definition
+
+package EntityDefs;
+
+{
+
+  sub new {
+    my ($class, $runfile) = @_;
+    my $self = {FILENAME => $runfile};
+    bless($self, $class);
+    $self->load_definitions();
+    $self;
+  }
+
+  sub load_definitions {
+    my ($self) = @_;
+    open(my $infile, "<:utf8", $self->{FILENAME}) or $logger->NIST_die("Could not open $self->{FILENAME}: $!");
+    my $runid_line = <$infile>;
+    while (<$infile>) {
+      chomp;
+      my $source = {FILENAME => $self->{FILENAME}, LINENUM => $.};
+      my $confidence = '1.0';
+      # Eliminate comments, ensuring that pound signs in the middle of
+      # strings are not treated as comment characters
+      s/$main::comment_pattern/$1/;
+      my $comment = $2 || "";
+      next unless /\S/;
+      my @entries = map {&trim($_)} split(/\t/);
+      # Get the confidence out of the way if it is provided
+      $confidence = pop(@entries) if @entries && ($entries[-1] =~ /^\d+\.\d+$/ || $entries[-1] =~ /^\d+$/);
+      # Now assign the entries to the appropriate fields
+      my ($subject, $predicate, $object, $provenance_string) = @entries;
+      next if $predicate ne 'canonical_mention';
+      my $provenance = Provenance->new($logger, $source, 'PROVENANCETRIPLELIST', $provenance_string);
+      $self->{CANONICAL_MENTIONS}{$subject}{$provenance->get_docid()} = $provenance;
+    }
+    close($infile);
+  }
+
+  sub get_CANONICAL_OFFSET {
+    my ($self, $subject, $docid) = @_;
+    return unless $self->{CANONICAL_MENTIONS}{$subject}{$docid};
+    return $self->{CANONICAL_MENTIONS}{$subject}{$docid}->tostring();
+  }
+
+  # Return the field if it's defined. Otherwise, invoke the corresponding get method
+  sub get {
+    my ($self, $field, @args) = @_;
+    return $self->{$field} if defined $self->{$field};
+    my $method = $self->can("get_$field");
+    return $method->($self, @args) if $method;
+    return;
+  }
+
+  sub trim {
+    my ($string) = @_;
+    $string =~ s/^\s+//;
+    $string =~ s/\s+$//;
+    $string;
+  }
+
+}
 
 ##################################################################################### 
 # Task
@@ -144,14 +210,14 @@ sub add_to_index {
 sub match {
   my ($self, $assertion) = @_;
   # Any mention that overlaps is a match
-  !($self->{QUERYMENTION}{END} < $assertion->{start_0} || $assertion->{end_0} < $self->{QUERYMENTION}{START});
+  !($self->{QUERYMENTION}{END} < $assertion->{predicate_justification}{start_0} || $assertion->{predicate_justification}{end_0} < $self->{QUERYMENTION}{START});
 }
 
 # Find FindEntrypointsTasks in the index that match the given assertion
 push(@retrievers, sub  {
                     my ($taskset, $assertion) = @_;
 		    return () unless $assertion->{predicate} eq 'mention';
-		    grep {$_->match($assertion)} @{$taskset->{INDICES}{FindEntrypoint}{$assertion->{docid_0}} || []};
+		    grep {$_->match($assertion)} @{$taskset->{INDICES}{FindEntrypoint}{$assertion->{predicate_justification}{docid_0}} || []};
                   });
 
 # Remove this FindEntrypointsTask from the TaskSet. This only reverses
@@ -193,9 +259,9 @@ sub remove_from_index {
 # far (or if it is the only one seen so far)
 sub execute {
   my ($self, $taskset, $assertion) = @_;
-  my $common = &main::min($assertion->{end_0}, $self->{QUERYMENTION}{END}) -
-               &main::max($assertion->{start_0}, $self->{QUERYMENTION}{START});
-  my $k_only = $assertion->{end_0} - $assertion->{start_0} - $common;
+  my $common = &main::min($assertion->{predicate_justification}{end_0}, $self->{QUERYMENTION}{END}) -
+               &main::max($assertion->{predicate_justification}{start_0}, $self->{QUERYMENTION}{START});
+  my $k_only = $assertion->{predicate_justification}{end_0} - $assertion->{predicate_justification}{start_0} - $common;
   if (defined $self->{BEST_MATCH}) {
     return if $common < $self->{COMMON};
     if ($common == $self->{COMMON}) {
@@ -265,7 +331,7 @@ sub execute {
     # query thus far to be treated independently as a shorter
     # query. We also need this task fulfilled to know what the query
     # name for the subsequent fill(s) is
-    my $task = Entity2NameTask->new($self->{QUERY}, $self, $assertion->{object}, $assertion->{docid_0}, $assertion);
+    my $task = Entity2NameTask->new($self->{QUERY}, $self, $assertion->{object}, $assertion->{predicate_justification}{docid_0}, $assertion);
     $taskset->add_task($task);
     $taskset->{STATS}{FILLS_FOUND}++;
   }
@@ -314,7 +380,7 @@ sub add_to_index {
 push(@retrievers, sub  {
                     my ($taskset, $assertion) = @_;
 		    return () unless $assertion->{predicate} eq 'canonical_mention';
-		    @{$taskset->{INDICES}{Entity2Name}{$assertion->{entity}}{$assertion->{docid_0}} || []};
+		    @{$taskset->{INDICES}{Entity2Name}{$assertion->{entity}}{$assertion->{predicate_justification}{docid_0}} || []};
                   });
 
 sub remove_from_index {
@@ -331,7 +397,7 @@ sub execute {
   # Generate the next round of slot filling if necessary
   if (@{$self->{QUERY}{SLOTS}}) {
     my $filler = &TaskSet::normalize_filler($assertion->{object});
-    my $provenance_string = "$assertion->{docid_0}:$assertion->{start_0}-$assertion->{end_0}";
+    my $provenance_string = "$assertion->{predicate_justification}{docid_0}:$assertion->{predicate_justification}{start_0}-$assertion->{predicate_justification}{end_0}";
     my $provenance = Provenance->new($logger, {FILENAME => "somewhere", LINENUM => "someline"}, 'PROVENANCETRIPLELIST', $provenance_string);
     my $next_query = $self->{QUERY}->generate_query($filler, $provenance);
     if (defined $next_query) {
@@ -356,8 +422,8 @@ package TaskSet;
 # COUNT is the number of open tasks currently in the TaskSet
 # OUTFILE is the file handle to which output should be sent
 sub new {
-  my ($class, $infile, $outfile) = @_;
-  my $self = {COUNT => 0, INFILE => $infile, OUTFILE => $outfile};
+  my ($class, $infile, $outfile, $logger, $entitydefs) = @_;
+  my $self = {COUNT => 0, INFILE => $infile, OUTFILE => $outfile, LOGGER => $logger, ENTITYDEFS => $entitydefs};
   bless($self, $class);
   $self;
 }
@@ -432,6 +498,15 @@ sub get_type {
 # Number of open tasks
 sub get_num_active_tasks {
   $_[0]->{COUNT};
+}
+
+# Check if the assertion is an event assertion
+sub is_event {
+  my ($self, $assertion) = @_;
+  my $retVal = 0;
+  $retVal = 1 if($assertion->{entity} && $assertion->{entity} =~ /^:Event.+$/);
+  $retVal = 1 if($assertion->{object} && $assertion->{object} =~ /^:Event.+$/);
+  $retVal;
 }
 
 # Find any open tasks that match the assertion, by invoking each of
@@ -511,6 +586,16 @@ sub add_fill {
   my $filler_provenance;
   # Column 8: Confidence score
   my $confidence = $assertion->{confidence};
+  # Column 9: Node ID
+  my $node_id = $assertion->{object};
+
+  # Get the canonical_mention_offset to be used as the first triple in the provenance
+  my $canonical_mention_offset =
+    $self->{ENTITYDEFS}->get('CANONICAL_OFFSET', $task->{ENTITY}, $assertion->{docid});
+  my $full_provenance = ProvenanceList->new($self->{LOGGER}, $assertion->{position}, $full_provenance_string, $assertion->{entity}, $assertion->{object}, $assertion->{predicate});
+  my $sf_provenance = $full_provenance->{PREDICATE_JUSTIFICATION}->tostring();
+  $sf_provenance = "$canonical_mention_offset,$sf_provenance" if $self->is_event($assertion);
+
   # This routine either receives a single task and matching assertion
   # (if this a string-valued slot) or two such pairs, one for the
   # final hop in the query and one bearing the canonical_mention for
@@ -521,19 +606,21 @@ sub add_fill {
   }
   else {
     $filler = &normalize_filler($assertion->{object});
-    $filler_provenance = "$assertion->{docid_0}:$assertion->{start_0}-$assertion->{end_0}";
+    $filler_provenance = "$assertion->{predicate_justification}{docid_0}:$assertion->{predicate_justification}{start_0}-$assertion->{predicate_justification}{end_0}";
   }
+  $filler_provenance = "$filler_provenance";
   # We've calculated all of the necessary values, so print the result
   my $outfile = $self->{OUTFILE};
   # FIXME: Should probably use the appropriate schema from ColdStartLib here
   print $outfile join("\t", ($query_id,
   			     $slot_name,
   			     $run_id,
-  			     $full_provenance_string,
+  			     $sf_provenance,
   			     $filler,
 			     $type,
   			     $filler_provenance,
   			     $confidence,
+             $node_id,
   			    )), "\n";
 }
 
@@ -567,7 +654,7 @@ my %predicate2labels = (
 my $counter = "assertion0001";
 
 sub parse_assertion {
-  my ($line, $position) = @_;
+  my ($line, $position, $logger) = @_;
   # The spec didn't actually require a single tab between entries, so
   # we must ditch any fields that don't contain text
   my (@entries) = map {s/^\s+//; s/\s+$//; $_} grep {/\S/} split(/\t/, $line);
@@ -589,20 +676,35 @@ sub parse_assertion {
   my $result = {map {$labels->[$_] => $entries[$_]} 0..$#{$labels}};
   # Pull out the start and end offsets
   if (defined $result->{offsets}) {
-    my $offsets = $result->{offsets};
-    my @offsets = split(/,/, $offsets);
-    foreach (0..$#offsets) {
-      my ($docid, $start, $end) = $offsets[$_] =~ /^(.*):(\d+)-(\d+)$/ or die "illegal offset specification: $offsets[$_]";
-      $result->{"docid_$_"} = $docid;
-      $result->{"start_$_"} = $start;
-      $result->{"end_$_"} = $end;
+    my @offset_fields = qw(predicate_justification base_filler additional_justification);
+    my @offset_values = split(";", $result->{offsets});
+    my %offsets = map {$offset_fields[$_]=>$offset_values[$_]} (0..$#offset_fields);
+    foreach my $offset_field(@offset_fields) {
+      next unless $offsets{$offset_field};
+      my @offsets = split(/,/, $offsets{$offset_field});
+      foreach (0..$#offsets) {
+        next if $offsets[$_] eq 'NIL';
+        my ($docid, $start, $end) = $offsets[$_] =~ /^(.*):(\d+)-(\d+)$/ or die "illegal offset specification: $offsets[$_]";
+        $result->{$offset_field}{"docid_$_"} = $docid;
+        $result->{$offset_field}{"start_$_"} = $start;
+        $result->{$offset_field}{"end_$_"} = $end;
+        $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $result->{offsets}, $position)
+          if(exists $result->{docid} && defined $result->{docid} && $result->{docid} ne $docid);
+        $result->{docid} = $docid;
+      }
     }
+  }
+  # Remove realis from the predicate
+  my $realis;
+  if($result->{predicate} =~ /\.(actual|generic|other)$/) {
+    $realis = $1;
+    $result->{predicate} =~ s/\.(actual|generic|other)$//;
+    $result->{realis} = lc $realis;
   }
   # Add the description and position fields, which are metadata about
   # the assertion that do not appear in it
   $result->{description} = "$result->{predicate}($result->{entity}, $result->{object}) ---> <<$line>>";
   $result->{position} = $position;
-
   # To allow the new query ID to be generated, we must have the same
   # fields as a SF variant submission. These include: QUERY, QUERY_ID,
   # QUERY_ID_BASE, TARGET_UUID, VALUE, VALUE_PROVENANCE and TYPE.
@@ -638,10 +740,11 @@ sub seek_to_start {
 
 # Look to fulfill each of the evaluation queries in the current run file
 sub process_runfile {
-  my ($runfile, $evaluation_queries, $outfile) = @_;
+  my ($runfile, $evaluation_queries, $outfile, $logger) = @_;
+  my $entitydefs = EntityDefs->new($runfile);
   open(my $infile, "<:utf8", $runfile) or die "Could not open $runfile: $!";
   # Create a new task set
-  my $taskset = TaskSet->new($infile, $outfile);
+  my $taskset = TaskSet->new($infile, $outfile, $logger, $entitydefs);
   # Call seek_to_start to skip over the run ID.  seek_to_start wipes
   # out tasks at position 0, so add evaluation queries afterward
   my $runid = &seek_to_start($infile, $taskset);
@@ -671,7 +774,8 @@ sub process_runfile {
     # handle double-quoted strings properly
     s/$main::comment_pattern/$1/;
     next unless /\S/;
-    my $assertion = &parse_assertion($_, $tell);
+    my $assertion = &parse_assertion($_, $tell, $logger);
+    next if ($assertion->{realis} && lc($assertion->{realis}) eq "generic");
     # Find any open tasks that are fulfilled by this assertion
     my @tasks = $taskset->retrieve_tasks($assertion);
     # If any are found, run the execute method on them
@@ -681,13 +785,13 @@ sub process_runfile {
   }
   close $infile;
   my @toprint = (
-		 {HEADER => "Entry points", FN => sub { $_[0]{ENTRYPOINTS_FOUND} }},
-		 {HEADER => "Fills", FN => sub { $_[0]{FILLS_FOUND} }},
-		 {HEADER => "String fills", FN => sub { $_[0]{FINAL_STRING_FILLS_FOUND} }},
-		 {HEADER => "ResolutionTasks", FN => sub {$_[0]{TASKS}{TOTAL} }},
-		 {HEADER => "Entity2NameTasks", FN => sub {$_[0]{TASKS}{Entity2NameTask} }},
-		 {HEADER => "FillSlotTasks", FN => sub {$_[0]{TASKS}{FillSlotTask} }},
-		 {HEADER => "FindEntrypointsTasks", FN => sub {$_[0]{TASKS}{FindEntrypointsTask} }},
+		 {HEADER => "Entry points", FN => sub { $_[0]{ENTRYPOINTS_FOUND} ? $_[0]{ENTRYPOINTS_FOUND} : 0 }},
+		 {HEADER => "Fills", FN => sub { $_[0]{FILLS_FOUND} ? $_[0]{FILLS_FOUND} : 0 }},
+		 {HEADER => "String fills", FN => sub { $_[0]{FINAL_STRING_FILLS_FOUND} ? $_[0]{FINAL_STRING_FILLS_FOUND} : 0 }},
+		 {HEADER => "ResolutionTasks", FN => sub {$_[0]{TASKS}{TOTAL} ? $_[0]{TASKS}{TOTAL} : 0 }},
+		 {HEADER => "Entity2NameTasks", FN => sub {$_[0]{TASKS}{Entity2NameTask} ? $_[0]{TASKS}{Entity2NameTask} : 0}},
+		 {HEADER => "FillSlotTasks", FN => sub {$_[0]{TASKS}{FillSlotTask} ? $_[0]{TASKS}{FillSlotTask} : 0}},
+		 {HEADER => "FindEntrypointsTasks", FN => sub {$_[0]{TASKS}{FindEntrypointsTask} ? $_[0]{TASKS}{FindEntrypointsTask} : 0}},
 		);
 
   foreach (@toprint) {
@@ -755,7 +859,7 @@ else {
   $outfile_opened = 'true';
 }
 print STDERR "WARNING: $runfile might not be a validated Cold Start run file (it doesn't contain .valid)\n" if $runfile =~ /\./ && $runfile !~ /\.valid/;
-&process_runfile($runfile, $queries, $outfile);
+&process_runfile($runfile, $queries, $outfile, $logger);
 close $outfile if $outfile_opened;
 
 1;

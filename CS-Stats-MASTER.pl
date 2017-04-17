@@ -374,7 +374,7 @@ sub print_all_run_stats {
   my ($logger, $queries, $querylist, $runfiles) = @_;
   #die "Run stats doesn't supporty -querylist" if $querylist;
   my @stats = sort {$a->{RUNID} cmp $b->{RUNID}}
-    map {&collect_run_stats($logger, $queries, $querylist, EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $_))}
+    map {&collect_run_stats($logger, $queries, $querylist, EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, 'MANY', $_))}
     grep {!-z}
     @{$runfiles};
   print "\t\t";

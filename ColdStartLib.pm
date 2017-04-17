@@ -51,47 +51,60 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Provenance Errors
   FAILED_LANG_INFERENCE         WARNING  Unable to infer language from DOCID %s. Using default language %s.
-  ILLEGAL_DOCID                 ERROR    DOCID %s is not a valid DOCID for this task
+  ILLEGAL_DOCID                 FATAL_ERROR    DOCID %s is not a valid DOCID for this task
   ILLEGAL_OFFSET                ERROR    %s is not a valid offset
   ILLEGAL_OFFSET_IN_DOC         ERROR    %s is not a valid offset for DOCID %s
   ILLEGAL_OFFSET_PAIR           ERROR    (%s, %s) is not a valid offset pair
   ILLEGAL_OFFSET_PAIR_STRING    ERROR    %s is not a valid offset pair string
   ILLEGAL_OFFSET_TRIPLE_STRING  ERROR    %s is not a valid docid/offset pair string
+  MISSING_FILLER_STRING_PROV    ERROR    Filler string missing in provencance: %s
+  MULTIPLE_DOCIDS_IN_PROV       ERROR    %s contains multiple DOCIDs
+  MULTIPLE_STRINGS_FOR_PROV     ERROR    Multiple strings provided for provenance: %s (%s)
   TOO_MANY_PROVENANCE_TRIPLES   WARNING  Too many provenance triples (%d) provided; only the first %d will be used
+  TOO_MANY_PROVENANCE_TRIPLES_E ERROR    Unexpected number of provenance triples: provided=(%d) expected=(%d)
   TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
   TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
+  UNEXPECTED_PROVENANCE         ERROR    Only PREDICATE_JUSTIFICATION is expected in the provenance: %s
+  UNEXPECTED_BASE_FILLER        ERROR    %s is not an allowed value for BASE_FILLER provenance for event assertions
+  TOO_MANY_PROVENANCES_IN_LIST  ERROR    Unexpected number of provenances in the list: %s. provided=(%d) expected=(%d)
 
 ########## Knowledge Base Errors
   AMBIGUOUS_PREDICATE           ERROR    %s: ambiguous predicate
-  COLON_OMITTED                 WARNING  Initial colon omitted from name of entity %s
+  COLON_OMITTED                 WARNING  Initial colon omitted from name of node %s
   DUPLICATE_ASSERTION           WARNING  The same assertion is made more than once (%s)
   ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
   IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s 
-  ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s
-  ILLEGAL_ENTITY_TYPE           ERROR    Illegal entity type: %s
+  ILLEGAL_NODE_NAME             ERROR    Illegal node name: %s. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name)
+  INCOMPATIBLE_NODE_NAME        ERROR    Node name %s is not compatible with type %s
+  ILLEGAL_NODE_TYPE             ERROR    Illegal node type: %s
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
   ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
+  ILLEGAL_REALIS                ERROR    Illegal realis: %s
   MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
-  MISSING_MENTION               WARNING  Entity %s has no mention in document %s
-  # This is the WARNING version of ILLEGAL_CONFIDENCE_VALUE:
+  MISSING_CANONICAL_E           ERROR    Canonical mention of node %s in document %s required for inferring inverse
+  MISSING_MENTION               WARNING  Node %s has no mention in document %s
+  MISSING_MENTION_E             ERROR    %s: '%s' is not a mention of node %s
   MISSING_DECIMAL_POINT         WARNING  Decimal point missing in confidence value: %s
   MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
+  MISSING_REALIS                ERROR    Realis is missing in assertion: %s
   MISSING_RUNID                 ERROR    The first line of the file does not contain a legal runid
-  MISSING_TYPEDEF               ERROR    No type asserted for Entity %s
-  MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
-  MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
-  MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
-  MULTIPLE_MENTIONS_NO_CANONICAL ERROR   Entity %s has more than one named/nominal mention in document %s but has no canonical mention
-  MULTITYPED_ENTITY             ERROR    Entity %s has more than one type: %s
-  NO_MENTIONS                   WARNING  Entity %s has no mentions
+  MISSING_TYPEDEF               ERROR    No type asserted for Node %s
+  MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Node %s in document %s
+  MULTIPLE_FILLS_ENTITY         WARNING  Node %s has multiple %s fills, but should be single-valued
+  MULTIPLE_LINKS                WARNING  More than one link from node %s to KB %s
+  MULTIPLE_MENTIONS_NO_CANONICAL ERROR   Node %s has more than one named/nominal mention in document %s but has no canonical mention
+  MULTITYPED_ENTITY             ERROR    Node %s has more than one type: %s
+  NO_MENTIONS                   WARNING  Node %s has no mentions
   PREDICATE_ALIAS               WARNING  Use of %s predicate; %s replaced with %s
-  STRING_USED_FOR_ENTITY        ERROR    Expecting an entity, but got string %s
+  STRING_USED_FOR_ENTITY        ERROR    Expecting a node, but got string %s
   SUBJECT_PREDICATE_MISMATCH    ERROR    Type of subject (%s) does not match type of predicate (%s)
   UNASSERTED_MENTION            WARNING  Failed to assert that %s in document %s is also a mention
-  UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses entity %s, but that entity id has no mentions in provenance %s
+  INACCURACTE_MENTION_STRING    ERROR    Mention string '%s' not found at %s
+  UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses node %s, but that node has no mentions in provenance %s
+  UNEXPECTED_REALIS             ERROR    Unexpected value of realis (expected %s, got %s)
   UNQUOTED_STRING               WARNING  String %s not surrounded by double quotes
-  UNKNOWN_TYPE                  ERROR    Cannot infer type for Entity %s
+  UNKNOWN_TYPE                  ERROR    Cannot infer type for Node %s
 
 ########## Query File Errors
   DUPLICATE_QUERY               WARNING  Queries %s and %s share entry point(s)
@@ -110,14 +123,20 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Submission File/Assessment File Errors
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
+  DISCARDED_ENTRY               WARNING  Following line has been discarded due to constraints on multiple justifications: %s
+  DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies will be removed: %s
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
   MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
+  MULTIPLE_DOCIDS_IN_RESPONSE   ERROR    Multiple DOCIDs used in response: %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
+  SEMICOLON_IN_PROVENANCE_E     ERROR    A semicolon is used in the provenance %s
+  SEMICOLON_AS_SEPARATOR        WARNING  A semicolon is used as a triple separator in the provenance %s. The semicolon will be replaced with a comma. 
+  UNEXPECTED_JUSTIFICATIONS     WARNING  Unexpected number of justification per document (expected %d, got %d) for query %s and node %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -202,7 +221,7 @@ sub record_problem {
   my $type = $format->{TYPE};
   my $message = "$type: " . sprintf($format->{FORMAT}, @args);
   my $where = (ref $source ? "$source->{FILENAME} line $source->{LINENUM}" : $source);
-  $self->NIST_die("$message$where") if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
+  $self->NIST_die("$message\n$where") if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
   $self->{PROBLEMS}{$problem}{$message}{$where}++;
 }
 
@@ -249,7 +268,7 @@ sub report_all_problems {
     foreach my $message (sort keys %{$self->{PROBLEMS}{$problem}}) {
       my $num_instances = scalar keys %{$self->{PROBLEMS}{$problem}{$message}};
       print $error_output "$message";
-      my $example = (keys %{$self->{PROBLEMS}{$problem}{$message}})[0];
+      my $example = (sort keys %{$self->{PROBLEMS}{$problem}{$message}})[0];
       if ($example ne 'NO_SOURCE') {
 	print $error_output " ($example";
 	print $error_output " and ", $num_instances - 1, " other place" if $num_instances > 1;
@@ -329,6 +348,122 @@ our $comment_pattern = qr/
       (\s*\#.*)$/x;		      # Pound sign through the end of the line is not included in the replacement
 
 ### END INCLUDE Patterns
+### BEGIN INCLUDE ProvenanceList
+
+#####################################################################################
+# ProvenanceList
+#####################################################################################
+
+package ProvenanceList;
+
+# Create a new ProvenanceList object
+sub new {
+  my ($class, $logger, $where, $text, $subject, $object, $verb) = @_;
+  unless($text) {
+    my $self = {LOGGER => $logger,
+    WHERE => $where};
+    bless($self, $class);
+    return $self;
+  }
+  my $self = {LOGGER => $logger, WHERE => $where, ORIGINAL_STRING => $text};
+  bless($self, $class);
+  $self->populate_from_text($text, $subject, $object, $verb);
+  $self;
+}
+
+sub populate_from_text {
+  my ($self, $text, $subject, $object, $verb) = @_;
+  my $logger = $self->{LOGGER};
+  my $where = $self->{WHERE};
+  my ($filler_string,$predicate_justification,$base_filler,$additional_justification);
+  my @elements = split(";", $text);
+  $self->validate_list($subject, $object, $verb, scalar @elements);
+  if($object =~ /^:String/) {
+    $filler_string = $elements[0] eq 'NIL' ? undef : Provenance->new($logger, $where, 'PROVENANCETRIPLELIST+1', $elements[0]);
+    shift(@elements);
+  }
+  my @types = qw(PROVENANCETRIPLELIST+3 PROVENANCETRIPLELIST+1 PROVENANCETRIPLELIST++);
+  ($predicate_justification,$base_filler,$additional_justification) =
+      map {
+        $elements[$_] eq 'NIL' ?
+          undef : Provenance->new($logger, $where, $types[$_], $elements[$_])
+      } (0..$#elements);
+  my @docids = map {$_->get_docid() if $_}
+    grep {defined $_}
+      ($filler_string,$predicate_justification,$base_filler,$additional_justification);
+  unless (scalar keys ({map{$_=>1 if $_} @docids}) == 1) {
+    $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $self->tooriginalstring(), $where);
+  }
+  $self->{DOCID} = $docids[0];
+  $self->{FILLER_STRING} = $filler_string;
+  $self->{PREDICATE_JUSTIFICATION} = $predicate_justification;
+  $self->{BASE_FILLER} = $base_filler;
+  $self->{ADDITIONAL_JUSTIFICATION} = $additional_justification;
+}
+
+sub validate_list {
+  my ($self, $subject, $object, $verb, $count) = @_;
+  my ($b1,$b2) = (0,0);
+  $b1 = 1 if $subject =~ /^:Event/ || $object =~ /^:Event/;
+  $b2 = 1 if $object =~ /^:String/;
+  $self->{LOGGER}->record_problem('TOO_MANY_PROVENANCES_IN_LIST', $self->{ORIGINAL_STRING}, $count, 2*$b1+$b2+1, $self->{WHERE})
+    if($verb !~ /mention/ && 2*$b1+$b2+1 != $count);
+  $self->{LOGGER}->record_problem('TOO_MANY_PROVENANCES_IN_LIST', $self->{ORIGINAL_STRING}, $count, 2*$b1+$b2+1, $self->{WHERE})
+    if($verb =~ /mention/ && $count != 1);
+}
+
+# Get the complete path of the file containing the document used in the provenance
+sub get_docfile {
+  my ($self) = @_;
+  return unless $self->{DOCID};
+  my $docids = $Provenance::docids;
+  return $docids->{$self->{DOCID}}{FILE} if ($docids && $docids->{$self->{DOCID}});
+  return;
+}
+
+sub get_docid {
+  my ($self) = @_;
+  return "NO DOCUMENT" unless $self->{DOCID};
+  $self->{DOCID};
+}
+
+sub get_counts {
+	my ($self) = @_;
+	map { $_ => ($self->{$_} && $self->{$_} eq "NIL") || (not defined $self->{$_}) ? 0 : scalar @{$self->{$_}{TRIPLES}} }
+	  qw(FILLER_STRING PREDICATE_JUSTIFICATION BASE_FILLER ADDITIONAL_JUSTIFICATION);
+}
+
+sub get_start {
+  my ($self) = @_;
+  $self->{PREDICATE_JUSTIFICATION}->get_start();
+}
+
+sub get_end {
+  my ($self) = @_;
+  $self->{PREDICATE_JUSTIFICATION}->get_end();
+}
+
+# This is used to get a consistent string representing the provenancelist
+sub tostring {
+	my ($self) = @_;
+	my $filler_string = $self->{FILLER_STRING} ? $self->{FILLER_STRING}->tostring() : "NIL";
+	my $predicate_justification = $self->{PREDICATE_JUSTIFICATION} ? $self->{PREDICATE_JUSTIFICATION}->tostring() : "NIL";
+	my $base_filler = $self->{BASE_FILLER} ? $self->{BASE_FILLER}->tostring() : "NIL";
+	my $additional_justification = $self->{ADDITIONAL_JUSTIFICATION} ? $self->{ADDITIONAL_JUSTIFICATION}->tostring() : "NIL";
+	$self->{PROVENANCE_TOSTRING} = "$filler_string;$predicate_justification;$base_filler;$additional_justification"
+    unless $self->{PROVENANCE_TOSTRING};
+  $self->{PROVENANCE_TOSTRING};
+}
+
+# tostring() normalizes provenance entry order; this retains the original order
+sub tooriginalstring {
+  my ($self) = @_;
+  return "" unless $self->{ORIGINAL_STRING};
+  $self->{ORIGINAL_STRING};
+}
+
+
+## END INCLUDE ProvenanceList
 ### BEGIN INCLUDE Provenance
 
 #####################################################################################
@@ -338,12 +473,12 @@ our $comment_pattern = qr/
 package Provenance;
 
 # Bounds from "Task Description for English Slot Filling at TAC-KBP 2014"
-my $max_chars_per_triple = 150;
+my $max_chars_per_triple = 200;
 my $max_total_chars = 600;
-my $max_triples = 4;
+my $max_triples = 3;
 
 {
-  my $docids;
+  our $docids;
 
   sub set_docids {
     $docids = $_[0];
@@ -386,7 +521,7 @@ my $max_triples = 4;
     if (defined $docids &&
 	($checks{START} || '') ne 'ERROR' &&
 	($checks{DOCID} || '') ne 'ERROR') {
-      if ($start > $docids->{$docid}) {
+      if ($start > $docids->{$docid}{LENGTH}) {
 	$logger->record_problem('ILLEGAL_OFFSET_IN_DOC', $start, $docid, $where);
 	$checks{START_OFFSET} = $logger->get_error_type('ILLEGAL_OFFSET_IN_DOC');
       }
@@ -394,7 +529,7 @@ my $max_triples = 4;
     if (defined $docids &&
 	($checks{END} || '') ne 'ERROR' &&
 	($checks{DOCID} || '') ne 'ERROR') {
-      if ($end > $docids->{$docid}) {
+      if ($end > $docids->{$docid}{LENGTH}) {
 	$logger->record_problem('ILLEGAL_OFFSET_IN_DOC', $end, $docid, $where);
 	$checks{END_OFFSET} = $logger->get_error_type('ILLEGAL_OFFSET_IN_DOC');
       }
@@ -416,9 +551,8 @@ sub tostring {
   # 	     $a->{END} cmp $b->{END}}
   #      @{$self->{TRIPLES}});
 ### SPEEDUP
-  $self->{PROVENANCE_TOSTRING} = join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
-				      sort {$a->{DOCID} cmp $b->{DOCID} ||
-					      $a->{START} <=> $b->{START} ||
+  $self->{PROVENANCE_TOSTRING} = join(",", map {"$self->{DOCID}:$_->{START}-$_->{END}"}
+				      sort {$a->{START} <=> $b->{START} ||
 					      $a->{END} cmp $b->{END}}
 				      @{$self->{TRIPLES}})
     unless $self->{PROVENANCE_TOSTRING};
@@ -426,10 +560,25 @@ sub tostring {
   $self->{PROVENANCE_TOSTRING};
 }
 
+# This is used to, among other things, get a short version
+# for Event Argument output
+sub toshortstring {
+  my ($self) = @_;
+
+  $self->{PROVENANCE_TOSTRING_SHORT} = join(",", map {"$_->{START}-$_->{END}"}
+				      sort {$a->{START} <=> $b->{START} ||
+					      $a->{END} cmp $b->{END}}
+				      @{$self->{TRIPLES}})
+    unless $self->{PROVENANCE_TOSTRING_SHORT};
+
+  $self->{PROVENANCE_TOSTRING_SHORT};
+}
+
+
 # tostring() normalizes provenance entry order; this retains the original order
 sub tooriginalstring {
   my ($self) = @_;
-  join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"} @{$self->{TRIPLES}});
+  join(",", map {"$self->{DOCID}:$_->{START}-$_->{END}"} @{$self->{TRIPLES}});
 }
 
 # Create a new Provenance object
@@ -437,14 +586,19 @@ sub new {
   my ($class, $logger, $where, $type, @values) = @_;
   my $self = {LOGGER => $logger, TRIPLES => [], WHERE => $where};
   my $total = 0;
+  # This is where we control custom max_triples
+  if($type =~ /PROVENANCETRIPLELIST\+(.)/) {
+    $max_triples = $1;
+    $type = 'PROVENANCETRIPLELIST';
+  }
   if ($type eq 'EMPTY') {
     # DO NOTHING
   }
   elsif ($type eq 'DOCID_OFFSET_OFFSET') {
     my ($docid, $start, $end) = @values;
     if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-      push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				 START => $start,
+      $self->{DOCID} = $docid;
+      push(@{$self->{TRIPLES}}, {START => $start,
 				 END => $end,
 				 WHERE => $where});
       $total += $end - $start + 1;
@@ -461,8 +615,10 @@ sub new {
 	$end = 0;
       }
       if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-	push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				   START => $start,
+	$self->{DOCID} = $docid unless $self->{DOCID};
+	$logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $pair, $where)
+	  if($docid ne $self->{DOCID});
+	push(@{$self->{TRIPLES}}, {START => $start,
 				   END => $end,
 				   WHERE => $where});
 	$total += $end - $start + 1;
@@ -474,9 +630,25 @@ sub new {
   }
   elsif ($type eq 'PROVENANCETRIPLELIST') {
     my ($triple_list) = @values;
+    # If a semicolon is present in the triple_list, determine if its used as a separator (may be in addition to a comma);
+    # Determine if it can be repaired; generate an ERROR or WARNING accordingly
+    if($triple_list =~ /;/) {
+      if($triple_list =~ qr/^(?:[^:;]+:\d+-\d+[,;]){0,3}[^:;]+:\d+-\d+$/) {
+        # Generate a WARNING and repair
+        $logger->record_problem('SEMICOLON_AS_SEPARATOR', $triple_list, $where);
+        # Replace the semicolons with commas
+        $triple_list =~ s/;/,/g;
+      }
+      else{
+        # Cannot be repaired; generate an ERROR
+        $logger->record_problem('SEMICOLON_IN_PROVENANCE_E', $triple_list, $where);
+      }
+    }
     my @triple_list = split(/,/, $triple_list);
-    if (@triple_list > $max_triples) {
-      $logger->record_problem('TOO_MANY_PROVENANCE_TRIPLES',
+    # This is where we handle unlimited triple list
+    # specified using PROVENANCETRIPLELIST++
+    if ($max_triples ne "+" && @triple_list > $max_triples) {
+      $logger->record_problem('TOO_MANY_PROVENANCE_TRIPLES_E',
 			      scalar @triple_list, $max_triples, $where);
       $#triple_list = $max_triples - 1;
     }
@@ -491,8 +663,10 @@ sub new {
 	$end = 0;
       }
       if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
-	push(@{$self->{TRIPLES}}, {DOCID => $docid,
-				   START => $start,
+	$self->{DOCID} = $docid unless $self->{DOCID};
+	$logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $triple_list, $where)
+	  if($docid ne $self->{DOCID});
+	push(@{$self->{TRIPLES}}, {START => $start,
 				   END => $end,
 				   WHERE => $where});
 	$total += $end - $start + 1;
@@ -510,7 +684,7 @@ sub get_docid {
   my ($self, $num) = @_;
   $num = 0 unless defined $num;
   return "NO DOCUMENT" unless @{$self->{TRIPLES}};
-  $self->{TRIPLES}[$num]{DOCID};
+  $self->{DOCID};
 }
 
 sub get_start {
@@ -757,7 +931,7 @@ sub add_entrypoint {
 					      $entrypoint{END});
   }
   my $provenance = $entrypoint{PROVENANCE};
-  $entrypoint{DOCID} = $provenance->{TRIPLES}[0]{DOCID} unless defined $entrypoint{DOCID};
+  $entrypoint{DOCID} = $provenance->{DOCID} unless defined $entrypoint{DOCID};
   $entrypoint{START} = $provenance->{TRIPLES}[0]{START} unless defined $entrypoint{START};
   $entrypoint{END} = $provenance->{TRIPLES}[0]{END} unless defined $entrypoint{END};
   $entrypoint{LANGUAGE} = $self->infer_language_from_documentid($entrypoint{DOCID}, $entrypoint{WHERE} || 'NO_SOURCE');
@@ -781,7 +955,7 @@ sub infer_language_from_documentid{
   elsif($documentid =~ /^SPA/i) {
   	$language = "SPANISH";
   }
-  elsif($documentid =~ /ENG/i) {
+  elsif($documentid =~ /(^ENG_)|(_ENG_)/i) {
   	$language = "ENGLISH";
   }
   else {
@@ -1321,12 +1495,214 @@ my $predicates_spec = <<'END_PREDICATES';
 # The following are not TAC slot filling predicates, but rather
 # predicates required by the Cold Start task. FAC and LOC are included
 # to support the export of a Cold Start Run as an EDL submission
-  PER,ORG,GPE,FAC,LOC    mention                  STRING       none
-  PER,ORG,GPE,FAC,LOC    canonical_mention        STRING       none
-  PER,ORG,GPE,FAC,LOC    type                     TYPE         none
-  PER,ORG,GPE,FAC,LOC    link                     STRING       none
+  PER,ORG,GPE,FAC,LOC,STRING    mention                   STRING       none
+  PER,ORG,GPE,FAC,LOC,STRING    canonical_mention         STRING       none
+  PER,ORG,GPE,FAC,LOC           pronominal_mention        STRING       none
+  STRING                        normalized_mention        STRING       none
+  PER,ORG,GPE,FAC,LOC           link                      STRING       none
 # nominal mention is added here for those who want to convert Cold Start output to EDL
   PER,ORG,GPE,FAC,LOC            nominal_mention                  STRING       none
+# The following are Sentiment predicates
+  PER,ORG,GPE,LOC,FAC            dislikes           PER,ORG,GPE,LOC,FAC      is_disliked_by
+  PER,ORG,GPE,LOC,FAC            is_disliked_by     PER,ORG,GPE,LOC,FAC      dislikes
+  PER,ORG,GPE,LOC,FAC            is_liked_by        PER,ORG,GPE,LOC,FAC      likes
+  PER,ORG,GPE,LOC,FAC            likes              PER,ORG,GPE,LOC,FAC      is_liked_by
+# The following are Event predicates
+#
+  CONFLICT.ATTACK                mention                                    STRING                         none
+  CONFLICT.ATTACK                canonical_mention                          STRING                         none
+  CONFLICT.ATTACK                attacker                                   PER,GPE,ORG,STRING             conflict.attack_attacker
+  CONFLICT.ATTACK                instrument                                 STRING                         none
+  CONFLICT.ATTACK                target                                     PER,GPE,ORG,FAC,STRING         conflict.attack_target
+  CONFLICT.ATTACK                time                                       STRING                         none
+  CONFLICT.ATTACK                place                                      GPE,LOC,FAC,STRING             conflict.attack_place
+  PER,GPE,ORG                    conflict.attack_attacker                   CONFLICT.ATTACK                attacker
+  GPE,LOC,FAC                    conflict.attack_place                      CONFLICT.ATTACK                place
+  PER,GPE,ORG,FAC                conflict.attack_target                     CONFLICT.ATTACK                target
+#
+  CONFLICT.DEMONSTRATE           mention                                    STRING                         none
+  CONFLICT.DEMONSTRATE           canonical_mention                          STRING                         none
+  CONFLICT.DEMONSTRATE           entity                                     PER,ORG,STRING                 conflict.demonstrate_entity
+  CONFLICT.DEMONSTRATE           time                                       STRING                         none
+  CONFLICT.DEMONSTRATE           place                                      GPE,LOC,FAC,STRING             conflict.demonstrate_place
+  PER,ORG                        conflict.demonstrate_entity                CONFLICT.DEMONSTRATE           entity
+  GPE,LOC,FAC                    conflict.demonstrate_place                 CONFLICT.DEMONSTRATE           place
+#
+  CONTACT.BROADCAST              mention                                    STRING                         none
+  CONTACT.BROADCAST              canonical_mention                          STRING                         none
+  CONTACT.BROADCAST              audience                                   PER,ORG,GPE,STRING             contact.broadcast_audience
+  CONTACT.BROADCAST              entity                                     PER,ORG,GPE,STRING             contact.broadcast_entity
+  CONTACT.BROADCAST              time                                       STRING                         none
+  CONTACT.BROADCAST              place                                      GPE,LOC,FAC,STRING             contact.broadcast_place
+  PER,ORG,GPE                    contact.broadcast_audience                 CONTACT.BROADCAST              audience
+  PER,ORG,GPE                    contact.broadcast_entity                   CONTACT.BROADCAST              entity
+  GPE,LOC,FAC                    contact.broadcast_place                    CONTACT.BROADCAST              place
+#
+  CONTACT.CONTACT                mention                                    STRING                         none
+  CONTACT.CONTACT                canonical_mention                          STRING                         none
+  CONTACT.CONTACT                entity                                     PER,ORG,GPE,STRING             contact.contact_entity
+  CONTACT.CONTACT                time                                       STRING                         none
+  CONTACT.CONTACT                place                                      GPE,LOC,FAC,STRING             contact.contact_place
+  PER,ORG,GPE                    contact.contact_entity                     CONTACT.CONTACT                entity
+  GPE,LOC,FAC                    contact.contact_place                      CONTACT.CONTACT                place
+#
+  CONTACT.CORRESPONDENCE         mention                                    STRING                         none
+  CONTACT.CORRESPONDENCE         canonical_mention                          STRING                         none
+  CONTACT.CORRESPONDENCE         entity                                     PER,ORG,GPE,STRING             contact.correspondence_entity
+  CONTACT.CORRESPONDENCE         time                                       STRING                         none
+  CONTACT.CORRESPONDENCE         place                                      GPE,LOC,FAC,STRING             contact.correspondence_place
+  PER,ORG,GPE                    contact.correspondence_entity              CONTACT.CORRESPONDENCE         entity
+  GPE,LOC,FAC                    contact.correspondence_place               CONTACT.CORRESPONDENCE         place
+#
+  CONTACT.MEET                   mention                                    STRING                         none
+  CONTACT.MEET                   canonical_mention                          STRING                         none
+  CONTACT.MEET                   entity                                     PER,ORG,GPE,STRING             contact.meet_entity
+  CONTACT.MEET                   time                                       STRING                         none
+  CONTACT.MEET                   place                                      GPE,LOC,FAC,STRING             contact.meet_place
+  PER,ORG,GPE                    contact.meet_entity                        CONTACT.MEET                   entity
+  GPE,LOC,FAC                    contact.meet_place                         CONTACT.MEET                   place
+#
+  JUSTICE.ARREST-JAIL            mention                                    STRING                         none
+  JUSTICE.ARREST-JAIL            canonical_mention                          STRING                         none
+  JUSTICE.ARREST-JAIL            agent                                      PER,ORG,GPE,STRING             justice.arrest-jail_agent
+  JUSTICE.ARREST-JAIL            crime                                      STRING                         none
+  JUSTICE.ARREST-JAIL            person                                     PER,STRING                     justice.arrest-jail_person
+  JUSTICE.ARREST-JAIL            time                                       STRING                         none
+  JUSTICE.ARREST-JAIL            place                                      GPE,LOC,FAC,STRING             justice.arrest-jail_place
+  PER,ORG,GPE                    justice.arrest-jail_agent                  JUSTICE.ARREST-JAIL            agent
+  PER                            justice.arrest-jail_person                 JUSTICE.ARREST-JAIL            person
+  GPE,LOC,FAC                    justice.arrest-jail_place                  JUSTICE.ARREST-JAIL            place
+#
+  LIFE.DIE                       mention                                    STRING                         none
+  LIFE.DIE                       canonical_mention                          STRING                         none
+  LIFE.DIE                       agent                                      PER,ORG,GPE,STRING             life.die_agent
+  LIFE.DIE                       instrument                                 STRING                         none
+  LIFE.DIE                       victim                                     PER,STRING                     life.die_victim
+  LIFE.DIE                       time                                       STRING                         none
+  LIFE.DIE                       place                                      GPE,LOC,FAC,STRING             life.die_place
+  PER,ORG,GPE                    life.die_agent                             LIFE.DIE                       agent
+  GPE,LOC,FAC                    life.die_place                             LIFE.DIE                       place
+  PER                            life.die_victim                            LIFE.DIE                       victim
+#
+  LIFE.INJURE                    mention                                    STRING                         none
+  LIFE.INJURE                    canonical_mention                          STRING                         none
+  LIFE.INJURE                    agent                                      PER,ORG,GPE,STRING             life.injure_agent
+  LIFE.INJURE                    instrument                                 STRING                         none
+  LIFE.INJURE                    victim                                     PER,STRING                     life.injure_victim
+  LIFE.INJURE                    time                                       STRING                         none
+  LIFE.INJURE                    place                                      GPE,LOC,FAC,STRING             life.injure_place
+  PER,ORG,GPE                    life.injure_agent                          LIFE.INJURE                    agent
+  GPE,LOC,FAC                    life.injure_place                          LIFE.INJURE                    place
+  PER                            life.injure_victim                         LIFE.INJURE                    victim
+#
+  MANUFACTURE.ARTIFACT           mention                                    STRING                         none
+  MANUFACTURE.ARTIFACT           canonical_mention                          STRING                         none
+  MANUFACTURE.ARTIFACT           agent                                      PER,ORG,GPE,STRING             manufacture.artifact_agent
+  MANUFACTURE.ARTIFACT           artifact                                   FAC,STRING                     manufacture.artifact_artifact
+  MANUFACTURE.ARTIFACT           instrument                                 STRING                         none
+  MANUFACTURE.ARTIFACT           time                                       STRING                         none
+  MANUFACTURE.ARTIFACT           place                                      GPE,LOC,FAC,STRING             manufacture.artifact_place
+  PER,ORG,GPE                    manufacture.artifact_agent                 MANUFACTURE.ARTIFACT           agent
+  FAC                            manufacture.artifact_artifact              MANUFACTURE.ARTIFACT           artifact
+  GPE,LOC,FAC                    manufacture.artifact_place                 MANUFACTURE.ARTIFACT           place
+#
+  MOVEMENT.TRANSPORT-ARTIFACT    mention                                    STRING                         none
+  MOVEMENT.TRANSPORT-ARTIFACT    canonical_mention                          STRING                         none
+  MOVEMENT.TRANSPORT-ARTIFACT    agent                                      PER,ORG,GPE,STRING             movement.transport-artifact_agent
+  MOVEMENT.TRANSPORT-ARTIFACT    artifact                                   FAC,STRING                     movement.transport-artifact_artifact
+  MOVEMENT.TRANSPORT-ARTIFACT    destination                                GPE,LOC,FAC,STRING             movement.transport-artifact_destination
+  MOVEMENT.TRANSPORT-ARTIFACT    instrument                                 STRING                         none
+  MOVEMENT.TRANSPORT-ARTIFACT    origin                                     GPE,LOC,FAC,STRING             movement.transport-artifact_origin
+  MOVEMENT.TRANSPORT-ARTIFACT    time                                       STRING                         none
+  PER,ORG,GPE                    movement.transport-artifact_agent          MOVEMENT.TRANSPORT-ARTIFACT    agent
+  FAC                            movement.transport-artifact_artifact       MOVEMENT.TRANSPORT-ARTIFACT    artifact
+  GPE,LOC,FAC                    movement.transport-artifact_destination    MOVEMENT.TRANSPORT-ARTIFACT    destination
+  GPE,LOC,FAC                    movement.transport-artifact_origin         MOVEMENT.TRANSPORT-ARTIFACT    origin
+#
+  MOVEMENT.TRANSPORT-PERSON      mention                                    STRING                         none
+  MOVEMENT.TRANSPORT-PERSON      canonical_mention                          STRING                         none
+  MOVEMENT.TRANSPORT-PERSON      agent                                      PER,ORG,GPE,STRING             movement.transport-person_agent
+  MOVEMENT.TRANSPORT-PERSON      destination                                GPE,LOC,FAC,STRING             movement.transport-person_destination
+  MOVEMENT.TRANSPORT-PERSON      instrument                                 STRING                         none
+  MOVEMENT.TRANSPORT-PERSON      origin                                     GPE,LOC,FAC,STRING             movement.transport-person_origin
+  MOVEMENT.TRANSPORT-PERSON      person                                     PER,STRING                     movement.transport-person_person
+  MOVEMENT.TRANSPORT-PERSON      time                                       STRING                         none
+  PER,ORG,GPE                    movement.transport-person_agent            MOVEMENT.TRANSPORT-PERSON      agent
+  GPE,LOC,FAC                    movement.transport-person_destination      MOVEMENT.TRANSPORT-PERSON      destination
+  GPE,LOC,FAC                    movement.transport-person_origin           MOVEMENT.TRANSPORT-PERSON      origin
+  PER                            movement.transport-person_person           MOVEMENT.TRANSPORT-PERSON      person
+#
+  PERSONNEL.ELECT                mention                                    STRING                         none
+  PERSONNEL.ELECT                canonical_mention                          STRING                         none
+  PERSONNEL.ELECT                agent                                      PER,ORG,GPE,STRING             personnel.elect_agent
+  PERSONNEL.ELECT                person                                     PER,STRING                     personnel.elect_person
+  PERSONNEL.ELECT                position                                   STRING                         none
+  PERSONNEL.ELECT                time                                       STRING                         none
+  PERSONNEL.ELECT                place                                      GPE,LOC,FAC,STRING             personnel.elect_place
+  PER,ORG,GPE                    personnel.elect_agent                      PERSONNEL.ELECT                agent
+  PER                            personnel.elect_person                     PERSONNEL.ELECT                person
+  GPE,LOC,FAC                    personnel.elect_place                      PERSONNEL.ELECT                place
+#
+  PERSONNEL.END-POSITION         mention                                    STRING                         none
+  PERSONNEL.END-POSITION         canonical_mention                          STRING                         none
+  PERSONNEL.END-POSITION         entity                                     ORG,GPE,STRING                 personnel.end-position_entity
+  PERSONNEL.END-POSITION         person                                     PER,STRING                     personnel.end-position_person
+  PERSONNEL.END-POSITION         position                                   STRING                         none
+  PERSONNEL.END-POSITION         time                                       STRING                         none
+  PERSONNEL.END-POSITION         place                                      GPE,LOC,FAC,STRING             personnel.end-position_place
+  ORG,GPE                        personnel.end-position_entity              PERSONNEL.END-POSITION         entity
+  PER                            personnel.end-position_person              PERSONNEL.END-POSITION         person
+  GPE,LOC,FAC                    personnel.end-position_place               PERSONNEL.END-POSITION         place
+#
+  PERSONNEL.START-POSITION       mention                                    STRING                         none
+  PERSONNEL.START-POSITION       canonical_mention                          STRING                         none
+  PERSONNEL.START-POSITION       entity                                     ORG,GPE,STRING                 personnel.start-position_entity
+  PERSONNEL.START-POSITION       person                                     PER,STRING                     personnel.start-position_person
+  PERSONNEL.START-POSITION       position                                   STRING                         none
+  PERSONNEL.START-POSITION       time                                       STRING                         none
+  PERSONNEL.START-POSITION       place                                      GPE,LOC,FAC,STRING             personnel.start-position_place
+  ORG,GPE                        personnel.start-position_entity            PERSONNEL.START-POSITION       entity
+  PER                            personnel.start-position_person            PERSONNEL.START-POSITION       person
+  GPE,LOC,FAC                    personnel.start-position_place             PERSONNEL.START-POSITION       place
+#
+  TRANSACTION.TRANSACTION        mention                                    STRING                         none
+  TRANSACTION.TRANSACTION        canonical_mention                          STRING                         none
+  TRANSACTION.TRANSACTION        beneficiary                                PER,ORG,GPE,STRING             transaction.transaction_beneficiary
+  TRANSACTION.TRANSACTION        giver                                      PER,ORG,GPE,STRING             transaction.transaction_giver
+  TRANSACTION.TRANSACTION        recipient                                  PER,ORG,GPE,STRING             transaction.transaction_recipient
+  TRANSACTION.TRANSACTION        time                                       STRING                         none
+  TRANSACTION.TRANSACTION        place                                      GPE,LOC,FAC,STRING             transaction.transaction_place
+  PER,ORG,GPE                    transaction.transaction_beneficiary        TRANSACTION.TRANSACTION        beneficiary
+  PER,ORG,GPE                    transaction.transaction_giver              TRANSACTION.TRANSACTION        giver
+  GPE,LOC,FAC                    transaction.transaction_place              TRANSACTION.TRANSACTION        place
+  PER,ORG,GPE                    transaction.transaction_recipient          TRANSACTION.TRANSACTION        recipient
+#
+  TRANSACTION.TRANSFER-MONEY     mention                                    STRING                         none
+  TRANSACTION.TRANSFER-MONEY     canonical_mention                          STRING                         none
+  TRANSACTION.TRANSFER-MONEY     beneficiary                                PER,ORG,GPE,STRING             transaction.transfer-money_beneficiary
+  TRANSACTION.TRANSFER-MONEY     giver                                      PER,ORG,GPE,STRING             transaction.transfer-money_giver
+  TRANSACTION.TRANSFER-MONEY     money                                      STRING                         none
+  TRANSACTION.TRANSFER-MONEY     recipient                                  PER,ORG,GPE,STRING             transaction.transfer-money_recipient
+  TRANSACTION.TRANSFER-MONEY     time                                       STRING                         none
+  TRANSACTION.TRANSFER-MONEY     place                                      GPE,LOC,FAC,STRING             transaction.transfer-money_place
+  PER,ORG,GPE                    transaction.transfer-money_beneficiary     TRANSACTION.TRANSFER-MONEY     beneficiary
+  PER,ORG,GPE                    transaction.transfer-money_giver           TRANSACTION.TRANSFER-MONEY     giver
+  GPE,LOC,FAC                    transaction.transfer-money_place           TRANSACTION.TRANSFER-MONEY     place
+  PER,ORG,GPE                    transaction.transfer-money_recipient       TRANSACTION.TRANSFER-MONEY     recipient
+#
+  TRANSACTION.TRANSFER-OWNERSHIP mention                                    STRING                         none
+  TRANSACTION.TRANSFER-OWNERSHIP canonical_mention                          STRING                         none
+  TRANSACTION.TRANSFER-OWNERSHIP beneficiary                                PER,ORG,GPE,STRING             transaction.transfer-ownership_beneficiary
+  TRANSACTION.TRANSFER-OWNERSHIP giver                                      PER,ORG,GPE,STRING             transaction.transfer-ownership_giver
+  TRANSACTION.TRANSFER-OWNERSHIP recipient                                  PER,ORG,GPE,STRING             transaction.transfer-ownership_recipient
+  TRANSACTION.TRANSFER-OWNERSHIP thing                                      FAC,ORG,STRING                 transaction.transfer-ownership_thing
+  TRANSACTION.TRANSFER-OWNERSHIP time                                       STRING                         none
+  TRANSACTION.TRANSFER-OWNERSHIP place                                      GPE,LOC,FAC,STRING             transaction.transfer-ownership_place
+  PER,ORG,GPE                    transaction.transfer-ownership_beneficiary TRANSACTION.TRANSFER-OWNERSHIP beneficiary
+  PER,ORG,GPE                    transaction.transfer-ownership_giver       TRANSACTION.TRANSFER-OWNERSHIP giver
+  GPE,LOC,FAC                    transaction.transfer-ownership_place       TRANSACTION.TRANSFER-OWNERSHIP place
+  PER,ORG,GPE                    transaction.transfer-ownership_recipient   TRANSACTION.TRANSFER-OWNERSHIP recipient
+  FAC,ORG                        transaction.transfer-ownership_thing       TRANSACTION.TRANSFER-OWNERSHIP thing
 END_PREDICATES
 
 #####################################################################################
@@ -1369,9 +1745,24 @@ foreach (grep {!/^\s*#/} split(/\n/, lc $predicate_aliases)) {
 
 sub build_hash { map {$_ => 'true'} @_ }
 # Set of legal range types (e.g., {PER, ORG, GPE})
-our %legal_range_types = &build_hash(qw(per gpe org string type));
-# Set of types that are entities
+our %legal_range_types = &build_hash(qw(per gpe org fac loc string type conflict.attack
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position
+  transaction.transaction transaction.transfer-money transaction.transfer-ownership));
+# Set of types that are nodes
+our %legal_node_types = &build_hash(qw(per gpe org fac loc string conflict.attack
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position
+  transaction.transaction transaction.transfer-money transaction.transfer-ownership));
 our %legal_entity_types = &build_hash(qw(per gpe org fac loc));
+our %legal_event_types = &build_hash(qw(conflict.attack
+  conflict.demonstrate contact.broadcast contact.contact contact.correspondence contact.meet
+  justice.arrest-jail life.die life.injure manufacture.artifact movement.transport-artifact
+  movement.transport-person personnel.elect personnel.end-position personnel.start-position
+  transaction.transaction transaction.transfer-money transaction.transfer-ownership));
+our %legal_string_types = &build_hash(qw(string));
 
 # Is one type specification compatible with another?  The second
 # argument must be a hash representing a set of types. The first
@@ -1425,6 +1816,10 @@ sub add_predicates {
     my $predicate = Predicate->new($self, $domain, $name, $range, $inverse, $label);
     $self->add_predicate($predicate);
   }
+  # All entity types have a type assertion
+  my $domain = join (",", keys %legal_node_types);
+  my $predicate = Predicate->new($self, $domain, "type", "type", "none", $label);
+  $self->add_predicate($predicate);
   $self;
 }
 
@@ -1452,14 +1847,14 @@ sub get_predicate {
   if ($verb =~ /^(.*?):(.*)$/) {
     $domain_string = lc $1;
     $verb = $2;
-    unless($PredicateSet::legal_entity_types{$domain_string}) {
+    unless($PredicateSet::legal_node_types{$domain_string}) {
       $self->{LOGGER}->record_problem('ILLEGAL_PREDICATE_TYPE', $domain_string, $source);
       return;
     }
   }
   if (defined $domain_string &&
       defined $subject_type &&
-      $PredicateSet::legal_entity_types{$subject_type} &&
+      $PredicateSet::legal_node_types{$subject_type} &&
       $domain_string ne $subject_type) {
     $self->{LOGGER}->record_problem('SUBJECT_PREDICATE_MISMATCH',
 				    $subject_type,
@@ -1522,7 +1917,7 @@ sub new {
   # Make sure each type is legal
   foreach my $type (keys %{$domain}) {
     $predicates->{LOGGER}->NIST_die("Illegal domain type: $type")
-      unless $PredicateSet::legal_entity_types{$type};
+      unless $PredicateSet::legal_node_types{$type};
   }
   # Do the same for the range
   my $range = {map {$_ => 'true'} split(/,/, lc $range_string)};
@@ -1561,7 +1956,9 @@ sub new {
 				    "$domain_string:$name from $predicate->{QUANTITY} " .
 				    "to $quantity")
 	unless $predicate->{QUANTITY} eq $quantity;
-    my @inverses = $predicates->lookup_predicate($inverse_name, $range, $domain);
+	  my $inverse_domain = map {$_=>$range->{$_}} grep {$_ ne "string"} keys %{$range};
+	  my $invers_range = $domain;
+    my @inverses = $predicates->lookup_predicate($inverse_name, $inverse_domain, $invers_range);
     $predicates->{LOGGER}->NIST_die("Multiple inverses with form " .
 				    "$inverse_name($range_string, $domain_string)")
       if (@inverses > 1);
@@ -1583,6 +1980,8 @@ sub new {
   # Save the new predicate in $predicates
   $predicates->add_predicate($predicate);
   # Automatically generate the inverse predicate
+  $range_string = join(",", grep {$_ ne "string"} keys %{$range})
+    unless $inverse_name eq 'none';
   $predicate->{INVERSE} = $class->new($predicates, $range_string,
 				      $original_inverse_name, $domain_string,
 				      $original_name, $label)
@@ -2305,6 +2704,24 @@ my %schemas = (
     )],
   },
 
+  '2017SFsubmissions' => {
+    YEAR => 2017,
+    TYPE => 'SUBMISSION',
+    SAMPLES => ["CS14_ENG_003	per:other_family	hltcoe1-tinykb	NYT_ENG_20101103.0024:705-834	George Hickenlooper	PER	NYT_ENG_20101103.0024:815-833	1.0	:Entity_2345"],
+    CHECK_MULTIPLE_JUSTIFICATIONS => 1,
+    COLUMNS => [qw(
+      FULL_QUERY_ID
+      SLOT_NAME
+      RUNID
+      RELATION_PROVENANCE_TRIPLES
+      VALUE
+      VALUE_TYPE
+      VALUE_PROVENANCE_TRIPLES
+      CONFIDENCE
+      NODEID
+    )],
+  },
+
 );
 
 # Build a pattern that will recognize assessment codes (we just build
@@ -2467,6 +2884,11 @@ my %columns = (
 
   LINENUM => {
     DESCRIPTION => "The line number in FILENAME containing LINE - added by load",  },
+
+  NODEID => {
+    DESCRIPTION => "Node ID of the filler",
+    PATTERN => $anything_pattern
+  },
 
   OBJECT_ASSESSMENT => {
     DESCRIPTION => "Additional assessment",
@@ -2682,8 +3104,12 @@ my %columns = (
     GENERATOR => sub {
       my ($logger, $where, $queries, $schema, $entry) = @_;
       if (defined $entry->{RELATION_PROVENANCE_TRIPLES}) {
-	$entry->{RELATION_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
-							$entry->{RELATION_PROVENANCE_TRIPLES});
+        $entry->{RELATION_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST+4',
+				  $entry->{RELATION_PROVENANCE_TRIPLES});
+				if(exists $entry->{DOCID} && $entry->{DOCID} ne $entry->{RELATION_PROVENANCE}->get_docid()) {
+          $logger->record_problem('MULTIPLE_DOCIDS_IN_RESPONSE', "\n$entry->{LINE}", $where);
+        }
+        $entry->{DOCID} = $entry->{RELATION_PROVENANCE}->get_docid();
       }
     },
     DEPENDENCIES => [qw(RELATION_PROVENANCE_TRIPLES)],
@@ -2881,9 +3307,13 @@ my %columns = (
 						     $entry->{OBJECT_OFFSETS});
       }
       elsif (defined $entry->{VALUE_PROVENANCE_TRIPLES}) {
-	$entry->{VALUE_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST',
+	$entry->{VALUE_PROVENANCE} = Provenance->new($logger, $where, 'PROVENANCETRIPLELIST+2',
 						     $entry->{VALUE_PROVENANCE_TRIPLES});
       }
+      if(exists $entry->{DOCID} && $entry->{DOCID} ne $entry->{VALUE_PROVENANCE}->get_docid()) {
+        $logger->record_problem('MULTIPLE_DOCIDS_IN_RESPONSE', "\n$entry->{LINE}", $where);
+      }
+      $entry->{DOCID} = $entry->{VALUE_PROVENANCE}->get_docid();
     },
     DEPENDENCIES => [qw(DOCID OBJECT_OFFSET_START OBJECT_OFFSET_END
 			OBJECT_OFFSETS VALUE_PROVENANCE_TRIPLES)],
@@ -2899,11 +3329,11 @@ my %columns = (
   VALUE_TYPE => {
     DESCRIPTION => "{PER, ORG, GPE, STRING}",
     YEARS => [2015],
-    PATTERN => qr/^(PER|ORG|GPE|STRING)$/i,
+    PATTERN => $anything_pattern,
     NORMALIZE => sub {
       my ($logger, $where, $value) = @_;
       $logger->record_problem('ILLEGAL_VALUE_TYPE', $value, $where)
-        if ($value !~ qr/^(PER|ORG|GPE|STRING)$/i);
+        unless $PredicateSet::legal_node_types{lc $value};
       uc $value;
     },
   },
@@ -3075,6 +3505,7 @@ sub load {
 ### DO NOT INCLUDE
 #print STDERR ">>>>>>>>>>>>>>>>>> Loading $filename\n";
 ### DO INCLUDE
+  my %line_encodings;
   open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Could not open $filename: $!");
   my $columns = $schema->{COLUMNS};
   input_line:
@@ -3104,6 +3535,16 @@ sub load {
     my $where = {FILENAME => $filename, LINENUM => $.};
     # Align the tab-separated elements on the line with the expected set of columns
     my @elements = split(/\t/);
+    # Get line encoding
+    my $md5 = &main::generate_uuid_from_string($_, 12);
+    # Check if the line is an exact duplicate
+    if(exists $line_encodings{$md5}) {
+      # Remove the duplicate
+      $logger->record_problem('DUPLICATE_LINE', "\n" . $_, $where);
+      next;
+    }
+    # Store line encoding for future lookup
+    $line_encodings{$md5} = 1;
     if (@elements != @{$columns}) {
 ### DO NOT INCLUDE
 print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
@@ -3156,7 +3597,7 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
 
     # Make sure that the submitted slot matches the slot requested by the query
     if ($entry->{SLOT_NAME} ne $entry->{QUERY}{SLOT}) {
-      $logger->record_problem('WRONG_SLOT_NAME', $entry->{SLOT_NAME}, $entry->{QUERY_ID}, $entry->{QUERY}{SLOT}, $where);
+      $logger->record_problem('WRONG_SLOT_NAME', $entry->{SLOT_NAME}, $entry->{FULL_QUERY_ID}, $entry->{QUERY}{SLOT}, $where);
       $self->{BAD_QUERIES}{$entry->{TARGET_QUERY_ID}}++;
       next;
     }
@@ -3202,6 +3643,7 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
     push(@{$self->{ENTRIES_BY_QUERY_ID_BASE}{$schema->{TYPE}}{$entry->{QUERY_ID_BASE}}}, $entry);
     push(@{$self->{ENTRIES_BY_ANSWER}{$entry->{QUERY_ID}}{$entry->{TARGET_QUERY_ID}}{$schema->{TYPE}}}, $entry);
+    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry) if $entry->{NODEID};
     push(@{$self->{ENTRIES_BY_EC}{$entry->{QUERY_ID}}{$entry->{VALUE_EC}}}, $entry)
 	if $entry->{TYPE} eq 'ASSESSMENT' &&
 	   ($entry->{ASSESSMENT} eq 'CORRECT' || $entry->{ASSESSMENT} eq 'INEXACT');
@@ -3556,9 +3998,83 @@ sub score_query {
   @scores;
 }
 
+# This function marks all entries (and dependents) that should be discarded based on the required parameters
+sub mark_multiple_justifications {
+  my ($self, $justifications_allowed) = @_;
+  my ($justifications_perdoc, $justifications_total) = $justifications_allowed =~ /^(.*?):(.*?)$/;
+  my %discarded_dependents;
+  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+      my @entries;
+      # Discard extra justifications per document
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+        my $k = 0;
+        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+                            @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
+           push(@entries, $entry);
+           if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
+             $entry->{DISCARD} = 1;
+             my $justifications_provided = scalar @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
+             $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $justifications_provided, $entry->{QUERY}->get("FULL_QUERY_ID"), $nodeid,
+               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+             $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
+               if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
+                    (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
+                      $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
+           }
+           else {
+             # Don't discard the dependent since this parent is not discarded and as per the requirement if
+             # one of the parents is not discarded all the dependents should not be discarded
+             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
+           }
+           $k++;
+        }
+      }
+      # Discard extra justifications over all
+      my $k = 0;
+      foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+                          grep {not exists $_->{DISCARD}} @entries) {
+        if ($justifications_total ne 'M' && $k >= $justifications_total) {
+          $entry->{DISCARD} = 1;
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
+            if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
+                  $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
+        }
+        else{
+          # Don't discard the dependent since this parent is not discarded and as per the requirement if
+          # one of the parents is not discarded all the dependents should not be discarded
+          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
+        }
+        $k++;
+      }
+    }
+  }
+
+  # Discard dependents having all discarded parents
+  # If any of the parents is not discarded the dependent should not be discarded
+  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
+          if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
+            $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
+              $entry->{DISCARD} = 1;
+              $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+          }
+        }
+      }
+    }
+  }
+}
+
 # Create a new EvaluationQueryOutput object
 sub new {
-  my ($class, $logger, $discipline, $queries, @rawfilenames) = @_;
+  my ($class, $logger, $discipline, $queries, $justifications_allowed, @rawfilenames) = @_;
   $logger->NIST_die("$class->new called with no filenames") unless @rawfilenames;
   # Poor man's find
 ### DO NOT INCLUDE
@@ -3568,6 +4084,7 @@ sub new {
   my $self = {QUERIES => $queries,
 	      DISCIPLINE => $discipline,
 	      RAW_FILENAMES => \@rawfilenames,
+	      JUSTIFICATIONS_ALLOWED => $justifications_allowed,
 	      LOGGER => $logger};
   bless($self, $class);
   foreach my $filename (@filenames) {
@@ -3583,6 +4100,10 @@ sub new {
       next;
     }
     $self->load($logger, $queries, $filename, $schema);
+    # Following function would mark all responses as to be discarded if they were
+    # found to be a duplicate of another based on NODEID (and DOCID).
+    # The dependents of such would also be marked as to be discarded
+    $self->mark_multiple_justifications($justifications_allowed) if $schema->{CHECK_MULTIPLE_JUSTIFICATIONS};
   }
   $self;
 }
@@ -3629,12 +4150,18 @@ sub column2string {
 
 # Convert this EvaluationQueryOutput back to its proper printed representation
 sub tostring {
-  my ($self, $schema_name) = @_;
+  my ($self, $schema_name, $prefix) = @_;
   # Prevent duplicate adjacent lines from appearing in output
   my $previous = "";
   $schema_name = '2015SFsubmissions' unless defined $schema_name;
   my $schema = $schemas{$schema_name};
   $self->{LOGGER}->NIST_die("Unknown file schema: $schema_name") unless $schema;
+  unless($prefix) {
+    # Generate a prefix, if not provided
+    my @chars = ("A".."Z", "a".."z");
+    $prefix .= $chars[rand @chars] for 1..4;
+  }
+  my $count = $prefix."000000001";
   my $string = "";
   if (defined $self->{ENTRIES_BY_TYPE}) {
 ### DO NOT INCLUDE
@@ -3650,8 +4177,14 @@ sub tostring {
 	$self->{LOGGER}->record_problem('BAD_QUERY', $query_id, 'NO_SOURCE');
 	next;
       }
+      # Don't output this entry as this might be a duplicate assertion, or dependent of such
+      next if $entry->{DISCARD};
+      unless ($entry->{NODEID}) {
+        $entry->{NODEID} = ":NIL_$count";
+      }
       my $entry_string = join("\t", map {$self->column2string($entry, $schema, $_)} @{$schema->{COLUMNS}});
       # Could use hash here to prevent duplicates
+      $count++;
       $string .= "$entry_string\n" unless $entry_string eq $previous;
       $previous = $entry_string;
     }
@@ -4425,6 +4958,14 @@ sub max {
     $result = $_ if $_ > $result;
   }
   $result;
+}
+
+sub remove_quotes {
+  my ($string) = @_;
+  if($string =~ /^"(.*)"$/) {
+    return $1;
+  }
+  return $string;
 }
 
 # Pull DOCUMENTATION strings out of a table and format for the help screen

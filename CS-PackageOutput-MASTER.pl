@@ -62,6 +62,11 @@ $switches->addHelpSwitch("h", undef);
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
+$switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
+			"Legal values are of the form A:B where A represents justifications per document and B represents total justifications. " .
+			"Use \'M\' to allow any number of justifications, for e.g., \'M:10\' to allow multiple justifications per document ".
+			"but overall not more than 10 (best or top) justifications.");
+$switches->put('justifications', "M:M");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 $switches->addParam("queryfile", "required", "File containing queries used to generate the file being validated. Only the original query file needs to be specified here");
 $switches->addParam("round1file", "required", "File containing round 1 output");
@@ -88,12 +93,18 @@ if (defined $docids_file) {
   open(my $infile, "<:utf8", $docids_file) or $logger->NIST_die("Could not open $docids_file: $!");
   while(<$infile>) {
     chomp;
-    my ($docid, $document_length) = split(/\t/);
-    $docids->{$docid} = $document_length;
+    my ($docid, $document_length, $file) = split(/\t/);
+    $docids->{$docid} = {LENGTH=>$document_length, FILE=>$file};
   }
   close $infile;
   Provenance::set_docids($docids);
 }
+
+# How should multiple justifications be handled?
+my $justifications_allowed = $switches->get("justifications");
+$logger->NIST_die("Argument to -justifications switch must be of the form A:B where A and B are " .
+                  "either positive numbers or character \'M\' representing infinity.")
+  unless $justifications_allowed =~ /^[\dM]:[\dM]$/;
 
 # The input files to process
 my $round1file = $switches->get("round1file");
@@ -108,8 +119,8 @@ open($program_output, ">:utf8", $outputfilename) or $logger->NIST_die("Could not
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $sf_output1 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $round1file);
-my $sf_output2 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $round2file);
+my $sf_output1 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $round1file);
+my $sf_output2 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $round2file);
 my $runid1 = $sf_output1->get_runid();
 my $runid2 = $sf_output2->get_runid();
 if ($runid1 ne $runid2) {
@@ -122,8 +133,8 @@ my ($num_errors, $num_warnings) = $logger->report_all_problems();
 if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
-print $program_output $sf_output1->tostring("2015SFsubmissions");
-print $program_output $sf_output2->tostring("2015SFsubmissions");
+print $program_output $sf_output1->tostring("2017SFsubmissions", "R1");
+print $program_output $sf_output2->tostring("2017SFsubmissions", "R2");
 close $program_output;
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;
