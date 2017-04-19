@@ -1,0 +1,12 @@
+ERROR: Illegal confidence value: 0.0 (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 13)
+ERROR: Illegal confidence value: 1.1 (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 10)
+ERROR: Illegal confidence value: 100.000000000000 (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 18 and 1 other place)
+WARNING: Confidence value in scientific format: 1.0e+02  (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 22)
+WARNING: Confidence value in scientific format: 1.0e02  (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 18)
+WARNING: Confidence value in scientific format: 4.7e-01  (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 23)
+WARNING: Decimal point missing in confidence value: 1 (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 7)
+WARNING: No inverse relation asserted for parents(:Entity004, :Entity005) (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 23)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+4 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

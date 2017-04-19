@@ -1,0 +1,14 @@
+================================================================
+ at ColdStartLib.pm line 221, <$infile> line 3.
+	Logger::record_problem('Logger=HASH(0x7fb6cc9fd328)', 'ILLEGAL_DOCID', 'NYT_ENG_20181113.0264', 'HASH(0x7fb6cc03e9d8)') called at ColdStartLib.pm line 503
+	Provenance::check_triple('Logger=HASH(0x7fb6cc9fd328)', 'HASH(0x7fb6cc03e9d8)', 'NYT_ENG_20181113.0264', 434, 450) called at ColdStartLib.pm line 662
+	Provenance::new('Provenance', 'Logger=HASH(0x7fb6cc9fd328)', 'HASH(0x7fb6cc03e9d8)', 'PROVENANCETRIPLELIST+2', 'NYT_ENG_20181113.0264:434-450') called at ColdStartLib.pm line 3292
+	EvaluationQueryOutput::__ANON__('Logger=HASH(0x7fb6cc9fd328)', 'HASH(0x7fb6cc03e9d8)', 'QuerySet=HASH(0x7fb6cc9fd088)', 'HASH(0x7fb6ccb8a478)', 'HASH(0x7fb6cc03ee58)') called at ColdStartLib.pm line 3492
+	EvaluationQueryOutput::generate_slot('Logger=HASH(0x7fb6cc9fd328)', 'HASH(0x7fb6cc03e9d8)', 'QuerySet=HASH(0x7fb6cc9fd088)', 'HASH(0x7fb6ccb8a478)', 'HASH(0x7fb6cc03ee58)', 'VALUE_PROVENANCE') called at ColdStartLib.pm line 3485
+	EvaluationQueryOutput::generate_slot('Logger=HASH(0x7fb6cc9fd328)', 'HASH(0x7fb6cc03e9d8)', 'QuerySet=HASH(0x7fb6cc9fd088)', 'HASH(0x7fb6ccb8a478)', 'HASH(0x7fb6cc03ee58)', 'TARGET_UUID') called at ColdStartLib.pm line 3485
+	EvaluationQueryOutput::generate_slot('Logger=HASH(0x7fb6cc9fd328)', 'HASH(0x7fb6cc03e9d8)', 'QuerySet=HASH(0x7fb6cc9fd088)', 'HASH(0x7fb6ccb8a478)', 'HASH(0x7fb6cc03ee58)', 'TARGET_QUERY_ID') called at ColdStartLib.pm line 3580
+	EvaluationQueryOutput::load('EvaluationQueryOutput=HASH(0x7fb6cc03e618)', 'Logger=HASH(0x7fb6cc9fd328)', 'QuerySet=HASH(0x7fb6cc9fd088)', 'CS-TestSuite/SF-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID', 'HASH(0x7fb6ccb8a478)') called at ColdStartLib.pm line 4099
+	EvaluationQueryOutput::new('EvaluationQueryOutput', 'Logger=HASH(0x7fb6cc9fd328)', 'ASSESSED', 'QuerySet=HASH(0x7fb6cc9fd088)', '1:3', 'CS-TestSuite/SF-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID') called at CS-ValidateSF-MASTER.pl line 132
+================================================================
+FATAL_ERROR: DOCID NYT_ENG_20181113.0264 is not a valid DOCID for this task
+CS-TestSuite/SF-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID line 3 at (Logger:ColdStartLib.pm:221)

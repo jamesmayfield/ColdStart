@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CS17_ENG_cadbcd1643_62e34d455c7e">
+    <name>Dzhokhar Tsarnaev</name>
+    <docid>NYT_ENG_20131113.0264</docid>
+    <beg>434</beg>
+    <end>450</end>
+    <enttype>per</enttype>
+    <slot>per:conflict.attack_attacker</slot>
+    <slot0>per:conflict.attack_attacker</slot0>
+  </query>
+  <query id="CS17_ENG_54d83ec119_a89dbdcbfe6e">
+    <name>Dzhokhar Tsarnaev</name>
+    <docid>NYT_ENG_20131113.0264</docid>
+    <beg>434</beg>
+    <end>450</end>
+    <enttype>per</enttype>
+    <slot>per:date_of_birth</slot>
+    <slot0>per:date_of_birth</slot0>
+  </query>
+</query_set>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deft_ere kit_id="NO_ERRORS" doc_id="NYT_ENG_20131113.0264" source_type="newswire">
+  <entities>
+    <entity id=":Entity_0001" type="GPE" specificity="specificIndividual">
+      <entity_mention id=":Entity_0001.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="402" length="6">
+        <mention_text>Boston</mention_text>
+      </entity_mention>
+    </entity>
+    <entity id=":Entity_0007" type="PER" specificity="specificIndividual">
+      <entity_mention id=":Entity_0007.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="434" length="17">
+        <mention_text>Dzhokhar Tsarnaev</mention_text>
+      </entity_mention>
+      <entity_mention id=":Entity_0007.500002" noun_type="PRO" source="NYT_ENG_20131113.0264" offset="546" length="2">
+        <mention_text>he</mention_text>
+      </entity_mention>
+    </entity>
+    <entity id=":Entity_0010" type="PER" specificity="specificIndividual">
+      <entity_mention id=":Entity_0010.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="684" length="17">
+        <mention_text>Tamerlan Tsarnaev</mention_text>
+      </entity_mention>
+      <entity_mention id=":Entity_0010.500002" noun_type="NOM" source="NYT_ENG_20131113.0264" offset="571" length="7">
+        <mention_text>brother</mention_text>
+        <nom_head source="NYT_ENG_20131113.0264" offset="571" length="7">brother</nom_head>
+      </entity_mention>
+    </entity>
+    <entity id=":Event_0001" type="CONFLICT.ATTACK" specificity="specificIndividual">
+      <entity_mention id=":Event_0001.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="418" length="7">
+        <mention_text>bombing</mention_text>
+      </entity_mention>
+    </entity>
+    <entity id=":String_0001" type="STRING" specificity="specificIndividual">
+      <entity_mention id=":String_0001.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="624" length="8">
+        <mention_text>April 15</mention_text>
+      </entity_mention>
+    </entity>
+    <entity id=":String_0002" type="STRING" specificity="specificIndividual">
+      <entity_mention id=":String_0002.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="642" length="12">
+        <mention_text>three people</mention_text>
+      </entity_mention>
+    </entity>
+  </entities>
+</deft_ere>

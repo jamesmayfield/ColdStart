@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CS17_ENG_54d83ec119">
+    <name>Tamerlan Tsarnaev</name>
+    <docid>NYT_ENG_20131113.0264</docid>
+    <beg>684</beg>
+    <end>700</end>
+    <enttype>per</enttype>
+    <slot0>per:siblings</slot0>
+    <slot1>per:date_of_birth</slot1>
+  </query>
+  <query id="CS17_ENG_cadbcd1643">
+    <name>Tamerlan Tsarnaev</name>
+    <docid>NYT_ENG_20131113.0264</docid>
+    <beg>684</beg>
+    <end>700</end>
+    <enttype>per</enttype>
+    <slot0>per:siblings</slot0>
+    <slot1>per:conflict.attack_attacker</slot1>
+  </query>
+</query_set>

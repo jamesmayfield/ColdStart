@@ -1,0 +1,12 @@
+#                                                                                                                                       Error: Confidence value can not exceed 1.0
+#                                                                                                                                       v 
+CS17_ENG_54d83ec119	per:siblings	SFSystem1	NYT_ENG_20131113.0264:561-577	Dzhokhar Tsarnaev	PER	NYT_ENG_20131113.0264:434-450	1.1
+#                                                                                                                               Warning: Confidence value is in scientific format
+#                                                                                                                               v 
+CS17_ENG_54d83ec119	per:siblings	SFSystem1	NYT_ENG_20131113.0264:561-577	Dzhokhar	PER	NYT_ENG_20131113.0264:434-441	2.3e-01
+#                                                                                                                                       Error: Confidence value can not be 0
+#                                                                                                                                       v
+CS17_ENG_cadbcd1643	per:siblings	SFSystem1	NYT_ENG_20131113.0264:561-577	Dzhokhar Tsarnaev	PER	NYT_ENG_20131113.0264:434-450	0
+#                                                                                                                                                                                                   Warning: Decimal point missing
+#                                                                                                                                                                                                   v
+CS17_ENG_cadbcd1643_62e34d455c7e	per:conflict.attack_attacker	SFSystem1	NYT_ENG_20131113.0264:434-450,NYT_ENG_20131113.0264:492-681	bombing	CONFLICT.ATTACK	NYT_ENG_20131113.0264:418-424	1

@@ -1,0 +1,5 @@
+WARNING: Entity :String_0001 has no canonical mention in document NYT_ENG_20131113.0264
+WARNING: Entity :String_0002 has no canonical mention in document NYT_ENG_20131113.0264
+WARNING: No inverse relation asserted for attacker(:Event_0001, :Entity_0007) (/home/skr1/cold-start-collaborative/2017-test-set/2017-test-suite/sf-validator/sfs/WRONG_SLOT_NAME/GeneratorKB/SFSystem1KB.tac line 42)
+WARNING: No inverse relation asserted for is_disliked_by(:Entity_0001, :Entity_0010) (/home/skr1/cold-start-collaborative/2017-test-set/2017-test-suite/sf-validator/sfs/WRONG_SLOT_NAME/GeneratorKB/SFSystem1KB.tac line 26)
+4 warnings encountered

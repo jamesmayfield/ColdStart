@@ -1,0 +1,13 @@
+ERROR: Illegal predicate: mention.mango (CS-TestSuite/KB-TestSuite/REALIS_VERIFICATION/REALIS_VERIFICATION.tac line 21)
+ERROR: Illegal realis: mango (CS-TestSuite/KB-TestSuite/REALIS_VERIFICATION/REALIS_VERIFICATION.tac line 21)
+WARNING: Entity :String_0001 has no canonical mention in document NYT_ENG_20131113.0264
+WARNING: No inverse relation asserted for conflict.attack_place(:Entity_0001, :Event_0001) (CS-TestSuite/KB-TestSuite/REALIS_VERIFICATION/REALIS_VERIFICATION.tac line 12)
+WARNING: Node :Event_0001 has no mentions
+ERROR: Relation conflict.attack_place(:Entity_0001, :Event_0001) uses node :Event_0001, but that node has no mentions in provenance NYT_ENG_20131113.0264:261-431;NYT_ENG_20131113.0264:402-407;NIL (CS-TestSuite/KB-TestSuite/REALIS_VERIFICATION/REALIS_VERIFICATION.tac line 12)
+ERROR: Relation place(:Event_0001, :Entity_0001) uses node :Event_0001, but that node has no mentions in provenance NYT_ENG_20131113.0264:261-431;NYT_ENG_20131113.0264:402-407;NIL (CS-TestSuite/KB-TestSuite/REALIS_VERIFICATION/REALIS_VERIFICATION.tac line 12)
+ERROR: Unexpected value of realis (expected actual, generic, or other, got none) (CS-TestSuite/KB-TestSuite/REALIS_VERIFICATION/REALIS_VERIFICATION.tac line 12)
+ERROR: Unexpected value of realis (expected none, got actual) (CS-TestSuite/KB-TestSuite/REALIS_VERIFICATION/REALIS_VERIFICATION.tac line 16 and 2 other places)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+10 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

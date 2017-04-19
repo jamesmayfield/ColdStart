@@ -1,0 +1,9 @@
+ERROR: Illegal node name: :Ent!ty_0001. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name) (CS-TestSuite/KB-TestSuite/ILLEGAL_NODE_NAME/ILLEGAL_NODE_NAME.tac line 5 and 2 other places)
+ERROR: Illegal node name: :Event-0001. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name) (CS-TestSuite/KB-TestSuite/ILLEGAL_NODE_NAME/ILLEGAL_NODE_NAME.tac line 28 and 2 other places)
+ERROR: Illegal node name: :Event. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name) (CS-TestSuite/KB-TestSuite/ILLEGAL_NODE_NAME/ILLEGAL_NODE_NAME.tac line 22 and 2 other places)
+ERROR: Illegal node name: :Evnt_0001. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name) (CS-TestSuite/KB-TestSuite/ILLEGAL_NODE_NAME/ILLEGAL_NODE_NAME.tac line 16 and 2 other places)
+ERROR: Illegal node name: :Strng_0001. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name) (CS-TestSuite/KB-TestSuite/ILLEGAL_NODE_NAME/ILLEGAL_NODE_NAME.tac line 11 and 1 other place)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+14 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

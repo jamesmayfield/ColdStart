@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<belief_sentiment_doc id="NYT_ENG_20131113.0264">
+  <sentiment_annotations>
+    <entities>
+      <entity ere_id=":Entity_0001.500001" offset="402" length="6">
+        <text>Boston</text>
+        <sentiments>
+          <sentiment polarity="neg" sarcasm="no">
+            <source ere_id=":Entity_0010.500001" offset="684" length="17">Tamerlan Tsarnaev</source>
+          </sentiment>
+        </sentiments>
+      </entity>
+    </entities>
+  </sentiment_annotations>
+</belief_sentiment_doc>

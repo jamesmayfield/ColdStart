@@ -1,0 +1,11 @@
+ERROR: canonical_mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/UNKNOWN_TYPE/UNKNOWN_TYPE.tac line 8)
+ERROR: mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/UNKNOWN_TYPE/UNKNOWN_TYPE.tac line 6 and 1 other place)
+ERROR: Illegal node type: mango (CS-TestSuite/KB-TestSuite/UNKNOWN_TYPE/UNKNOWN_TYPE.tac line 5)
+ERROR: No type asserted for Node :Entity004 (CS-TestSuite/KB-TestSuite/UNKNOWN_TYPE/UNKNOWN_TYPE.tac line 9)
+WARNING: Node :Entity004 has no mentions
+ERROR: Relation children(:Entity005, :Entity004) uses node :Entity004, but that node has no mentions in provenance NYT_ENG_20130603.0033:881-889 (CS-TestSuite/KB-TestSuite/UNKNOWN_TYPE/UNKNOWN_TYPE.tac line 15)
+ERROR: Relation parents(:Entity004, :Entity005) uses node :Entity004, but that node has no mentions in provenance NYT_ENG_20130603.0033:881-889 (CS-TestSuite/KB-TestSuite/UNKNOWN_TYPE/UNKNOWN_TYPE.tac line 9)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+7 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)
