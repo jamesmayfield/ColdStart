@@ -22,6 +22,7 @@ NYT_ENG_20131113.0264.xml
 In order to verfiy if the setup is working, run the following:
 
 **make validate-all**
+ 
 **make diff-all**
 
 The former would validate all existing test cases and the later compares the error logs (in files with extension errlog) with original error logs (in files with extension orig_err). So if the later does not produce any difference then the setup is successfull.
