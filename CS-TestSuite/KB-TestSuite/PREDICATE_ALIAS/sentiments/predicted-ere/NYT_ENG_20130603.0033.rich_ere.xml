@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deft_ere kit_id="MULTIPLE_FILLS" doc_id="NYT_ENG_20130603.0033" source_type="newswire">
+  <entities>
+    <entity id=":Entity005" type="PER" specificity="specificIndividual">
+      <entity_mention id=":Entity005.500001" noun_type="NAM" source="NYT_ENG_20130603.0033" offset="886" length="4">
+        <mention_text>Paul</mention_text>
+      </entity_mention>
+    </entity>
+    <entity id=":String001" type="STRING" specificity="specificIndividual">
+      <entity_mention id=":String001.500001" noun_type="NAM" source="NYT_ENG_20130603.0033" offset="869" length="2">
+        <mention_text>24</mention_text>
+      </entity_mention>
+    </entity>
+  </entities>
+</deft_ere>

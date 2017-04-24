@@ -1,0 +1,10 @@
+ERROR: (889, 881) is not a valid offset pair (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
+WARNING: No inverse relation asserted for parents(:Entity004, :Entity005) (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
+ERROR: Relation children(:Entity005, :Entity004) uses node :Entity004, but that node has no mentions in provenance NYT_ENG_20130603.0033:889-881 (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
+ERROR: Relation children(:Entity005, :Entity004) uses node :Entity005, but that node has no mentions in provenance NYT_ENG_20130603.0033:889-881 (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
+ERROR: Relation parents(:Entity004, :Entity005) uses node :Entity004, but that node has no mentions in provenance NYT_ENG_20130603.0033:889-881 (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
+ERROR: Relation parents(:Entity004, :Entity005) uses node :Entity005, but that node has no mentions in provenance NYT_ENG_20130603.0033:889-881 (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+5 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

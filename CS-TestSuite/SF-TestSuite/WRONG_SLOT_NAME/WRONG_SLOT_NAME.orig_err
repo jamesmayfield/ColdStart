@@ -1,0 +1,7 @@
+ERROR: Unknown slot name: per:mango (CS-TestSuite/SF-TestSuite/WRONG_SLOT_NAME/WRONG_SLOT_NAME line 4)
+WARNING: Slot per:mango is not the requested slot for query CS17_ENG_cadbcd1643 (expected per:siblings) (CS-TestSuite/SF-TestSuite/WRONG_SLOT_NAME/WRONG_SLOT_NAME line 4)
+WARNING: Slot per:spouse is not the requested slot for query CS17_ENG_54d83ec119 (expected per:siblings) (CS-TestSuite/SF-TestSuite/WRONG_SLOT_NAME/WRONG_SLOT_NAME line 2)
+================================================================
+ at CS-ValidateSF-MASTER.pl line 136.
+================================================================
+1 error encountered at (main:CS-ValidateSF-MASTER.pl:136)

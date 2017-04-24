@@ -1,0 +1,5 @@
+ERROR: Illegal predicate: guardians (CS-TestSuite/KB-TestSuite/ILLEGAL_PREDICATE/ILLEGAL_PREDICATE.tac line 15)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+1 error encountered at (main:CS-ValidateKB-MASTER.pl:1664)

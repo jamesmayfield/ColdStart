@@ -1,0 +1,10 @@
+WARNING: No inverse relation asserted for children(:Entity005, :Entity004) (CS-TestSuite/KB-TestSuite/UNASSERTED_MENTION/UNASSERTED_MENTION.tac line 7)
+ERROR: No type asserted for Node :Entity004 (CS-TestSuite/KB-TestSuite/UNASSERTED_MENTION/UNASSERTED_MENTION.tac line 7)
+WARNING: Node :Entity004 has no mentions
+WARNING: Failed to assert that canonical_mention(:Entity005, "Paul") in document NYT_ENG_20130603.0033 is also a mention (CS-TestSuite/KB-TestSuite/UNASSERTED_MENTION/UNASSERTED_MENTION.tac line 6)
+ERROR: Relation children(:Entity005, :Entity004) uses node :Entity004, but that node has no mentions in provenance NYT_ENG_20130603.0033:881-889 (CS-TestSuite/KB-TestSuite/UNASSERTED_MENTION/UNASSERTED_MENTION.tac line 7)
+ERROR: Relation parents(:Entity004, :Entity005) uses node :Entity004, but that node has no mentions in provenance NYT_ENG_20130603.0033:881-889 (CS-TestSuite/KB-TestSuite/UNASSERTED_MENTION/UNASSERTED_MENTION.tac line 7)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+3 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

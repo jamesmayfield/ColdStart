@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deft_ere kit_id="NO_MENTIONS" doc_id="NYT_ENG_20130603.0033" source_type="newswire">
+  <entities>
+    <entity id=":Entity004" type="PER" specificity="specificIndividual">
+      <entity_mention id=":Entity004.500001" noun_type="NAM" source="NYT_ENG_20130603.0033" offset="1959" length="11">
+        <mention_text>Tim Samaras</mention_text>
+      </entity_mention>
+    </entity>
+  </entities>
+</deft_ere>

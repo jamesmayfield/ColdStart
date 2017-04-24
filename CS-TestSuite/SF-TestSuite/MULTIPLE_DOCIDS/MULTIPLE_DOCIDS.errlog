@@ -1,0 +1,6 @@
+ERROR: Multiple DOCIDs used in response: 
+CS17_ENG_54d83ec119	per:siblings	SFSystem1	NYT_ENG_20130603.0033:561-577	Dzhokhar Tsarnaev	PER	NYT_ENG_20131113.0264:434-450	0.73588133800021 (CS-TestSuite/SF-TestSuite/MULTIPLE_DOCIDS/MULTIPLE_DOCIDS line 3)
+================================================================
+ at CS-ValidateSF-MASTER.pl line 136.
+================================================================
+1 error encountered at (main:CS-ValidateSF-MASTER.pl:136)

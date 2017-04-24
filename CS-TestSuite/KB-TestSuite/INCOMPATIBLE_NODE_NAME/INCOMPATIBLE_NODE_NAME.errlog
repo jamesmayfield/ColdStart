@@ -1,0 +1,15 @@
+ERROR: canonical_mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 14 and 2 other places)
+ERROR: mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 13 and 3 other places)
+ERROR: Node name :Entity004 is not compatible with type STRING (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 5)
+ERROR: Node name :Event_0001 is not compatible with type STRING (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 18)
+ERROR: Node name :String101 is not compatible with type PER (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 12)
+WARNING: Node :Entity004 has no mentions
+WARNING: Node :Event_0001 has no mentions
+WARNING: Node :String101 has no mentions
+ERROR: Cannot infer type for Node :Entity004 (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 5)
+ERROR: Cannot infer type for Node :Event_0001 (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 18)
+ERROR: Cannot infer type for Node :String101 (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 12)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+13 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

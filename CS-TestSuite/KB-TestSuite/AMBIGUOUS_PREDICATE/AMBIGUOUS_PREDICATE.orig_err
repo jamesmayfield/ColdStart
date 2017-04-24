@@ -1,0 +1,9 @@
+ERROR: canonical_mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/AMBIGUOUS_PREDICATE/AMBIGUOUS_PREDICATE.tac line 10 and 1 other place)
+ERROR: mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/AMBIGUOUS_PREDICATE/AMBIGUOUS_PREDICATE.tac line 4 and 2 other places)
+ERROR: parents: ambiguous predicate (CS-TestSuite/KB-TestSuite/AMBIGUOUS_PREDICATE/AMBIGUOUS_PREDICATE.tac line 13)
+ERROR: Cannot infer type for Node :Entity004 (CS-TestSuite/KB-TestSuite/AMBIGUOUS_PREDICATE/AMBIGUOUS_PREDICATE.tac line 4)
+ERROR: Cannot infer type for Node :Entity005 (CS-TestSuite/KB-TestSuite/AMBIGUOUS_PREDICATE/AMBIGUOUS_PREDICATE.tac line 9)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+8 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

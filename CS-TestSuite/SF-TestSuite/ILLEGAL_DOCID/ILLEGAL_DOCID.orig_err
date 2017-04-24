@@ -1,0 +1,12 @@
+================================================================
+ at ColdStartLib.pm line 221, <$infile> line 3.
+	Logger::record_problem('Logger=HASH(0x7f99c6b0c728)', 'ILLEGAL_DOCID', 'NYT_ENG_20181113.0264', 'HASH(0x7f99c6b225d8)') called at ColdStartLib.pm line 503
+	Provenance::check_triple('Logger=HASH(0x7f99c6b0c728)', 'HASH(0x7f99c6b225d8)', 'NYT_ENG_20181113.0264', 434, 450) called at ColdStartLib.pm line 662
+	Provenance::new('Provenance', 'Logger=HASH(0x7f99c6b0c728)', 'HASH(0x7f99c6b225d8)', 'PROVENANCETRIPLELIST+2', 'NYT_ENG_20181113.0264:434-450') called at ColdStartLib.pm line 3292
+	EvaluationQueryOutput::__ANON__('Logger=HASH(0x7f99c6b0c728)', 'HASH(0x7f99c6b225d8)', 'QuerySet=HASH(0x7f99c6b0c488)', 'HASH(0x7f99c6c99478)', 'HASH(0x7f99c6b22a58)') called at ColdStartLib.pm line 3492
+	EvaluationQueryOutput::generate_slot('Logger=HASH(0x7f99c6b0c728)', 'HASH(0x7f99c6b225d8)', 'QuerySet=HASH(0x7f99c6b0c488)', 'HASH(0x7f99c6c99478)', 'HASH(0x7f99c6b22a58)', 'VALUE_PROVENANCE') called at ColdStartLib.pm line 3580
+	EvaluationQueryOutput::load('EvaluationQueryOutput=HASH(0x7f99c6b22140)', 'Logger=HASH(0x7f99c6b0c728)', 'QuerySet=HASH(0x7f99c6b0c488)', 'CS-TestSuite/SF-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID', 'HASH(0x7f99c6c99478)') called at ColdStartLib.pm line 4099
+	EvaluationQueryOutput::new('EvaluationQueryOutput', 'Logger=HASH(0x7f99c6b0c728)', 'ASSESSED', 'QuerySet=HASH(0x7f99c6b0c488)', '1:3', 'CS-TestSuite/SF-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID') called at CS-ValidateSF-MASTER.pl line 132
+================================================================
+FATAL_ERROR: DOCID NYT_ENG_20181113.0264 is not a valid DOCID for this task
+CS-TestSuite/SF-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID line 3 at (Logger:ColdStartLib.pm:221)
