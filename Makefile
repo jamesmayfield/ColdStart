@@ -4,6 +4,7 @@ all: validate-all
 OUTPUT=tac:edl:sen:eag:eng
 KB=NO_ERRORS
 SF=NO_ERRORS
+JUSTIFICATIONS=1:3
 QB=CS17
 DIR=CS-TestSuite
 #########################################################################################
@@ -99,6 +100,7 @@ validate-sf:
 	perl CS-ValidateSF-MASTER.pl \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF).errlog \
 	  -docs $(DIR)/AUX-Files/doclength.txt \
+	  -justifications $(JUSTIFICATIONS) \
 	  -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/$(SF)
