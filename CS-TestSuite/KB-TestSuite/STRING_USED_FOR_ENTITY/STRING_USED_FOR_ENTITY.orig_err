@@ -1,0 +1,6 @@
+WARNING: No inverse relation asserted for children(:Entity005, :Entity004) (CS-TestSuite/KB-TestSuite/STRING_USED_FOR_ENTITY/STRING_USED_FOR_ENTITY.tac line 15)
+ERROR: Expecting a node, but got string "Entity005" (CS-TestSuite/KB-TestSuite/STRING_USED_FOR_ENTITY/STRING_USED_FOR_ENTITY.tac line 9)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+1 error encountered at (main:CS-ValidateKB-MASTER.pl:1664)

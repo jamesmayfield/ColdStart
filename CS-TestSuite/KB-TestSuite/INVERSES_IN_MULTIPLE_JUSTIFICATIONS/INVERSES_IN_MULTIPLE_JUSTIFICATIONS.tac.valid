@@ -1,0 +1,12 @@
+INVERSES_IN_MULTIPLE_JUSTIFICATIONS
+
+:Entity_0001	type	GPE	
+:Entity_0001	canonical_mention	"Boston"	NYT_ENG_20131113.0264:402-407	1.0
+:Entity_0001	mention	"Boston"	NYT_ENG_20131113.0264:402-407	1.0
+:Entity_0001	gpe:residents_of_city	:Entity_0007	NYT_ENG_20131113.0264:102-150	0.987654321
+:Entity_0001	gpe:residents_of_city	:Entity_0007	NYT_ENG_20131113.0264:402-450	0.5493061443340549
+:Entity_0007	type	PER	
+:Entity_0007	canonical_mention	"Dzhokhar Tsarnaev"	NYT_ENG_20131113.0264:434-450	1.0
+:Entity_0007	mention	"Dzhokhar Tsarnaev"	NYT_ENG_20131113.0264:434-450	1.0
+:Entity_0007	per:cities_of_residence	:Entity_0001	NYT_ENG_20131113.0264:102-150	0.987654321
+:Entity_0007	per:cities_of_residence	:Entity_0001	NYT_ENG_20131113.0264:402-450	0.5493061443340549

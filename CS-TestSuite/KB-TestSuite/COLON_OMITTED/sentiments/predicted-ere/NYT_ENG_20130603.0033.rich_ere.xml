@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deft_ere kit_id="COLON_OMITTED" doc_id="NYT_ENG_20130603.0033" source_type="newswire">
+  <entities>
+    <entity id=":Entity004" type="PER" specificity="specificIndividual">
+      <entity_mention id=":Entity004.500001" noun_type="NAM" source="NYT_ENG_20130603.0033" offset="841" length="7">
+        <mention_text>Samaras</mention_text>
+      </entity_mention>
+      <entity_mention id=":Entity004.500002" noun_type="NAM" source="NYT_ENG_20130603.0033" offset="1959" length="11">
+        <mention_text>Tim Samaras</mention_text>
+      </entity_mention>
+    </entity>
+    <entity id=":Entity005" type="PER" specificity="specificIndividual">
+      <entity_mention id=":Entity005.500001" noun_type="NAM" source="NYT_ENG_20130603.0033" offset="886" length="4">
+        <mention_text>Paul</mention_text>
+      </entity_mention>
+    </entity>
+  </entities>
+</deft_ere>

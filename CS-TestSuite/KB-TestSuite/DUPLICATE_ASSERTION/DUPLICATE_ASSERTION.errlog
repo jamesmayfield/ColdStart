@@ -1,0 +1,3 @@
+WARNING: The same assertion is made more than once (CS-TestSuite/KB-TestSuite/DUPLICATE_ASSERTION/DUPLICATE_ASSERTION.tac line 20) (CS-TestSuite/KB-TestSuite/DUPLICATE_ASSERTION/DUPLICATE_ASSERTION.tac line 21)
+WARNING: No inverse relation asserted for parents(:Entity004, :Entity005) (CS-TestSuite/KB-TestSuite/DUPLICATE_ASSERTION/DUPLICATE_ASSERTION.tac line 26 and 1 other place)
+3 warnings encountered

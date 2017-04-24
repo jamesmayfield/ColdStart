@@ -1,0 +1,11 @@
+ERROR: 1350 is not a valid offset for DOCID NYT_ENG_20131113.0264 (CS-TestSuite/SF-TestSuite/ILLEGAL_OFFSET/ILLEGAL_OFFSET line 2)
+ERROR: (577, 561) is not a valid offset pair (CS-TestSuite/SF-TestSuite/ILLEGAL_OFFSET/ILLEGAL_OFFSET line 4)
+ERROR: Multiple DOCIDs used in response: 
+CS17_ENG_54d83ec119	per:siblings	SFSystem1	NYT_ENG_20131113.0264:1201-1350	Dzhokhar Tsarnaev	PER	NYT_ENG_20131113.0264:434-450	0.73588133800021 (CS-TestSuite/SF-TestSuite/ILLEGAL_OFFSET/ILLEGAL_OFFSET line 2)
+ERROR: Multiple DOCIDs used in response: 
+CS17_ENG_cadbcd1643	per:siblings	SFSystem1	NYT_ENG_20131113.0264:577-561	Dzhokhar Tsarnaev	PER	NYT_ENG_20131113.0264:434-450	0.73588133800021 (CS-TestSuite/SF-TestSuite/ILLEGAL_OFFSET/ILLEGAL_OFFSET line 4)
+WARNING: Provenance contains too many characters; only the first 200 will be used (CS-TestSuite/SF-TestSuite/ILLEGAL_OFFSET/ILLEGAL_OFFSET line 6)
+================================================================
+ at CS-ValidateSF-MASTER.pl line 136.
+================================================================
+4 errors encountered at (main:CS-ValidateSF-MASTER.pl:136)

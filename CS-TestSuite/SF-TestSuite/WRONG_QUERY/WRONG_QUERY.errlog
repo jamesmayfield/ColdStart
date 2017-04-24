@@ -1,0 +1,8 @@
+================================================================
+ at ColdStartLib.pm line 3002, <$infile> line 2.
+	EvaluationQueryOutput::__ANON__('Logger=HASH(0x7f9de8227770)', 'HASH(0x7f9de883dac8)', 'QuerySet=HASH(0x7f9de82273c8)', 'HASH(0x7f9de83b4848)', 'HASH(0x7f9de883df48)') called at ColdStartLib.pm line 3492
+	EvaluationQueryOutput::generate_slot('Logger=HASH(0x7f9de8227770)', 'HASH(0x7f9de883dac8)', 'QuerySet=HASH(0x7f9de82273c8)', 'HASH(0x7f9de83b4848)', 'HASH(0x7f9de883df48)', 'QUERY') called at ColdStartLib.pm line 3580
+	EvaluationQueryOutput::load('EvaluationQueryOutput=HASH(0x7f9de883d6f0)', 'Logger=HASH(0x7f9de8227770)', 'QuerySet=HASH(0x7f9de82273c8)', 'CS-TestSuite/SF-TestSuite/WRONG_QUERY/WRONG_QUERY', 'HASH(0x7f9de83b4848)') called at ColdStartLib.pm line 4099
+	EvaluationQueryOutput::new('EvaluationQueryOutput', 'Logger=HASH(0x7f9de8227770)', 'ASSESSED', 'QuerySet=HASH(0x7f9de82273c8)', '1:3', 'CS-TestSuite/SF-TestSuite/WRONG_QUERY/WRONG_QUERY') called at CS-ValidateSF-MASTER.pl line 132
+================================================================
+Query CS17_ENG_64d83ec119 not loaded; caller = EvaluationQueryOutput:ColdStartLib.pm:3492 at (EvaluationQueryOutput:ColdStartLib.pm:3002)

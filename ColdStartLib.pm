@@ -4006,7 +4006,7 @@ sub mark_multiple_justifications {
       # Discard extra justifications per document
       foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
         my $k = 0;
-        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
                             @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
            push(@entries, $entry);
            if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
@@ -4031,7 +4031,7 @@ sub mark_multiple_justifications {
       }
       # Discard extra justifications over all
       my $k = 0;
-      foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+      foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
                           grep {not exists $_->{DISCARD}} @entries) {
         if ($justifications_total ne 'M' && $k >= $justifications_total) {
           $entry->{DISCARD} = 1;
@@ -4166,8 +4166,8 @@ sub tostring {
 ### DO INCLUDE
     foreach my $entry (sort {$a->{QUERY}{LEVEL} <=> $b->{QUERY}{LEVEL} ||
 			     $a->{QUERY_ID} cmp $b->{QUERY_ID} ||
-			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
-			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
+			     lc $b->{CONFIDENCE} <=> lc $a->{CONFIDENCE} ||
+			     $a->{LINENUM} <=> $b->{LINENUM}}
 		       @{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}) {
       my $query_id = $entry->{QUERY}{QUERY_ID};
       if ($self->{BAD_QUERIES}{$query_id}) {

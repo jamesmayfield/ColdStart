@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deft_ere kit_id="INVERSES_IN_MULTIPLE_JUSTIFICATIONS" doc_id="NYT_ENG_20131113.0264" source_type="newswire">
+  <entities>
+    <entity id=":Entity_0001" type="GPE" specificity="specificIndividual">
+      <entity_mention id=":Entity_0001.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="402" length="6">
+        <mention_text>Boston</mention_text>
+      </entity_mention>
+    </entity>
+    <entity id=":Entity_0007" type="PER" specificity="specificIndividual">
+      <entity_mention id=":Entity_0007.500001" noun_type="NAM" source="NYT_ENG_20131113.0264" offset="434" length="17">
+        <mention_text>Dzhokhar Tsarnaev</mention_text>
+      </entity_mention>
+    </entity>
+  </entities>
+</deft_ere>

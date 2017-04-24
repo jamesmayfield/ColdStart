@@ -1,0 +1,6 @@
+WARNING: Entity :Entity005 has no canonical mention in document NYT_ENG_20130603.0033
+ERROR: Node :Entity004 has more than one named/nominal mention in document NYT_ENG_20130603.0033 but has no canonical mention
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+1 error encountered at (main:CS-ValidateKB-MASTER.pl:1664)

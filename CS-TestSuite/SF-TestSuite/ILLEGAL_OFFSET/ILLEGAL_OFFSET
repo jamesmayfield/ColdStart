@@ -1,0 +1,6 @@
+#                                                                     v this offset is past the end of the document
+CS17_ENG_54d83ec119	per:siblings	SFSystem1	NYT_ENG_20131113.0264:1201-1350	Dzhokhar Tsarnaev	PER	NYT_ENG_20131113.0264:434-450	0.73588133800021
+#                                                                     v 577 comes after 561, so this pair of offsets is illegal
+CS17_ENG_cadbcd1643	per:siblings	SFSystem1	NYT_ENG_20131113.0264:577-561	Dzhokhar Tsarnaev	PER	NYT_ENG_20131113.0264:434-450	0.73588133800021
+#                                                                                                     v offset span exceeds 200 characters
+CS17_ENG_cadbcd1643_62e34d455c7e	per:conflict.attack_attacker	SFSystem1	NYT_ENG_20131113.0264:434-650,NYT_ENG_20131113.0264:492-681	bombing	CONFLICT.ATTACK	NYT_ENG_20131113.0264:418-424	1.0

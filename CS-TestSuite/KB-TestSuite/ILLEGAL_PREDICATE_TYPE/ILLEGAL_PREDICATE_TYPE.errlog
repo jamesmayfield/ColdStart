@@ -1,0 +1,5 @@
+ERROR: Illegal predicate type: mango (CS-TestSuite/KB-TestSuite/ILLEGAL_PREDICATE_TYPE/ILLEGAL_PREDICATE_TYPE.tac line 15)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+1 error encountered at (main:CS-ValidateKB-MASTER.pl:1664)

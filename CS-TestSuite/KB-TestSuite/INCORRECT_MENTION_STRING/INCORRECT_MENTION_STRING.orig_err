@@ -1,0 +1,7 @@
+ERROR: Mention string ' Bosto' not found at NYT_ENG_20131113.0264:402-407 (CS-TestSuite/KB-TestSuite/INCORRECT_MENTION_STRING/INCORRECT_MENTION_STRING.tac line 10 and 1 other place)
+ERROR: Mention string 'pril 15 ' not found at NYT_ENG_20131113.0264:624-631 (CS-TestSuite/KB-TestSuite/INCORRECT_MENTION_STRING/INCORRECT_MENTION_STRING.tac line 17)
+WARNING: Entity :String_0001 has no canonical mention in document NYT_ENG_20131113.0264
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+3 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

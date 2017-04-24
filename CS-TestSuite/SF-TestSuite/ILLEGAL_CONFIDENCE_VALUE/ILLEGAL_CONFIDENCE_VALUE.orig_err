@@ -1,0 +1,8 @@
+ERROR: Illegal confidence value: 0 (CS-TestSuite/SF-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE line 9)
+ERROR: Illegal confidence value: 1.1 (CS-TestSuite/SF-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE line 3)
+WARNING: Confidence value in scientific format: 2.3e-01  (CS-TestSuite/SF-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE line 6)
+WARNING: Decimal point missing in confidence value: 1 (CS-TestSuite/SF-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE line 12)
+================================================================
+ at CS-ValidateSF-MASTER.pl line 136.
+================================================================
+2 errors encountered at (main:CS-ValidateSF-MASTER.pl:136)

@@ -1,0 +1,14 @@
+ERROR: canonical_mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 7)
+ERROR: mention: ambiguous predicate (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 8)
+ERROR: Node name :Event_0001 is not compatible with type PER (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 14)
+ERROR: No type asserted for Node :Event_0001 (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 19)
+ERROR: Node :Entity_0001 has more than one type: fac or gpe or loc at line 9 and multiple at line 5
+ERROR: Node :Entity_0001 has more than one type: fac or gpe or loc or string at line 21 and multiple at line 5
+ERROR: Node :Entity_0001 has more than one type: gpe at line 5, per at line 6
+WARNING: Node :Entity_0001 has no mentions
+ERROR: Relation conflict.attack_place(:Entity_0001, :Event_0001) uses node :Entity_0001, but that node has no mentions in provenance NYT_ENG_20131113.0264:261-431;NYT_ENG_20131113.0264:402-407;NIL (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 9)
+ERROR: Relation place(:Event_0001, :Entity_0001) uses node :Entity_0001, but that node has no mentions in provenance NYT_ENG_20131113.0264:261-431;NYT_ENG_20131113.0264:402-407;NIL (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 21)
+================================================================
+ at CS-ValidateKB-MASTER.pl line 1664.
+================================================================
+9 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)

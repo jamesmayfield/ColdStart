@@ -1,0 +1,5 @@
+ERROR: Illegal value type: MANGO (CS-TestSuite/SF-TestSuite/ILLEGAL_VALUE_TYPE/ILLEGAL_VALUE_TYPE line 2)
+================================================================
+ at CS-ValidateSF-MASTER.pl line 136.
+================================================================
+1 error encountered at (main:CS-ValidateSF-MASTER.pl:136)
