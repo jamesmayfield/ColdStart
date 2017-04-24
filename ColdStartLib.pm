@@ -4166,8 +4166,8 @@ sub tostring {
 ### DO INCLUDE
     foreach my $entry (sort {$a->{QUERY}{LEVEL} <=> $b->{QUERY}{LEVEL} ||
 			     $a->{QUERY_ID} cmp $b->{QUERY_ID} ||
-			     lc $a->{VALUE} cmp lc $b->{VALUE} ||
-			     $a->{VALUE_PROVENANCE}->tostring() cmp $b->{VALUE_PROVENANCE}->tostring()}
+			     lc $b->{CONFIDENCE} <=> lc $a->{CONFIDENCE} ||
+			     $a->{LINENUM} <=> $b->{LINENUM}}
 		       @{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}) {
       my $query_id = $entry->{QUERY}{QUERY_ID};
       if ($self->{BAD_QUERIES}{$query_id}) {
