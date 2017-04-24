@@ -1,6 +1,6 @@
 ================================================================
  at ColdStartLib.pm line 3407, <$infile> line 2.
-	EvaluationQueryOutput::identify_file_type('Logger=HASH(0x7fcf86855b28)', 'CS-TestSuite/SF-TestSuite/WRONG_NUM_OF_COLUMNS/WRONG_NUM_OF_C...') called at ColdStartLib.pm line 4093
-	EvaluationQueryOutput::new('EvaluationQueryOutput', 'Logger=HASH(0x7fcf86855b28)', 'ASSESSED', 'QuerySet=HASH(0x7fcf86855888)', '1:3', 'CS-TestSuite/SF-TestSuite/WRONG_NUM_OF_COLUMNS/WRONG_NUM_OF_C...') called at CS-ValidateSF-MASTER.pl line 132
+	EvaluationQueryOutput::identify_file_type('Logger=HASH(0x7f810c96df70)', 'CS-TestSuite/SF-TestSuite/WRONG_NUM_OF_COLUMNS/WRONG_NUM_OF_C...') called at ColdStartLib.pm line 4093
+	EvaluationQueryOutput::new('EvaluationQueryOutput', 'Logger=HASH(0x7f810c96df70)', 'ASSESSED', 'QuerySet=HASH(0x7f810c96dbc8)', '1:3', 'CS-TestSuite/SF-TestSuite/WRONG_NUM_OF_COLUMNS/WRONG_NUM_OF_C...') called at CS-ValidateSF-MASTER.pl line 132
 ================================================================
 Unknown file type: CS-TestSuite/SF-TestSuite/WRONG_NUM_OF_COLUMNS/WRONG_NUM_OF_COLUMNS at (EvaluationQueryOutput:ColdStartLib.pm:3407)

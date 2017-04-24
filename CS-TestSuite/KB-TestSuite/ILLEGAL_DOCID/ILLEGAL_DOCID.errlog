@@ -1,11 +1,11 @@
 ================================================================
  at ColdStartLib.pm line 221, <$infile> line 8.
-	Logger::record_problem('Logger=HASH(0x7fe0aa1788a8)', 'ILLEGAL_DOCID', 'NYT_ENG_20180603.0033', 'HASH(0x7fe0aa1809d8)') called at ColdStartLib.pm line 503
-	Provenance::check_triple('Logger=HASH(0x7fe0aa1788a8)', 'HASH(0x7fe0aa1809d8)', 'NYT_ENG_20180603.0033', 1959, 1969) called at ColdStartLib.pm line 662
-	Provenance::new('Provenance', 'Logger=HASH(0x7fe0aa1788a8)', 'HASH(0x7fe0aa1809d8)', 'PROVENANCETRIPLELIST+3', 'NYT_ENG_20180603.0033:1959-1969') called at ColdStartLib.pm line 385
-	ProvenanceList::populate_from_text('ProvenanceList=HASH(0x7fe0a89a1c48)', 'NYT_ENG_20180603.0033:1959-1969', ':Entity004', '"Tim Samaras"', 'mention') called at ColdStartLib.pm line 367
-	ProvenanceList::new('ProvenanceList', 'Logger=HASH(0x7fe0aa1788a8)', 'HASH(0x7fe0aa1809d8)', 'NYT_ENG_20180603.0033:1959-1969', ':Entity004', '"Tim Samaras"', 'mention') called at CS-ValidateKB-MASTER.pl line 1100
-	main::load_tac('Logger=HASH(0x7fe0aa1788a8)', 'CSKB', 'PredicateSet=HASH(0x7fe0aa178ea0)', undef, 'CS-TestSuite/KB-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID.tac', 'HASH(0x7fe0a89a26c8)') called at CS-ValidateKB-MASTER.pl line 1660
+	Logger::record_problem('Logger=HASH(0x7faebc93df00)', 'ILLEGAL_DOCID', 'NYT_ENG_20180603.0033', 'HASH(0x7faebb8e4ec0)') called at ColdStartLib.pm line 503
+	Provenance::check_triple('Logger=HASH(0x7faebc93df00)', 'HASH(0x7faebb8e4ec0)', 'NYT_ENG_20180603.0033', 1959, 1969) called at ColdStartLib.pm line 662
+	Provenance::new('Provenance', 'Logger=HASH(0x7faebc93df00)', 'HASH(0x7faebb8e4ec0)', 'PROVENANCETRIPLELIST+3', 'NYT_ENG_20180603.0033:1959-1969') called at ColdStartLib.pm line 385
+	ProvenanceList::populate_from_text('ProvenanceList=HASH(0x7faebb8e4f08)', 'NYT_ENG_20180603.0033:1959-1969', ':Entity004', '"Tim Samaras"', 'mention') called at ColdStartLib.pm line 367
+	ProvenanceList::new('ProvenanceList', 'Logger=HASH(0x7faebc93df00)', 'HASH(0x7faebb8e4ec0)', 'NYT_ENG_20180603.0033:1959-1969', ':Entity004', '"Tim Samaras"', 'mention') called at CS-ValidateKB-MASTER.pl line 1100
+	main::load_tac('Logger=HASH(0x7faebc93df00)', 'CSKB', 'PredicateSet=HASH(0x7faebc93d4a0)', undef, 'CS-TestSuite/KB-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID.tac', 'HASH(0x7faebc941bf8)') called at CS-ValidateKB-MASTER.pl line 1660
 ================================================================
 FATAL_ERROR: DOCID NYT_ENG_20180603.0033 is not a valid DOCID for this task
 CS-TestSuite/KB-TestSuite/ILLEGAL_DOCID/ILLEGAL_DOCID.tac line 8 at (Logger:ColdStartLib.pm:221)

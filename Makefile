@@ -1,7 +1,7 @@
 all: validate-all
 #########################################################################################
 # set defaults
-OUTPUT=tac:edl:sen:eag:eng
+OUTPUT=tac:edl:sen:eal:nug
 KB=NO_ERRORS
 SF=NO_ERRORS
 JUSTIFICATIONS=1:3
@@ -34,8 +34,8 @@ validate-kb-full:
 	if [ -f $(DIR)/KB-TestSuite/$(KB)/$(KB).edl.valid ]; \
 	  then rm $(DIR)/KB-TestSuite/$(KB)/$(KB).edl.valid; \
 	fi
-	if [ -f $(DIR)/KB-TestSuite/$(KB)/$(KB).eng.valid ]; \
-	  then rm $(DIR)/KB-TestSuite/$(KB)/$(KB).eng.valid; \
+	if [ -f $(DIR)/KB-TestSuite/$(KB)/$(KB).nug.valid ]; \
+	  then rm $(DIR)/KB-TestSuite/$(KB)/$(KB).nug.valid; \
 	fi
 	perl CS-ValidateKB-MASTER.pl \
 	  -docs $(DIR)/AUX-Files/doclength.txt \

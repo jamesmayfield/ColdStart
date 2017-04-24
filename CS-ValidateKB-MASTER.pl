@@ -46,8 +46,8 @@ my %use_priority = (
 my %type2export = (
   TAC => \&export_tac,
   EDL => \&export_edl,
-  EAG => \&export_eag,
-  ENG => \&export_eng,
+  EAL => \&export_eal,
+  NUG => \&export_nug,
   SEN => \&export_sen,
 );
 
@@ -1243,9 +1243,9 @@ sub export_sen {
 }
 
 # Export Event Nuggets
-sub export_eng {
+sub export_nug {
   my ($kb, $options) = @_;
-  my $event_nuggets_file = $options->{ENG_OUTPUT}{PATH};
+  my $event_nuggets_file = $options->{NUG_OUTPUT}{PATH};
   my %allowed_assertions = map {$_=>1} qw(mention nominal_mention pronominal_mention);
   my $run_id = $kb->{RUNID};
   my (%lines, %mentionids, %clusters, $output);
@@ -1288,9 +1288,9 @@ sub export_eng {
 }
 
 # Event Argument format.
-sub export_eag {
+sub export_eal {
   my ($kb, $options) = @_;
-  my $event_argument_dir = $options->{EAG_OUTPUT}{PATH};
+  my $event_argument_dir = $options->{EAL_OUTPUT}{PATH};
   my (%arguments, %linking, %corpuslinking);
   my @fields = qw(
       ID
@@ -1590,8 +1590,8 @@ my $output_options = {
   LINK_KB => uc $switches->get("linkkb"),
   TAC_OUTPUT => {TYPE => "FILE", PATH => "$output_dir/$output_prefix.tac.valid"},
   EDL_OUTPUT => {TYPE => "FILE", PATH => "$output_dir/$output_prefix.edl.valid"},
-  EAG_OUTPUT => {TYPE => "DIR", PATH => "$output_dir/event_arguments", SUBDIR => [qw(arguments corpusLinking linking)]},
-  ENG_OUTPUT => {TYPE => "FILE", PATH => "$output_dir/$output_prefix.eng.valid"},
+  EAL_OUTPUT => {TYPE => "DIR", PATH => "$output_dir/event_arguments", SUBDIR => [qw(arguments corpusLinking linking)]},
+  NUG_OUTPUT => {TYPE => "FILE", PATH => "$output_dir/$output_prefix.nug.valid"},
   SEN_OUTPUT => {TYPE => "DIR", PATH => "$output_dir/sentiments", SUBDIR => [qw(predicted-ere predicted-best)]},
 };
 
