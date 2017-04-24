@@ -4006,7 +4006,7 @@ sub mark_multiple_justifications {
       # Discard extra justifications per document
       foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
         my $k = 0;
-        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
                             @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
            push(@entries, $entry);
            if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
@@ -4031,7 +4031,7 @@ sub mark_multiple_justifications {
       }
       # Discard extra justifications over all
       my $k = 0;
-      foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} cmp $b->{LINENUM}}
+      foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
                           grep {not exists $_->{DISCARD}} @entries) {
         if ($justifications_total ne 'M' && $k >= $justifications_total) {
           $entry->{DISCARD} = 1;
