@@ -980,6 +980,11 @@ $switches->addVarSwitch("ignore", "Colon-separated list of assessment codes, sub
 $switches->put("ignore", $default_ignore);
 $switches->addVarSwitch("fields", "Colon-separated list of output fields to print (see below for options)");
 $switches->put("fields", $default_fields);
+$switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
+			"Legal values are of the form A:B where A represents justifications per document and B represents total justifications. " .
+			"Use \'M\' to allow any number of justifications, for e.g., \'M:10\' to allow multiple justifications per document ".
+			"but overall not more than 10 (best or top) justifications.");
+$switches->put('justifications', "1:3");
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
 ### DO NOT INCLUDE
 # Shahzad: Which of thes switches do we want to keep?
@@ -1039,6 +1044,12 @@ foreach my $option(sort keys %policy_selected) {
 
 my $samples_file = $switches->get("samples");
 
+# How should multiple justifications be handled?
+my $justifications_allowed = $switches->get("justifications");
+$logger->NIST_die("Argument to -justifications switch must be of the form A:B where A and B are " .
+                  "either positive numbers or character \'M\' representing infinity.")
+  unless $justifications_allowed =~ /^[\dM]:[\dM]$/;
+
 my @filenames = @{$switches->get("files")};
 my @queryfilenames = grep {/\.xml$/} @filenames;
 my @runfilenames = grep {!/\.xml$/} @filenames;
@@ -1049,7 +1060,7 @@ my %index = $queries->get_index();
 
 my %queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $queries);
 
-my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, @runfilenames);
+my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, $justifications_allowed, @runfilenames);
 
 $logger->report_all_problems();
 

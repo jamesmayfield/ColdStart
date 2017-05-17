@@ -3544,7 +3544,7 @@ sub load {
     $line_encodings{$md5} = 1;
     if (@elements != @{$columns}) {
 ### DO NOT INCLUDE
-print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
+print STDERR "Wrong number of elements in file (at line $.): $filename\n: <<", join(">> <<", @elements), ">>\n";
 print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
 ### DO INCLUDE
       $logger->record_problem('WRONG_NUM_ENTRIES', scalar @{$columns}, scalar @elements, $where);
@@ -3633,8 +3633,10 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     # Map assessments onto a standard set valid across years
     foreach my $key (keys %{$entry}) {
       next unless $key =~ /_ASSESSMENT$/;
-      $entry->{$key} = $schema->{ASSESSMENT_CODES}{$entry->{$key}}
-	or $logger->NIST_die("Unknown assessment code: $entry->{$key}");
+      unless($schema->{ASSESSMENT_CODES}{$entry->{$key}}) {
+        $logger->NIST_die("Unknown assessment code: $entry->{$key} in file: $filename at line: $.\n");
+      }
+      $entry->{$key} = $schema->{ASSESSMENT_CODES}{$entry->{$key}};
     }
 
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
