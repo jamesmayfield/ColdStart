@@ -1,4 +1,4 @@
-Last modified: 19th April 2017
+Last modified: 8th June 2017
 
 # 1 Introduction
 
@@ -13,7 +13,7 @@ The content in this README is focused at the participants of various TAC tracks 
 
 1. CS-GenerateQueries-MASTER.pl (v2017.1.0)
 2. CS-ResolveQueries-MASTER.pl (v2017.1.0)
-3. CS-ValidateKB-MASTER.pl (v2017.1.0)
+3. CS-ValidateKB-MASTER.pl (v2017.1.1)
 4. CS-ValidateSF-MASTER.pl (v2017.1.0)
 
 ## 2.1 Scripts usage
@@ -75,10 +75,6 @@ parameters are:
 
 ### 2.1.3 Usage of CS-ValidateKB-MASTER.pl
 ~~~
-CS-ValidateKB-MASTER.pl:  Validate a TAC Cold Start KB file, checking for common
-                          errors, and optionally exporting to a variety of
-                          formats.
-
 Usage: CS-ValidateKB-MASTER.pl {-switch {-switch ...}} filename
 
 Legal switches are:
@@ -105,7 +101,8 @@ Legal switches are:
                          TOO_MANY_PROVENANCE_TRIPLES, UNASSERTED_MENTION,
                          UNEXPECTED_JUSTIFICATIONS, UNKNOWN_QUERY_FIELD,
                          UNKNOWN_QUERY_ID_WARNING, UNLOADED_QUERY,
-                         UNQUOTED_STRING, WRONG_SLOT_NAME
+                         UNQUOTED_STRING, WRONG_SLOT_NAME (Default =
+                         MULTIPLE_FILLS_ENTITY).
   -labels <value>      Colon-separated list of triple labels for output. Useful
                          in conjunction with -predicates switch. (Default =
                          TAC).
@@ -121,7 +118,7 @@ Legal switches are:
                          ONEPERDOC (at most one allowed per document) (Default =
                          MANY).
   -output <value>      Colon-separated list of output formats. Legal formats are
-                         [eag, edl, eng, sen, tac, none]. Use 'none' to perform
+                         [eal, edl, nug, sen, tac, none]. Use 'none' to perform
                          error checking with no output. (Default = none).
   -output_dir <value>  Specify a directory to which output files should be
                          written. Default would be the directory containing the
@@ -227,20 +224,20 @@ Notice that running this command with `-output edl` makes the validator produce 
 This section describes how to produce a valid input for component-based event arguments evaluation. In order to produce this file, you may run the following command:
 
 ~~~
-perl CS-ValidateKB-MASTER.pl -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -error_file CSrun.errlog -output eag CSrun.tac
+perl CS-ValidateKB-MASTER.pl -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -error_file CSrun.errlog -output eal CSrun.tac
 ~~~
 
-Notice that running this command with `-output eag` makes the validator produce nothing but a valid input for component-based event arguments evaluation. The output will be written in the directory named `event_arguments` and will be stored at the location as that of the `CSrun.tac`. The location of the output can be changed by using `-output_dir /path/to/output`.
+Notice that running this command with `-output eal` makes the validator produce nothing but a valid input for component-based event arguments evaluation. The output will be written in the directory named `event_arguments` and will be stored at the location as that of the `CSrun.tac`. The location of the output can be changed by using `-output_dir /path/to/output`.
 
 ## 3.5 Generating Valid input file for evaluating Event Nuggets component
 
 This section describes how to produce a valid input for component-based event nuggets evaluation. In order to produce this file, you may run the following command:
 
 ~~~
-perl CS-ValidateKB-MASTER.pl -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -error_file CSrun.errlog -output eng CSrun.tac
+perl CS-ValidateKB-MASTER.pl -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -error_file CSrun.errlog -output nug CSrun.tac
 ~~~
 
-Notice that running this command with `-output eng` makes the validator produce nothing but a valid input for component-based event nuggets evaluation. The output will be written in the file named `CSrun.eng.valid` and will be stored at the location as that of the `CSrun.tac`. The location of the output can be changed by using `-output_dir /path/to/output`.
+Notice that running this command with `-output nug` makes the validator produce nothing but a valid input for component-based event nuggets evaluation. The output will be written in the file named `CSrun.nug.valid` and will be stored at the location as that of the `CSrun.tac`. The location of the output can be changed by using `-output_dir /path/to/output`.
 
 ## 3.5 Generating Valid input file for evaluating BeST component
 
