@@ -19,7 +19,9 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.1";   # (1) Initial commit of the scorer producing AP
+my $version = "2017.1.2";   # (1) Warning: MULTIPLE_FILLS_ENTITY is now being ignored by default since 2017 specification allows multiple fills
+                            # (2) We are also passing multiple fills for single-valued slots onto the validated KB; Only the best node is picked later on for scoring purposes
+
 
 ### BEGIN INCLUDE Switches
 
@@ -4227,6 +4229,74 @@ sub mark_multiple_justifications {
   }
 }
 
+# Pick entries with the highest confidence node corresponding to a query, removing all other entries
+# Make sure we remove dependents of the removed entries
+sub manage_single_valued_slots {
+	my ($self) = @_;
+  my %discarded_dependents;
+  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    my %aggregate_conf;
+    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+      # Compute the node confidences
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+        my @confidences = sort {$b <=> $a} map {$_->{CONFIDENCE}} @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
+        my ($first_occurance) = sort {$a <=> $b} map {$_->{LINENUM}} @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
+        my $i=1;
+        my ($num, $den) = (0, 0);
+        foreach my $conf(@confidences) {
+          $num = $num + ($conf/$i);
+          $den = $den + (1/$i);
+          $i++;
+        }
+        $aggregate_conf{$nodeid}{CONFIDENCE} = $num / $den;
+        $aggregate_conf{$nodeid}{LINENUM} = $first_occurance;
+      }
+    }
+    # Select the node with highest confidence
+    my ($selected_node) =
+      sort {$aggregate_conf{$b}{CONFIDENCE} <=> $aggregate_conf{$a}{CONFIDENCE} ||
+             $aggregate_conf{$a}{LINENUM} <=> $aggregate_conf{$b}{LINENUM}}
+        keys %aggregate_conf;
+    # Discard justifications from nodes other than selected node
+    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
+          if($nodeid ne $selected_node) {
+            $entry->{DISCARD} = 1;
+            $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+            $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
+               if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
+                    (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
+                      $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
+          }
+          else{
+            # Don't discard the dependent since this parent is not discarded
+            $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
+          }
+        }
+      }
+    }
+  }
+
+  # Discard dependents having all discarded parents
+  # If any of the parents is not discarded the dependent should not be discarded
+  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
+          if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
+            $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
+              $entry->{DISCARD} = 1;
+              $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+          }
+        }
+      }
+    }
+  }
+}
+
 # Create a new EvaluationQueryOutput object
 sub new {
   my ($class, $logger, $discipline, $queries, $justifications_allowed, @rawfilenames) = @_;
@@ -4259,6 +4329,9 @@ sub new {
     # found to be a duplicate of another based on NODEID (and DOCID).
     # The dependents of such would also be marked as to be discarded
     $self->mark_multiple_justifications($justifications_allowed) if $schema->{CHECK_MULTIPLE_JUSTIFICATIONS};
+    # Pick entries with the highest confidence node corresponding to a query, removing all other entries
+    # Make sure we remove dependents of the removed entries
+    $self->manage_single_valued_slots();
   }
   $self;
 }
