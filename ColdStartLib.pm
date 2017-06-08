@@ -19,7 +19,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.0";   # (1) First release of 2017
+my $version = "2017.1.1";   # (1) Initial commit of the scorer producing AP
 
 ### BEGIN INCLUDE Switches
 
