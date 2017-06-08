@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "3.0";
+my $version = "2017.1.0";
 
 # Filehandles for program and error output
 my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
@@ -410,6 +410,14 @@ my %printable_fields = (
     JUSTIFY => 'L',
     FN => sub { $_[0]->get('F1') },
   },
+  AP => {
+    NAME => 'AP',
+    DESCRIPTION => "Average Precision",
+    HEADER => 'AP',
+    FORMAT => '%6.4f',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]->get('AP') },
+  },
 );
 
 my %policy_options = (
@@ -480,7 +488,7 @@ sub get_fields_to_print {
 sub new {
   my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $logger) = @_;
   my $fields_to_print = &get_fields_to_print($spec, $logger);
-  my $ldc_mean_spec = "EC:RUNID:LEVEL:P:R:F";
+  my $ldc_mean_spec = "EC:RUNID:LEVEL:AP:P:R:F";
   my $ldc_mean_fields_to_print = &get_fields_to_print($ldc_mean_spec, $logger);
   my $self = {RUNID => $runid,
   	      INDEX => $index,
@@ -572,8 +580,14 @@ sub add_micro_average {
   }
   foreach my $level (sort keys %{$aggregates->{$self->{RUNID}}}) {
   	my %line = $self->get_line($aggregates->{$self->{RUNID}}{$level});
-  	push(@{$self->{LINES}}, \%line);
-  	push(@{$self->{SUMMARY}{$metric}}, \%line);
+    if($line{AP}) {
+      # Remove AP field if exists
+      my $text = sprintf(s/[df]/s/, "");
+      $line{AP} = $text;
+      $self->{WIDTHS}{AP} = length($text) if length($text) > $self->{WIDTHS}{AP};
+    }
+    push(@{$self->{LINES}}, \%line);
+    push(@{$self->{SUMMARY}{$metric}}, \%line);
   }
 }
 
@@ -595,7 +609,7 @@ sub add_macro_average {
 		$field->{NAME} eq 'LEVEL') {
 		  $value = $aggregates->{$self->{RUNID}}{$level}->get($field->{NAME});
 	  }
-	  elsif ($field->{NAME} eq 'F1' || $field->{NAME} eq 'PRECISION' || $field->{NAME} eq 'RECALL') {
+	  elsif ($field->{NAME} eq 'AP' || $field->{NAME} eq 'F1' || $field->{NAME} eq 'PRECISION' || $field->{NAME} eq 'RECALL') {
 	  	$value = $aggregates->{$self->{RUNID}}{$level}->getadjustedmean($field->{NAME});
 	  }
 	  $value = 'ALL-Macro' if $value eq 'ALL-Micro' && $field->{NAME} eq 'EC';
@@ -645,28 +659,33 @@ sub projectLDCMEAN {
 	  foreach my $cssf_query_ec(keys %{$new_scores{$csldc_query_ec}}) {
 	  	my $scores = $new_scores{$csldc_query_ec}{$cssf_query_ec};
    	    if(not exists $combined_scores->{EC}) {
-   	      $combined_scores->put('QUERY_ID_BASE', $scores->get('QUERY_ID_BASE'));
-  	  	  $combined_scores->put('EC', $csldc_query_ec);
-  	  	  $combined_scores->put('RUNID', $scores->get('RUNID'));
-  	  	  $combined_scores->put('LEVEL', $scores->get('LEVEL'));
-  	  	  $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'));
-  	  	  $combined_scores->put('F1', $scores->get('F1'));
+          $combined_scores->put('QUERY_ID_BASE', $scores->get('QUERY_ID_BASE'));
+          $combined_scores->put('EC', $csldc_query_ec);
+          $combined_scores->put('RUNID', $scores->get('RUNID'));
+          $combined_scores->put('LEVEL', $scores->get('LEVEL'));
+          $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'));
+          $combined_scores->put('AP', $scores->get('AP'));
+          $combined_scores->put('F1', $scores->get('F1'));
           $combined_scores->put('PRECISION', $scores->get('PRECISION'));
           $combined_scores->put('RECALL', $scores->get('RECALL'));
   	    }
   	    else{
-  	  	  my $f1 = $combined_scores->get('F1');
+          my $ap = $combined_scores->get('AP');
+          my $f1 = $combined_scores->get('F1');
           my $precision = $combined_scores->get('PRECISION');
           my $recall = $combined_scores->get('RECALL');
-  	  	  $combined_scores->put('F1', $f1 + $scores->get('F1'));  	  	
+          $combined_scores->put('AP', $ap + $scores->get('AP'));
+          $combined_scores->put('F1', $f1 + $scores->get('F1'));
           $combined_scores->put('PRECISION', $precision + $scores->get('PRECISION'));
           $combined_scores->put('RECALL', $recall + $scores->get('RECALL'));
   	    }
   	    $i++;
 	  }
+	  my $ap = $combined_scores->get('AP');
 	  my $f1 = $combined_scores->get('F1');
 	  my $precision = $combined_scores->get('PRECISION');
 	  my $recall = $combined_scores->get('RECALL');
+	  $combined_scores->put('AP', $ap/$i);
 	  $combined_scores->put('F1', $f1/$i);
 	  $combined_scores->put('PRECISION', $precision/$i);
 	  $combined_scores->put('RECALL', $recall/$i);
@@ -766,12 +785,19 @@ sub prepare_lines {
   if($metric eq "LDCMAX" || $metric eq "LDCMEAN") {
   	@scores = $self->get_projected_scores($metric);
   }
+  # Prepare lookup for associating parent scores
+  my %scores;
+  foreach my $score(@scores) {
+    $scores{$score->{EC}} = $score;
+  }
+  # Prepare lines
   foreach my $score(sort compare_ec_names @scores) {
   	next if not exists $self->{QUERIES_TO_SCORE}{$score->{QUERY_ID_BASE}};
+    $score->{PARENT_SCORE} = $scores{&get_parent_ec($score)}
+      if &get_parent_ec($score);
   	my %line = $self->get_line($score);
   	push(@{$self->{LINES}}, \%line);
   }
-  
   # Add aggregates
   $self->add_micro_average($metric, @scores) 
   	if(grep {$_ =~ /MICRO/} @{$metrices{$metric}{AGGREGATES}});
@@ -813,24 +839,24 @@ sub print_lines {
 sub print_details {
   my ($self) = @_;
   foreach my $ec (sort keys %{$self->{CATEGORIZED_SUBMISSIONS}}) {
-  	my %summary;
-  	foreach my $label(grep {$_ ne "SUBMITTED"} keys %{$self->{CATEGORIZED_SUBMISSIONS}{$ec}}) {
-  		foreach my $submission(@{$self->{CATEGORIZED_SUBMISSIONS}{$ec}{$label}}) {
-  			my $assessment = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{ASSESSMENT} : "UNASSESSED";
-  			my $assessment_line = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{LINE} : "-";
-  			if($assessment ne $label) {
-	  			my $postpolicy_assessment = $label;
-	  			unless ($summary{$submission->{LINENUM}}) {
-		  			$summary{$submission->{LINENUM}} = {
-		  						LINE => $submission->{LINE},
-		  						ASSESSMENT_LINE => $assessment_line,
-		  						PREPOLICY_ASSESSMENT => $assessment,
-		  						POSTPOLICY_ASSESSMENT => [$label] ,
-		  					};
-	  			}
-	  			else {
-	  				push (@{$summary{$submission->{LINENUM}}{POSTPOLICY_ASSESSMENT}}, $label);
-	  			}
+    my %summary;
+    foreach my $label(grep {$_ ne "SUBMITTED" && $_ ne "ASSESSMENTS"} keys %{$self->{CATEGORIZED_SUBMISSIONS}{$ec}}) {
+      foreach my $submission(@{$self->{CATEGORIZED_SUBMISSIONS}{$ec}{$label}}) {
+        my $assessment = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{ASSESSMENT} : "UNASSESSED";
+        my $assessment_line = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{LINE} : "-";
+        if($assessment ne $label) {
+          my $postpolicy_assessment = $label;
+          unless ($summary{$submission->{LINENUM}}) {
+		        $summary{$submission->{LINENUM}} = {
+                                                 LINE => $submission->{LINE},
+                                                 ASSESSMENT_LINE => $assessment_line,
+                                                 PREPOLICY_ASSESSMENT => $assessment,
+                                                 POSTPOLICY_ASSESSMENT => [$label]
+		                                           };
+          }
+          else {
+            push (@{$summary{$submission->{LINENUM}}{POSTPOLICY_ASSESSMENT}}, $label);
+          }
   			}
   		}
   	}
@@ -859,6 +885,16 @@ sub print_summary {
       $self->print_line($line, $fields_to_print, $metric_name, $output_handle);
     }
   }
+}
+
+sub get_parent_ec {
+  my ($score) = @_;
+  if($score->{EC} =~ /:/) {
+    my @elements = split(":", $score->{EC});
+    pop @elements;
+    return join(":", @elements);
+  }
+  return;
 }
 
 sub get_summary_stats {
@@ -1140,6 +1176,7 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2017.1.0 - Initial version of 2017; AP is being produced in addition to last year stats
 # 3.0 - Modified file extensions and suppressed empty file creation
 #     - Some clarification in the usage messages
 # 2.9 - Added the .arguments output file listing the arguments and policy selected

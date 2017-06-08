@@ -2023,6 +2023,7 @@ sub new {
   my ($class, $logger, $assessments, @assessments) = @_;
   my $self = {
     LOGGER => $logger,
+    JUSTIFICATIONS_ALLOWED => $assessments->{JUSTIFICATIONS_ALLOWED},
     STATS => {},
     QUERIES => {},
   };
@@ -2242,6 +2243,7 @@ sub score_subtree {
   			= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   # Look through the submissions for this node
   my %categorized_submissions;
+  push(@{$categorized_submissions{ASSESSMENTS}}, map {@$_} map {$subtree->{ECS}{$_}{ASSESSMENTS}} keys %{$subtree->{ECS}});
   foreach my $ec (keys %{$subtree->{ECS}}) {
     # Gather stats for this EC independently in case we want to report stats by EC
     my %ec_categorized_submissions = $self->categorize_submissions($ec, $policy_options, $policy_selected);
@@ -2418,10 +2420,164 @@ sub is_path_correct {
 # To score a set of queries, score the subtree for each query
 sub score {
   my ($self, $runid, $policy_options, $policy_selected) = @_;
-  foreach my $query_id (keys %{$self->{QUERIES}}) {
-  	my (undef, $cssf_query_id) = &Query::parse_queryid($query_id);
-    $self->score_subtree($cssf_query_id, $query_id, $self->{QUERIES}{$query_id}, $runid, $policy_options, $policy_selected);
+  foreach my $full_query_id (keys %{$self->{QUERIES}}) {
+    my (undef, $query_id) = &Query::parse_queryid($full_query_id);
+    $self->score_subtree($query_id, $full_query_id, $self->{QUERIES}{$full_query_id}, $runid, $policy_options, $policy_selected);
+    $self->compute_ap($query_id, $full_query_id, $self->{QUERIES}{$full_query_id});
   }
+}
+
+# Compute the AP for the entire subtree
+sub compute_ap {
+  my ($self, $query_id, $name, $subtree) = @_;
+
+  $self->populate_nodes($query_id, $name, $subtree);
+  $self->map_nodes($query_id, $subtree);
+  $self->update_parent_confidence($query_id, $subtree);
+  $subtree->{SCORE}{AP} = $self->get_ap($query_id, $subtree);
+
+  while (my ($child_name, $child_tree) = each %{$subtree->{ECS}}) {
+    $self->compute_ap($query_id, $child_name, $child_tree);
+  }
+}
+
+# Get AP corresponding to the subtree
+sub get_ap {
+  my ($self, $query_id, $subtree) = @_;
+  my @list;
+  foreach my $nodeid(sort {$subtree->{NODES}{$b}{CONFIDENCE} <=> $subtree->{NODES}{$a}{CONFIDENCE} ||
+                        $subtree->{NODES}{$a}{LINENUM} <=> $subtree->{NODES}{$b}{LINENUM}
+                  } keys %{$subtree->{NODES}}) {
+    push(@list, {NODEID=>$nodeid, SCORE=>$subtree->{NODES}{$nodeid}{EC}{SCORE}});
+  }
+  my $i=1;
+  my $sum_score = 0;
+  my $sum_precision = 0;
+  foreach my $element(@list) {
+    if($element->{SCORE} > 0) {
+      $sum_score += $element->{SCORE};
+      $sum_precision += ($sum_score/$i);
+    }
+    $i++;
+  }
+  $self->{LOGGER}->NIST_die("AP is greater than 1.0") if $sum_precision > $subtree->{SCORE}{NUM_GROUND_TRUTH};
+  $subtree->{SCORE}{NUM_GROUND_TRUTH} ? $sum_precision/$subtree->{SCORE}{NUM_GROUND_TRUTH} : 0;
+}
+
+# Update the parent confidence for next level of queries
+sub update_parent_confidence {
+  my ($self, $query_id, $subtree) = @_;
+  my @submissions = @{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{SUBMITTED} || []};;
+  my %entries_by_target_queryids;
+  foreach my $submission(@submissions) {
+    push(@{$entries_by_target_queryids{$submission->{TARGET_QUERY_ID}}}, $submission);
+  }
+  foreach my $target_query_id(keys %entries_by_target_queryids) {
+    my $ecs = {map {$_=>1}
+                grep {$_ ne "0"}
+                  map {$_->{ASSESSMENT}{VALUE_EC}} @{$entries_by_target_queryids{$target_query_id}}};
+    $self->{LOGGER}->NIST_die("Multiple equivalence classes; expected one") if scalar keys %{$ecs} > 1;
+    if(scalar keys %{$ecs}) {
+      my $mapped_nodeid;
+      ($mapped_nodeid) = grep {exists $subtree->{NODES}{$_}{EC} &&
+                                 $ecs->{$subtree->{NODES}{$_}{EC}{NAME}}}
+                           keys %{$subtree->{NODES}};
+      if($mapped_nodeid) {
+        $self->{PARENT_CONFIDENCE}{$target_query_id} = $subtree->{NODES}{$mapped_nodeid}{CONFIDENCE};
+      }
+    }
+  }
+}
+
+# Map the nodes to ECs
+sub map_nodes {
+  my ($self, $query_id, $subtree) = @_;
+  my %mapped_ecs;
+  foreach my $nodeid(sort {$subtree->{NODES}{$b}{CONFIDENCE} <=> $subtree->{NODES}{$a}{CONFIDENCE} ||
+                        $subtree->{NODES}{$a}{LINENUM} <=> $subtree->{NODES}{$b}{LINENUM}
+                  } keys %{$subtree->{NODES}}) {
+    my $candidate_ecs = $self->get_candidate_ecs($query_id, $subtree, $nodeid);
+    my $selected_ec;
+    ($selected_ec) = sort {$candidate_ecs->{$b}{SCORE}<=>$candidate_ecs->{$a}{SCORE} ||
+                              $candidate_ecs->{$b}{LINENUM}<=>$candidate_ecs->{$a}{LINENUM}}
+                       grep {!$mapped_ecs{$_}}
+                         keys %{$candidate_ecs};
+    $subtree->{NODES}{$nodeid}{EC} = {NAME=>$selected_ec, SCORE=>$candidate_ecs->{$selected_ec}{SCORE}}
+                                       if $selected_ec;
+    $mapped_ecs{$selected_ec} = $nodeid if $selected_ec;
+  }
+}
+
+# Get candidate ecs, corresponding score and line numbers
+sub get_candidate_ecs {
+  my ($self, $query_id, $subtree, $nodeid) = @_;
+  my ($k) = $self->{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
+  my @submissions = @{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{SUBMITTED} || []};
+  my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
+                         grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
+                           @submissions};
+  foreach my $candidate_ec(keys %{$candidate_ecs}) {
+    my $numerator = scalar grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
+    my $denomerator = $self->get_num_justifying_docs($subtree, $candidate_ec);
+    $denomerator = $k if $k ne "M" && $k < $denomerator;
+    $candidate_ecs->{$candidate_ec} = {SCORE => $denomerator ? $numerator/$denomerator : 0};
+  }
+  foreach my $entry(grep {$_->{NODEID} eq $nodeid} @submissions) {
+    my $ec = $entry->{ASSESSMENT}{VALUE_EC};
+    $candidate_ecs->{$ec}{LINENUM} = $entry->{LINENUM}
+      if($ec &&
+          (not exists $candidate_ecs->{$ec}{LINENUM} ||
+            $candidate_ecs->{$ec}{LINENUM} > $entry->{LINENUM}));
+  }
+  $candidate_ecs;
+}
+
+# Get number of justifying documents for a given query and EC
+sub get_num_justifying_docs {
+  my ($self, $subtree, $ec) = @_;
+  my %justifying_docs;
+  foreach my $assessment(@{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{ASSESSMENTS} || []}) {
+    $justifying_docs{$assessment->{VALUE_PROVENANCE}{DOCID}} = 1
+      if $assessment->{VALUE_EC} eq $ec;
+  }
+  scalar keys %justifying_docs;
+}
+
+# Populate nodes with confidences
+# This is computed as a product of the current level node confidence and the parent confidence
+sub populate_nodes {
+	my ($self, $query_id, $name, $subtree) = @_;
+  my (@submissions) = @{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{SUBMITTED} || []};
+  my (%node_confidences, $nodes);
+  foreach my $entry(@submissions) {
+    my ($nodeid, $confidence) = map {$entry->{$_}} qw(NODEID CONFIDENCE);
+    push(@{$node_confidences{$nodeid}}, $confidence);
+    $subtree->{NODES}{$nodeid}{LINENUM} = $entry->{LINENUM}
+      if(!$subtree->{NODES}{$nodeid}{LINENUM} || $subtree->{NODES}{$nodeid}{LINENUM} > $entry->{LINENUM});
+  }
+  foreach my $nodeid(keys %node_confidences) {
+    my $i=1;
+    my ($numerator, $denomerator) = (0,0);
+    foreach my $confidence(sort {$b<=>$a} @{$node_confidences{$nodeid}}) {
+      $numerator += ($confidence/$i);
+      $denomerator += (1/$i);
+      $i++;
+    }
+    $subtree->{NODES}{$nodeid}{CONFIDENCE} = $numerator/$denomerator;
+    $subtree->{NODES}{$nodeid}{CONFIDENCE} *= $self->get_parent_confidence($query_id)
+      unless $self->{QUERIES}{$name};
+  }
+}
+
+# Get parent confidence
+# lookup the parent confidence, return 0 if not found
+# The value is computed in the update_parent_confidence
+sub get_parent_confidence {
+  my ($self, $child_query_id) = @_;
+  # Lookup the confidence, return if found
+  return $self->{PARENT_CONFIDENCE}{$child_query_id} if $self->{PARENT_CONFIDENCE}{$child_query_id};
+  # Return default
+  return 0.0;
 }
 
 # Build a list of all the scores found in this tree
