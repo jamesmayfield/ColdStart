@@ -2522,7 +2522,8 @@ sub get_candidate_ecs {
     my @node_submissions = grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
     my $numerator = scalar @node_submissions;
     my $denomerator = $self->get_num_justifying_docs($subtree, $candidate_ec);
-    $denomerator = $k if $k ne "M" && $k < $denomerator;
+    my $num_queries = scalar keys {map {$_->{QUERY_ID}=>1} @node_submissions};
+    $denomerator = $k*$num_queries if $k ne "M" && $k*$num_queries < $denomerator;
     $candidate_ecs->{$candidate_ec} = {SCORE => $denomerator ? $numerator/$denomerator : 0};
   }
   foreach my $entry(grep {$_->{NODEID} eq $nodeid} @submissions) {
