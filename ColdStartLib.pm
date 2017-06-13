@@ -2245,7 +2245,10 @@ sub score_subtree {
   			= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   # Look through the submissions for this node
   my %categorized_submissions;
-  push(@{$categorized_submissions{ASSESSMENTS}}, map {@$_} map {$subtree->{ECS}{$_}{ASSESSMENTS}} keys %{$subtree->{ECS}});
+  push(@{$categorized_submissions{ASSESSMENTS}}, map {@$_}
+                                                   map {$subtree->{ECS}{$_}{ASSESSMENTS}}
+                                                     grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}}
+                                                       keys %{$subtree->{ECS}});
   foreach my $ec (keys %{$subtree->{ECS}}) {
     # Gather stats for this EC independently in case we want to report stats by EC
     my %ec_categorized_submissions = $self->categorize_submissions($ec, $policy_options, $policy_selected);
