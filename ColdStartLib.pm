@@ -2518,7 +2518,8 @@ sub map_nodes {
 sub get_candidate_ecs {
   my ($self, $query_id, $subtree, $nodeid) = @_;
   my ($k) = $self->{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
-  my @submissions = @{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{SUBMITTED} || []};
+  # Here we are considering submissions that are (post-policy) RIGHT
+  my @submissions = @{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{RIGHT} || []};
   my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
                          grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
