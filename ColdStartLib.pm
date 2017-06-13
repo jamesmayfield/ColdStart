@@ -2519,7 +2519,8 @@ sub get_candidate_ecs {
                          grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
   foreach my $candidate_ec(keys %{$candidate_ecs}) {
-    my $numerator = scalar grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
+    my @node_submissions = grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
+    my $numerator = scalar @node_submissions;
     my $denomerator = $self->get_num_justifying_docs($subtree, $candidate_ec);
     $denomerator = $k if $k ne "M" && $k < $denomerator;
     $candidate_ecs->{$candidate_ec} = {SCORE => $denomerator ? $numerator/$denomerator : 0};
@@ -4235,6 +4236,7 @@ sub manage_single_valued_slots {
 	my ($self) = @_;
   my %discarded_dependents;
   foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    next if $self->{QUERIES}->get($query_id)->get("QUANTITY") ne "single";
     my %aggregate_conf;
     foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
       # Compute the node confidences
@@ -4282,6 +4284,7 @@ sub manage_single_valued_slots {
   # Discard dependents having all discarded parents
   # If any of the parents is not discarded the dependent should not be discarded
   foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    next if $self->{QUERIES}->get($query_id)->get("QUANTITY") ne "single";
     foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
       foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
         foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
@@ -4331,7 +4334,7 @@ sub new {
     $self->mark_multiple_justifications($justifications_allowed) if $schema->{CHECK_MULTIPLE_JUSTIFICATIONS};
     # Pick entries with the highest confidence node corresponding to a query, removing all other entries
     # Make sure we remove dependents of the removed entries
-    $self->manage_single_valued_slots();
+    $self->manage_single_valued_slots() if $schema->{CHECK_MULTIPLE_JUSTIFICATIONS};
   }
   $self;
 }
