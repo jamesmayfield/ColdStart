@@ -2339,7 +2339,7 @@ sub categorize_submissions {
   my %retVal;
   my $subtree = $self->get($ec);
   foreach my $submission ( @{$subtree->{SUBMISSIONS} || []} ) {
-    if(!$self->is_path_correct($ec, $submission->{QUERY_ID})) {
+    if(!$self->is_path_correct($ec, $submission->{QUERY_ID}, $policy_selected)) {
       # record that the (grand-)parent is incorrect
       push(@{$retVal{INCORRECT_PARENT}}, $submission);
     }
@@ -2398,7 +2398,8 @@ sub categorize_submissions {
 
 # To determine correctness of the path of a submission
 sub is_path_correct {
-  my ($self, $ec, $query_id) = @_;
+  my ($self, $ec, $query_id, $policy_selected) = @_;
+  my %right_assessments = map {$_=>1} split(":", $policy_selected->{RIGHT});
   my @ec_components = split(/:/, $ec);
   my $base_query_id = shift @ec_components;
   # The path is correct if you hit the top node
@@ -2412,7 +2413,7 @@ sub is_path_correct {
     # Check this recursively
     if ( exists $parent_submission->{ASSESSMENT} && 
     scalar keys %{$parent_submission->{ASSESSMENT}} > 0 &&
-    $parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+    exists $right_assessments{$parent_submission->{ASSESSMENT}{ASSESSMENT}} &&
 	$parent_submission->{TARGET_QUERY_ID} eq $query_id) {
       return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
     }
