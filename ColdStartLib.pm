@@ -2245,10 +2245,9 @@ sub score_subtree {
   			= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   # Look through the submissions for this node
   my %categorized_submissions;
-  push(@{$categorized_submissions{ASSESSMENTS}}, map {@$_}
-                                                   map {$subtree->{ECS}{$_}{ASSESSMENTS}}
-                                                     grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}}
-                                                       keys %{$subtree->{ECS}});
+  push(@{$categorized_submissions{ASSESSMENTS}}, map {@{$subtree->{ECS}{$_}{ASSESSMENTS}}}
+                                                   grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}}
+                                                     keys %{$subtree->{ECS}});
   foreach my $ec (keys %{$subtree->{ECS}}) {
     # Gather stats for this EC independently in case we want to report stats by EC
     my %ec_categorized_submissions = $self->categorize_submissions($ec, $policy_options, $policy_selected);
@@ -2518,8 +2517,9 @@ sub map_nodes {
 sub get_candidate_ecs {
   my ($self, $query_id, $subtree, $nodeid) = @_;
   my ($k) = $self->{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
-  # Here we are considering submissions that are (post-policy) RIGHT
-  my @submissions = @{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{RIGHT} || []};
+  # Here we are considering submissions that are (post-policy) RIGHT and REDUNDANT as both
+  # correct for the purpose of AP computation
+  my @submissions = map {@{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{$_}}} qw(RIGHT REDUNDANT);
   my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
                          grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
