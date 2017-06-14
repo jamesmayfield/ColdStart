@@ -2519,7 +2519,7 @@ sub get_candidate_ecs {
   my ($k) = $self->{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
   # Here we are considering submissions that are (post-policy) RIGHT and REDUNDANT as both
   # correct for the purpose of AP computation
-  my @submissions = map {@{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{$_}}} qw(RIGHT REDUNDANT);
+  my @submissions = map {@{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{$_} || []}} qw(RIGHT REDUNDANT);
   my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
                          grep {$_->{NODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
