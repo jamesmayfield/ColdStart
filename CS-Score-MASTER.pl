@@ -582,7 +582,11 @@ sub add_micro_average {
   	my %line = $self->get_line($aggregates->{$self->{RUNID}}{$level});
     if($line{AP}) {
       # Remove AP field if exists
-      my $text = sprintf(s/[df]/s/, "");
+      my ($field) = grep {$_->{NAME} eq "AP"} @{$self->{FIELDS_TO_PRINT}};
+      my $format = $field->{FORMAT};
+      $format =~ s/[df]/s/;
+      $format =~ s/\.\d//;
+      my $text = sprintf($format, "");
       $line{AP} = $text;
       $self->{WIDTHS}{AP} = length($text) if length($text) > $self->{WIDTHS}{AP};
     }
@@ -615,6 +619,7 @@ sub add_macro_average {
 	  $value = 'ALL-Macro' if $value eq 'ALL-Micro' && $field->{NAME} eq 'EC';
 	  my $format = $field->{FORMAT};
 	  $format =~ s/[df]/s/ if $value eq "";
+	  $format =~ s/\.\d// if $value eq "";
 	  my $text = sprintf($format, $value);
 	  $line{$field->{NAME}} = $text;
 	  $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
