@@ -2557,6 +2557,7 @@ sub get_num_justifying_docs {
 sub populate_nodes {
 	my ($self, $query_id, $name, $subtree) = @_;
   my (@submissions) = @{$subtree->{SCORE}{CATEGORIZED_SUBMISSIONS}->{SUBMITTED} || []};
+  my ($lookup_queryid) = keys {map {$_=>1} map {$_->{QUERY}{QUERY_ID}} @submissions};
   my (%node_confidences, $nodes);
   foreach my $entry(@submissions) {
     my ($nodeid, $confidence) = map {$entry->{$_}} qw(NODEID CONFIDENCE);
@@ -2573,7 +2574,7 @@ sub populate_nodes {
       $i++;
     }
     $subtree->{NODES}{$nodeid}{CONFIDENCE} = $numerator/$denomerator;
-    $subtree->{NODES}{$nodeid}{CONFIDENCE} *= $self->get_parent_confidence($query_id)
+    $subtree->{NODES}{$nodeid}{CONFIDENCE} *= $self->get_parent_confidence($lookup_queryid)
       unless $self->{QUERIES}{$name};
   }
 }
