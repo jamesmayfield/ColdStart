@@ -3804,10 +3804,19 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
       $entry->{$key} = $schema->{ASSESSMENT_CODES}{$entry->{$key}};
     }
 
+    # Set the fully-qualified NODEID and insert information about NODE_QUANTITY
+    if($entry->{NODEID}) {
+      my $prefix = $entry->{QUERY}->get("FULL_QUERY_ID");
+      ($prefix) = map {$_->{FQNODEID}} grep {$_->{TARGET_QUERY_ID} eq $entry->{QUERY}->get("QUERY_ID")} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}
+        if $entry->{QUERY}->get("LEVEL") == 1;
+      $entry->{FQNODEID} = $prefix.$entry->{NODEID};
+      $self->{NODE_QUANTITY}{$entry->{FQNODEID}} = $entry->{QUERY}->get("QUANTITY");
+    }
+
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
     push(@{$self->{ENTRIES_BY_QUERY_ID_BASE}{$schema->{TYPE}}{$entry->{QUERY_ID_BASE}}}, $entry);
     push(@{$self->{ENTRIES_BY_ANSWER}{$entry->{QUERY_ID}}{$entry->{TARGET_QUERY_ID}}{$schema->{TYPE}}}, $entry);
-    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry) if $entry->{NODEID};
+    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{FQNODEID}}{$entry->{DOCID}}}, $entry) if $entry->{NODEID};
     push(@{$self->{ENTRIES_BY_EC}{$entry->{QUERY_ID}}{$entry->{VALUE_EC}}}, $entry)
 	if $entry->{TYPE} eq 'ASSESSMENT' &&
 	   ($entry->{ASSESSMENT} eq 'CORRECT' || $entry->{ASSESSMENT} eq 'INEXACT');
@@ -4167,48 +4176,27 @@ sub mark_multiple_justifications {
   my ($self, $justifications_allowed) = @_;
   my ($justifications_perdoc, $justifications_total) = $justifications_allowed =~ /^(.*?):(.*?)$/;
   my %discarded_dependents;
-  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
-      my @entries;
+  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    my @entries;
+    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
       # Discard extra justifications per document
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
-        my $k = 0;
-        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
-                            @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
-           push(@entries, $entry);
-           if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
-             $entry->{DISCARD} = 1;
-             my $justifications_provided = scalar @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
-             $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $justifications_provided, $entry->{QUERY}->get("FULL_QUERY_ID"), $nodeid,
-               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-             $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
-               if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-                    (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
-                      $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
-           }
-           else {
-             # Don't discard the dependent since this parent is not discarded and as per the requirement if
-             # one of the parents is not discarded all the dependents should not be discarded
-             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
-           }
-           $k++;
-        }
-      }
-      # Discard extra justifications over all
       my $k = 0;
       foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
-                          grep {not exists $_->{DISCARD}} @entries) {
-        if ($justifications_total ne 'M' && $k >= $justifications_total) {
+                          @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
+        push(@entries, $entry);
+        if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
           $entry->{DISCARD} = 1;
+          my $justifications_provided = scalar @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
+          $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $justifications_provided, $entry->{QUERY}->get("FULL_QUERY_ID"), $fqnodeid,
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
           $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
             {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
           $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
             if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-                  $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
+                 (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
+                   $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
         }
-        else{
+        else {
           # Don't discard the dependent since this parent is not discarded and as per the requirement if
           # one of the parents is not discarded all the dependents should not be discarded
           $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
@@ -4216,20 +4204,37 @@ sub mark_multiple_justifications {
         $k++;
       }
     }
+    # Discard extra justifications over all
+    my $k = 0;
+    foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
+                        grep {not exists $_->{DISCARD}} @entries) {
+      if ($justifications_total ne 'M' && $k >= $justifications_total) {
+        $entry->{DISCARD} = 1;
+        $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+          {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+        $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
+          if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
+               $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
+      }
+      else {
+        # Don't discard the dependent since this parent is not discarded and as per the requirement if
+        # one of the parents is not discarded all the dependents should not be discarded
+        $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
+      }
+      $k++;
+    }
   }
 
   # Discard dependents having all discarded parents
   # If any of the parents is not discarded the dependent should not be discarded
-  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
-        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
-          if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
-            $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
-              $entry->{DISCARD} = 1;
-              $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-          }
+  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
+      foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
+        if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
+          $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
+            $entry->{DISCARD} = 1;
+            $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+              {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
         }
       }
     }
@@ -4237,28 +4242,27 @@ sub mark_multiple_justifications {
 }
 
 # Pick entries with the highest confidence node corresponding to a query, removing all other entries
-# Make sure we remove dependents of the removed entries
+# Also remove dependents of the removed entries
 sub manage_single_valued_slots {
 	my ($self) = @_;
   my %discarded_dependents;
-  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    next if $self->{QUERIES}->get($query_id)->get("QUANTITY") ne "single";
+  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    next if $self->{NODE_QUANTITY}{$fqnodeid} ne "single";
     my %aggregate_conf;
-    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
       # Compute the node confidences
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
-        my @confidences = sort {$b <=> $a} map {$_->{CONFIDENCE}} @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
-        my ($first_occurance) = sort {$a <=> $b} map {$_->{LINENUM}} @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
-        my $i=1;
-        my ($num, $den) = (0, 0);
-        foreach my $conf(@confidences) {
-          $num = $num + ($conf/$i);
-          $den = $den + (1/$i);
-          $i++;
-        }
-        $aggregate_conf{$nodeid}{CONFIDENCE} = $num / $den;
-        $aggregate_conf{$nodeid}{LINENUM} = $first_occurance;
+      my ($query_id) = map {$_->{QUERYID}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
+      my @confidences = sort {$b <=> $a} map {$_->{CONFIDENCE}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
+      my ($first_occurance) = sort {$a <=> $b} map {$_->{LINENUM}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
+      my $i=1;
+      my ($num, $den) = (0, 0);
+      foreach my $conf(@confidences) {
+        $num = $num + ($conf/$i);
+        $den = $den + (1/$i);
+        $i++;
       }
+      $aggregate_conf{$fqnodeid}{CONFIDENCE} = $num / $den;
+      $aggregate_conf{$fqnodeid}{LINENUM} = $first_occurance;
     }
     # Select the node with highest confidence
     my ($selected_node) =
@@ -4266,10 +4270,10 @@ sub manage_single_valued_slots {
              $aggregate_conf{$a}{LINENUM} <=> $aggregate_conf{$b}{LINENUM}}
         keys %aggregate_conf;
     # Discard justifications from nodes other than selected node
-    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
-        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
-          if($nodeid ne $selected_node) {
+    foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
+          if($fqnodeid ne $selected_node) {
             $entry->{DISCARD} = 1;
             $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
@@ -4289,17 +4293,15 @@ sub manage_single_valued_slots {
 
   # Discard dependents having all discarded parents
   # If any of the parents is not discarded the dependent should not be discarded
-  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    next if $self->{QUERIES}->get($query_id)->get("QUANTITY") ne "single";
-    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
-        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
-          if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
-            $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
-              $entry->{DISCARD} = 1;
-              $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-          }
+  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
+    next if $self->{NODE_QUANTITY}{$fqnodeid} ne "single";
+    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
+      foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
+        if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
+          $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
+            $entry->{DISCARD} = 1;
+            $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+              {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
         }
       }
     }
