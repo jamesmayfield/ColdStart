@@ -5,6 +5,7 @@ use strict;
 use Carp;
 use utf8;
 use JSON;
+use Encode;
 
 binmode(STDOUT, ":utf8");
 
@@ -4819,7 +4820,8 @@ sub _create_v3_uuid {
             ;
     }
     elsif ( defined $name ) {
-        $MD5_CALCULATOR->add($name);
+    	# Use Encode to support Unicode.
+        $MD5_CALCULATOR->add(Encode::encode_utf8($name));
     }
     else {
         Logger->new()->NIST_die('::create_uuid(): Name for v3 UUID is not defined!');
