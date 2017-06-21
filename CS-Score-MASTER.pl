@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2017.1.0";
+my $version = "2017.1.1";
 
 # Filehandles for program and error output
 my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
@@ -410,14 +410,6 @@ my %printable_fields = (
     JUSTIFY => 'L',
     FN => sub { $_[0]->get('F1') },
   },
-  AP => {
-    NAME => 'AP',
-    DESCRIPTION => "Average Precision",
-    HEADER => 'AP',
-    FORMAT => '%6.4f',
-    JUSTIFY => 'L',
-    FN => sub { $_[0]->get('AP') },
-  },
 );
 
 my %policy_options = (
@@ -488,7 +480,7 @@ sub get_fields_to_print {
 sub new {
   my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $logger) = @_;
   my $fields_to_print = &get_fields_to_print($spec, $logger);
-  my $ldc_mean_spec = "EC:RUNID:LEVEL:AP:P:R:F";
+  my $ldc_mean_spec = "EC:RUNID:LEVEL:P:R:F";
   my $ldc_mean_fields_to_print = &get_fields_to_print($ldc_mean_spec, $logger);
   my $self = {RUNID => $runid,
   	      INDEX => $index,
@@ -580,16 +572,6 @@ sub add_micro_average {
   }
   foreach my $level (sort keys %{$aggregates->{$self->{RUNID}}}) {
   	my %line = $self->get_line($aggregates->{$self->{RUNID}}{$level});
-    if($line{AP}) {
-      # Remove AP field if exists
-      my ($field) = grep {$_->{NAME} eq "AP"} @{$self->{FIELDS_TO_PRINT}};
-      my $format = $field->{FORMAT};
-      $format =~ s/[df]/s/;
-      $format =~ s/\.\d//;
-      my $text = sprintf($format, "");
-      $line{AP} = $text;
-      $self->{WIDTHS}{AP} = length($text) if length($text) > $self->{WIDTHS}{AP};
-    }
     push(@{$self->{LINES}}, \%line);
     push(@{$self->{SUMMARY}{$metric}}, \%line);
   }
@@ -613,7 +595,7 @@ sub add_macro_average {
 		$field->{NAME} eq 'LEVEL') {
 		  $value = $aggregates->{$self->{RUNID}}{$level}->get($field->{NAME});
 	  }
-	  elsif ($field->{NAME} eq 'AP' || $field->{NAME} eq 'F1' || $field->{NAME} eq 'PRECISION' || $field->{NAME} eq 'RECALL') {
+	  elsif ($field->{NAME} eq 'F1' || $field->{NAME} eq 'PRECISION' || $field->{NAME} eq 'RECALL') {
 	  	$value = $aggregates->{$self->{RUNID}}{$level}->getadjustedmean($field->{NAME});
 	  }
 	  $value = 'ALL-Macro' if $value eq 'ALL-Micro' && $field->{NAME} eq 'EC';
@@ -669,28 +651,23 @@ sub projectLDCMEAN {
           $combined_scores->put('RUNID', $scores->get('RUNID'));
           $combined_scores->put('LEVEL', $scores->get('LEVEL'));
           $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'));
-          $combined_scores->put('AP', $scores->get('AP'));
           $combined_scores->put('F1', $scores->get('F1'));
           $combined_scores->put('PRECISION', $scores->get('PRECISION'));
           $combined_scores->put('RECALL', $scores->get('RECALL'));
   	    }
   	    else{
-          my $ap = $combined_scores->get('AP');
           my $f1 = $combined_scores->get('F1');
           my $precision = $combined_scores->get('PRECISION');
           my $recall = $combined_scores->get('RECALL');
-          $combined_scores->put('AP', $ap + $scores->get('AP'));
           $combined_scores->put('F1', $f1 + $scores->get('F1'));
           $combined_scores->put('PRECISION', $precision + $scores->get('PRECISION'));
           $combined_scores->put('RECALL', $recall + $scores->get('RECALL'));
   	    }
   	    $i++;
 	  }
-	  my $ap = $combined_scores->get('AP');
 	  my $f1 = $combined_scores->get('F1');
 	  my $precision = $combined_scores->get('PRECISION');
 	  my $recall = $combined_scores->get('RECALL');
-	  $combined_scores->put('AP', $ap/$i);
 	  $combined_scores->put('F1', $f1/$i);
 	  $combined_scores->put('PRECISION', $precision/$i);
 	  $combined_scores->put('RECALL', $recall/$i);
@@ -1158,7 +1135,6 @@ print {$program_output{PARAMS}} "\nSAMPLE => BOOTSTRAP RESAMPLE" if defined $sam
 foreach my $runid (@runids) {
   my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
   $scores_printer->print_lines();
-
   if($samples_file) {
     my $samples = Bootstrap->new($logger, $samples_file);
     my $samples_scores_printer = SamplesScoresPrinter->new($logger, $samples, $scores_printer);
@@ -1181,6 +1157,7 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2017.1.1 - AP computation from the last version removed; to be corrected in the next version
 # 2017.1.0 - Initial version of 2017; AP is being produced in addition to last year stats
 # 3.0 - Modified file extensions and suppressed empty file creation
 #     - Some clarification in the usage messages
