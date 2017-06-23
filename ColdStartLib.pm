@@ -19,8 +19,8 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.3";   # (1) AP computation removed; to be corrected in the next version
-
+my $version = "2017.1.4";   # (1) - New implementation of AP computation added
+                            # (2) - Results are being printed to a single AP file, to be split later, upon verification of correctness
 
 ### BEGIN INCLUDE Switches
 
@@ -2457,6 +2457,303 @@ sub get_all_scores {
 }
 
 ### END INCLUDE Scoring
+### BEGIN INCLUDE NodeTree
+
+#####################################################################################
+##### Node Tree
+#####################################################################################
+
+package NodeTree;
+
+sub new {
+  my ($class, $submissions_and_assessments, $query_id, $query_id_base) = @_;
+  my $logger = $submissions_and_assessments->{LOGGER};
+  my $full_query_id = $submissions_and_assessments->{QUERIES}->get($query_id)->get("FULL_QUERY_ID");
+  my $slot0_quantity = $submissions_and_assessments->{QUERIES}->get($query_id)->get("SLOT0_QUANTITY");
+  my $slot1_quantity = $submissions_and_assessments->{QUERIES}->get($query_id)->get("SLOT1_QUANTITY");
+  my $self = {QUERY_ID => $full_query_id,
+        QUERY_ID_BASE => $query_id_base,
+        SUBMISSIONS_AND_ASSESSMENTS => $submissions_and_assessments,
+        NODE_TREE => {},
+	      SCORES => [],
+	      SLOT0_QUANTITY => $slot0_quantity,
+	      SLOT1_QUANTITY => $slot1_quantity,
+	      LOGGER => $logger};
+  bless($self, $class);
+  $self->compute_scores();
+  $self;
+}
+
+sub compute_scores {
+  my ($self) = @_;
+  $self->populate_tree();
+  $self->compute_all_confidences();
+  $self->map_all_nodes();
+  $self->prepare_rankings();
+  $self->associate_ground_truth();
+  $self->compute_aps();
+}
+
+sub compute_aps {
+  my ($self) = @_;
+  my $runid = $self->{SUBMISSIONS_AND_ASSESSMENTS}{RUNID};
+  my $query_id = $self->{QUERY_ID};
+  my $query_id_base = $self->{QUERY_ID_BASE};
+  foreach my $level(sort keys %{$self->{RANKINGS}}) {
+    my $ap = $self->compute_ap($level);
+    my $score = Score->new();
+    my $num_ground_truth = $self->{RANKINGS}{$level}{NUM_GROUND_TRUTH};
+    $score->put('QUERY_ID_BASE', $query_id_base);
+    $score->put('EC', $query_id);
+    $score->put('RUNID', $runid);
+    $score->put('LEVEL', $level);
+    $score->put('NUM_GROUND_TRUTH', $num_ground_truth);
+    $score->put('AP', $ap);
+    $score->put('DEBUG', $self->{RANKINGS}{$level});
+    push(@{$self->{SCORES}}, $score); 
+  }
+}
+
+sub compute_ap {
+  my ($self, $level) = @_;
+  my $ranking = $self->{RANKINGS}{$level};
+  my $num_ground_truth = $self->{RANKINGS}{$level}{NUM_ECS};
+  my @list;
+  foreach my $nodeid(sort {$ranking->{NODES}{$b}{CONFIDENCE} <=> $ranking->{NODES}{$a}{CONFIDENCE} ||
+                        $ranking->{NODES}{$a}{LINENUM} <=> $ranking->{NODES}{$b}{LINENUM}} keys %{$ranking->{NODES}}) {
+    push(@list, {NODEID=>$nodeid, SCORE=>$ranking->{NODES}{$nodeid}{V}});
+  }
+  my $i=1;
+  my $sum_score = 0;
+  my $sum_precision = 0;
+  foreach my $element(@list) {
+    if($element->{SCORE} > 0) {
+      $sum_score += $element->{SCORE};
+      $sum_precision += ($sum_score/$i);
+    }
+    $i++;
+  }
+  $self->{LOGGER}->NIST_die("AP is greater than 1.0") if $sum_precision > $ranking->{NUM_GROUND_TRUTH};
+  $ranking->{NUM_GROUND_TRUTH} ? $sum_precision/$ranking->{NUM_GROUND_TRUTH} : 0;
+}
+
+sub associate_ground_truth {
+  my ($self) = @_;
+  my ($full_query_id) = $self->{QUERY_ID};
+  my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+	my %ecs = map {$_->{VALUE_EC} => 1} grep {$_->{VALUE_EC}}
+              @{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id}};
+  foreach my $ec(keys %ecs) {
+    my $level = split(":", $ec) - 2;
+    push(@{$self->{RANKINGS}{$level}{ECS}}, $ec);
+    push(@{$self->{RANKINGS}{ALL}{ECS}}, $ec);
+  }
+  foreach my $hop(sort keys %{$self->{RANKINGS}}) {
+    $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS}};
+  }
+  $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT0_QUANTITY} eq 'single');
+  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT1_QUANTITY} eq 'single');
+  $self->{RANKINGS}{ALL}{NUM_GROUND_TRUTH} = $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} + $self->{RANKINGS}{1}{NUM_GROUND_TRUTH}
+    if($self->{SLOT0_QUANTITY} eq 'single' || $self->{SLOT1_QUANTITY} eq 'single');
+}
+
+sub prepare_rankings {
+  my ($self, $subtree) = @_;
+  $subtree = $self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}} unless $subtree;
+  foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
+  	$self->insert_node_into_rankings($subtree, $child_nodeid);
+    $self->prepare_rankings($subtree->{NODES}{$child_nodeid});
+  }
+}
+
+sub insert_node_into_rankings {
+  my ($self, $subtree, $nodeid) = @_;
+  my $level = split(":", $nodeid) - 2;
+  my $node = $subtree->{NODES}{$nodeid};
+  my ($mapped_ec, $v);
+  $mapped_ec = $node->{EC}{NAME} if $node->{EC};
+  $v = $node->{EC} ? $node->{EC}{SCORE} : 0;
+  $v = 0 if $level && $self->get_parent_node_score($nodeid) == 0;
+  $self->{RANKINGS}{$level}{NODES}{$nodeid} = {
+  	  CONFIDENCE => $node->{CONFIDENCE},
+  	  EC => $mapped_ec,
+  	  V => $v,
+  	  LINENUM => $node->{LINENUM}
+  };
+  $self->{RANKINGS}{ALL}{NODES}{$nodeid} = {
+  	  CONFIDENCE => $node->{CONFIDENCE},
+  	  EC => $mapped_ec,
+  	  V => $v,
+  	  LINENUM => $node->{LINENUM}
+  };
+}
+
+sub get_parent_node_score {
+  my ($self, $child_nodeid) = @_;
+  my @elements = split(":", $child_nodeid);
+  pop @elements;
+  my $parent_nodeid = join(":", @elements);
+  my $parent_mapped_ec = $self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}}{NODES}{$parent_nodeid}{EC};
+  my $parent_node_score = 0;
+  $parent_node_score = $parent_mapped_ec->{SCORE} if $parent_mapped_ec;
+}
+
+# Align the nodes with equivalence classes
+sub map_all_nodes {
+  my ($self) = @_;
+  $self->map_subtree_nodes($self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}});
+}
+
+sub map_subtree_nodes {
+  my ($self, $subtree) = @_;
+  my %mapped_ecs;
+  foreach my $nodeid(sort {$subtree->{NODES}{$b}{CONFIDENCE} <=> $subtree->{NODES}{$a}{CONFIDENCE} ||
+                        $subtree->{NODES}{$a}{LINENUM} <=> $subtree->{NODES}{$b}{LINENUM}
+                  } keys %{$subtree->{NODES}}) {
+    my $candidate_ecs = $self->get_candidate_ecs($subtree, $nodeid);
+    my $selected_ec;
+    ($selected_ec) = sort {$candidate_ecs->{$b}{SCORE}<=>$candidate_ecs->{$a}{SCORE} ||
+                              $candidate_ecs->{$b}{LINENUM}<=>$candidate_ecs->{$a}{LINENUM}}
+                       grep {!$mapped_ecs{$_}}
+                         keys %{$candidate_ecs};
+    $subtree->{NODES}{$nodeid}{EC} = {NAME=>$selected_ec, SCORE=>$candidate_ecs->{$selected_ec}{SCORE}}
+                                       if $selected_ec;
+    $mapped_ecs{$selected_ec} = $nodeid if $selected_ec;
+  }  
+  foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
+    $self->map_subtree_nodes($subtree->{NODES}{$child_nodeid});
+  }
+}
+
+# Get candidate ecs, corresponding score and line numbers
+sub get_candidate_ecs {
+  my ($self, $subtree, $nodeid) = @_;
+  my ($k) = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
+  # FIXME: This needs to depend upon post-policy decisions to allow INEXACTs as correct for example
+  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT'} $self->get_flattened_entries($subtree, $nodeid);
+  my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
+                         grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
+                           @submissions};
+  foreach my $candidate_ec(keys %{$candidate_ecs}) {
+    my @node_submissions = grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
+    my $numerator = scalar @node_submissions;
+    my $denomerator = $self->get_num_justifying_docs($candidate_ec);
+    my $num_queries = scalar keys {map {$_->{QUERY_ID}=>1} @node_submissions};
+    $denomerator = $k*$num_queries if $k ne "M" && $k*$num_queries < $denomerator;
+    $candidate_ecs->{$candidate_ec} = {SCORE => $denomerator ? $numerator/$denomerator : 0};
+  }
+  foreach my $entry(grep {$_->{FQNODEID} eq $nodeid} @submissions) {
+    my $ec = $entry->{ASSESSMENT}{VALUE_EC};
+    $candidate_ecs->{$ec}{LINENUM} = $entry->{LINENUM}
+      if($ec &&
+          (not exists $candidate_ecs->{$ec}{LINENUM} ||
+            $candidate_ecs->{$ec}{LINENUM} > $entry->{LINENUM}));
+  }
+  $candidate_ecs;
+}
+
+sub get_num_justifying_docs {
+  my ($self, $ec) = @_;
+  my ($full_query_id) = split(":", $ec);
+  my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+  keys {map {$_->{DOCID}=>1}
+  	grep {$_->{VALUE_EC} eq $ec}
+      @{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id}}};
+}
+
+sub get_flattened_entries {
+  my ($self, $subtree, $nodeid) = @_;
+  my @entries;
+  foreach my $docid(keys %{$subtree->{NODES}{$nodeid}{ENTRIES}}) {
+    foreach my $entry(@{$subtree->{NODES}{$nodeid}{ENTRIES}{$docid}}) {
+      push(@entries, $entry);
+    }
+  }
+  @entries;
+}
+
+sub compute_all_confidences {
+  my ($self) = @_;
+  foreach my $nodeid(keys %{$self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}}{NODES}}) {
+    $self->compute_subtree_confidences($self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}}{NODES}{$nodeid});
+  }
+}
+
+sub compute_subtree_confidences {
+  my ($self, $subtree, $parent_confidence) = @_;
+  $subtree->{CONFIDENCE} = $self->compute_node_confidence($subtree->{ENTRIES});
+  $subtree->{CONFIDENCE} *= $parent_confidence if defined $parent_confidence;
+  foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
+    $self->compute_subtree_confidences($subtree->{NODES}{$child_nodeid}, $subtree->{CONFIDENCE});
+  }
+}
+
+sub compute_node_confidence {
+  my ($self, $entries) = @_;
+  my @confidences;
+  foreach my $docid(keys %{$entries}) {
+    foreach my $entry(@{$entries->{$docid}}) {
+      push(@confidences, $entry->{CONFIDENCE});
+    }
+  }
+  my $i=1;
+  my ($numerator, $denomerator) = (0,0);
+  foreach my $confidence(sort {$b<=>$a} @confidences) {
+    $numerator += ($confidence/$i);
+    $denomerator += (1/$i);
+    $i++;
+  }
+  $numerator/$denomerator;
+}
+
+sub get_nodeids {
+  my ($self) = @_;
+  grep {$_ =~ /^$self->{QUERY_ID}/} %{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_NODEID}};
+}
+
+sub populate_tree {
+  my ($self) = @_;
+  foreach my $nodeid(sort {length($a)<=>length($b)} $self->get_nodeids()){
+    $self->add_node($nodeid);
+  }
+}
+
+sub add_node {
+  my ($self, $nodeid) = @_;
+  my ($query_id, $p1, $p2) = split(":", $nodeid);
+  my ($hop0_nodeid, $hop1_nodeid) = ("$query_id:$p1");
+  $hop1_nodeid = $nodeid if $p2;
+  my $entries = $self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_NODEID}{$nodeid};
+  
+  $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid} = {
+    ENTRIES => $entries, 
+    LINENUM => $self->get_first_occurence($entries)
+  } unless($self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid});
+  
+  $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid}{NODES}{$hop1_nodeid} = {
+    ENTRIES => $entries, 
+    LINENUM => $self->get_first_occurence($entries)
+  } if $hop1_nodeid;
+}
+
+sub get_first_occurence {
+  my ($self, $entries) = @_;
+  my $linenum;
+  foreach my $docid(keys %{$entries}) {
+    foreach my $entry(@{$entries->{$docid}}) {
+      $linenum = $entry->{LINENUM} unless $linenum;
+      $linenum = $entry->{LINENUM} if($entry->{LINENUM} < $linenum);
+    }
+  }
+  $linenum;
+}
+
+sub get_scores {
+	my ($self) = @_;
+  @{$self->{SCORES}};
+}
+
+### END INCLUDE NodeTree
 ### BEGIN INCLUDE EvaluationQueryOutput
 
 #####################################################################################
@@ -3899,6 +4196,36 @@ my %scoring_options = (
 # Build a list of all the known scoring options
 sub get_scoring_options_description {
   &main::build_documentation(\%scoring_options);
+}
+
+# Compute the APs based scores, as introduced in 2017
+sub score_query_aps {
+  my ($self, $original_query, $policy_options, $policy_selected, %options) = @_;
+  # Validate the scoring options
+  foreach my $key (keys %options) {
+    $self->NIST_die("Unknown scoring option: $key") unless $scoring_options{$key};
+  }
+  # Set option defaults, and ensure required options are present
+  foreach my $key (keys %scoring_options) {
+    $options{$key} = $scoring_options{$key}{DEFAULT}
+      if defined $scoring_options{$key}{DEFAULT} && !defined $options{$key};
+    $self->{LOGGER}->NIST_die("No $key provided")
+      if $scoring_options{$key}{REQUIRED} && !defined $options{$key};
+  }
+  my @queries_to_score = ($original_query);
+  my $new_query_base = $options{QUERY_BASE};
+  if ($new_query_base) {
+    my $subqueries = $original_query->expand($new_query_base);
+    @queries_to_score = $subqueries->get_all_queries();
+  }
+  my @scores;
+  foreach my $query (@queries_to_score) {
+    my $query_id = $query->{QUERY_ID};
+    my $query_id_base = $query->get('QUERY_ID_BASE');
+    my $nodetree = NodeTree->new($self, $query_id, $query_id_base);
+    push(@scores, $nodetree->get_scores());
+  }
+  @scores;
 }
 
 # Score a query by building the equivalence class tree for that query,

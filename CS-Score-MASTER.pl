@@ -30,10 +30,10 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2017.1.1";
+my $version = "2017.1.2";
 
 # Filehandles for program and error output
-my @output_postfix = qw(DEBUG SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
+my @output_postfix = qw(DEBUG AP SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
 my %program_output;
 my $error_output;
 
@@ -250,6 +250,408 @@ sub print_lines {
     }
     print {$program_output{CONFIDENCE}} "$header $confidence_intervals{99}[0] $confidence_intervals{95}[0] $confidence_intervals{90}[0] $mean $original_score $confidence_intervals{90}[1] $confidence_intervals{95}[1] $confidence_intervals{99}[1]\n"; 
   }
+}
+
+package APScoresPrinter;
+
+my %printable_fields = (
+  EC => {
+  	NAME => 'EC',
+    DESCRIPTION => "Query or equivalence class name",
+    HEADER => 'QID/EC',
+    FORMAT => '%s',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{EC} },
+  },
+  RUNID => {
+  	NAME => 'RUNID',
+    DESCRIPTION => "Run ID",
+    HEADER => 'RunID',
+    FORMAT => '%s',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{RUNID} },
+  },
+  LEVEL => {
+  	NAME => 'LEVEL',
+    DESCRIPTION => "Hop level",
+    HEADER => 'Hop',
+    FORMAT => '%s',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]{LEVEL} },
+  },
+  AP => {
+  	NAME => 'AP',
+    DESCRIPTION => "Average Precision",
+    HEADER => 'AP',
+    FORMAT => '%6.4f',
+    JUSTIFY => 'L',
+    FN => sub { $_[0]->get('AP') },
+  },
+);
+
+my %metrices = (
+  SF => {
+  	ORDER => 1,
+  	NAME => "SF",
+  	DESCRIPTION => "SF: Slot-filling score variant considering all entrypoints as a separate query",
+  	AGGREGATES => [qw(MACRO)],
+  },
+  LDCMEAN => {
+  	ORDER => 2,
+  	NAME => "LDC-MEAN",
+  	DESCRIPTION => "LDC-MEAN: LDC level score variant considering averaging scores for all coressponding entrypoints",
+  	AGGREGATES => [qw(MACRO)],
+  },
+);
+
+sub get_fields_to_print {
+  my ($spec, $logger) = @_;
+  [map {$printable_fields{$_} || $logger->NIST_die("Unknown field: $_")} split(/:/, $spec)];
+}
+
+sub new {
+  my ($class, $separator, $queries, $runid, $index, $queries_to_score, $spec, $logger) = @_;
+  my $fields_to_print = &get_fields_to_print($spec, $logger);
+  my $self = {RUNID => $runid,
+  	      INDEX => $index,
+  	      QUERIES => $queries,
+  	      QUERIES_TO_SCORE => $queries_to_score,
+  	      FIELDS_TO_PRINT => $fields_to_print,
+	        WIDTHS => {map {$_->{NAME} => length($_->{HEADER})} @{$fields_to_print}},
+	        HEADERS => [map {$_->{HEADER}} @{$fields_to_print}],
+	        LINES => [],
+	     };
+  $self->{SEPARATOR} = $separator if defined $separator;
+  bless($self, $class);
+  $self;
+}
+
+sub aggregate_score {
+  my ($aggregates, $runid, $level, $scores) = @_;
+  # Make sure the necessary aggregate structures are present
+  unless (defined $aggregates->{$runid}{$level}) {
+    my $scoreset = ScoreSet->new();
+    $scoreset->put('RUNID', $runid);
+    $scoreset->put('EC', 'ALL-Micro');
+    $scoreset->put('LEVEL', $level);
+    $aggregates->{$runid}{$level} = $scoreset;
+  }
+  # Aggregate this set of scores for regular slots
+  $aggregates->{$runid}{$level}->add($scores);
+}
+
+sub add_scores {
+	my ($self, @scores) = @_;
+	
+	push(@{$self->{SCORES}}, @scores);
+}
+
+sub compare_ec_names {
+  my ($qa, @a) = split(/:/, $a->{EC});
+  my ($qb, @b) = split(/:/, $b->{EC});
+  $qa cmp $qb ||
+    eval(join(" || ", map {$a[$_] <=> $b[$_]} 0..&main::min($#a, $#b))) ||
+    scalar @a <=> scalar @b;
+}
+
+sub get_line {
+  my ($self, $score) = @_;
+  my %line;
+  foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+    my $value = &{$field->{FN}}($score);
+    # FIXME: Is this always the appropriate default value?
+    $value = 0 unless defined $value;
+    my $text = sprintf($field->{FORMAT}, $value);
+    $line{$field->{NAME}} = $text;
+    $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
+  }
+  %line;
+}
+
+sub print_line {
+  my ($self, $line, $fields, $metric_name, $program_output) = @_;
+  my $separator = "";
+  $fields = $self->{FIELDS_TO_PRINT} unless $fields;
+  foreach my $field (@{$fields}) {
+    my $value = (defined $line ? $line->{$field->{NAME}} : $field->{HEADER});
+    $value = "$metric_name-$value" if $field->{NAME} eq "EC" && $metric_name;
+    print $program_output $separator;
+    my $numspaces = defined $self->{SEPARATOR} ? 0 : $self->{WIDTHS}{$field->{NAME}} - length($value);
+    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'R' && !defined $self->{SEPARATOR};
+    print $program_output $value;
+    print $program_output ' ' x $numspaces if $field->{JUSTIFY} eq 'L' && !defined $self->{SEPARATOR};
+  	$separator = defined $self->{SEPARATOR} ? $self->{SEPARATOR} : ' ';
+  }
+  print $program_output "\n";
+}
+
+sub add_macro_average {
+  my ($self, $metric, @scores) = @_;
+  my $aggregates = {};
+  foreach my $score(sort compare_ec_names @scores ) {
+  	&aggregate_score($aggregates, $score->{RUNID}, $score->{LEVEL}, $score);
+  	&aggregate_score($aggregates, $score->{RUNID}, 'ALL', $score);
+  }
+  foreach my $level (sort keys %{$aggregates->{$self->{RUNID}}}) {
+  	# Print the macro-averaged scores
+  	my %line;
+  	foreach my $field (@{$self->{FIELDS_TO_PRINT}}) {
+  	  my $value = "";
+  	  if ($field->{NAME} eq 'QUERY_ID' ||
+  	  	$field->{NAME} eq 'EC' ||
+		$field->{NAME} eq 'RUNID' ||
+		$field->{NAME} eq 'LEVEL') {
+		  $value = $aggregates->{$self->{RUNID}}{$level}->get($field->{NAME});
+	  }
+	  elsif ($field->{NAME} eq 'AP') {
+	  	$value = $aggregates->{$self->{RUNID}}{$level}->getadjustedmean($field->{NAME});
+	  }
+	  $value = 'ALL-Macro' if $value eq 'ALL-Micro' && $field->{NAME} eq 'EC';
+	  my $format = $field->{FORMAT};
+	  $format =~ s/[df]/s/ if $value eq "";
+	  $format =~ s/\.\d// if $value eq "";
+	  my $text = sprintf($format, $value);
+	  $line{$field->{NAME}} = $text;
+	  $self->{WIDTHS}{$field->{NAME}} = length($text) if length($text) > $self->{WIDTHS}{$field->{NAME}};
+  	}
+  	push(@{$self->{LINES}}, \%line);
+  	push(@{$self->{SUMMARY}{$metric}}, \%line);
+  }
+}
+
+sub projectLDCMEAN {
+	my ($self) = @_;
+	my %index = %{$self->{INDEX}};
+	my @scores = @{$self->{SCORES}};
+	my %evaluation_queries = map {$_=>1} keys %{$self->{QUERIES_TO_SCORE}};
+	my %new_scores;
+	my %duplicate_queries;
+	foreach my $scores(@scores){
+	  my $full_cssf_queryid = $scores->{EC};
+	  my (undef, $cssf_queryid) = &Query::parse_queryid($full_cssf_queryid);  
+	  my $csldc_queryid = $index{$cssf_queryid};
+	  my $full_csldc_queryid = $self->{QUERIES}->get_full_queryid($index{$cssf_queryid});
+    my $level = $scores->{LEVEL};
+    if( (scalar keys %evaluation_queries > 0 && exists $evaluation_queries{$cssf_queryid})
+	      || scalar keys %evaluation_queries == 0) {
+	          $new_scores{$level}{$full_csldc_queryid}{$cssf_queryid} = $scores;
+	  }
+	}
+
+	my @combined_scores;
+	foreach my $level(sort keys %new_scores) {
+	  foreach my $csldc_queryid(sort keys %{$new_scores{$level}}) {
+	    my $combined_scores = Score->new;
+	    my $i = 0;
+	    foreach my $cssf_queryid(keys %{$new_scores{$level}{$csldc_queryid}}) {
+	      my $scores = $new_scores{$level}{$csldc_queryid}{$cssf_queryid};
+	      if(not exists $combined_scores->{EC}) {
+          $combined_scores->put('QUERY_ID_BASE', $scores->get('QUERY_ID_BASE'));
+          $combined_scores->put('EC', $csldc_queryid);
+          $combined_scores->put('RUNID', $scores->get('RUNID'));
+          $combined_scores->put('LEVEL', $scores->get('LEVEL'));
+          $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'));
+          $combined_scores->put('AP', $scores->get('AP'));	        
+	      }
+	      else{
+	      	$combined_scores->put('AP', $combined_scores->get('AP') + $scores->get('AP'));
+	      }
+	      $i++;
+	    }
+	    $combined_scores->put('AP', $combined_scores->get('AP')/$i);
+	    push(@combined_scores, $combined_scores);
+	  }
+	}
+	@combined_scores;
+}
+
+sub prepare_lines {
+  my ($self, $metric) = @_;
+  @{$self->{SUMMARY}{$metric}} = ();
+  my @scores = @{$self->{SCORES}};
+  @scores = $self->projectLDCMEAN() if($metric eq "LDCMEAN");
+  # Prepare lookup for associating parent scores
+  my %scores;
+  foreach my $score(@scores) {
+    $scores{$score->{EC}} = $score;
+  }
+  # Prepare lines
+  foreach my $score(sort compare_ec_names @scores) {
+  	next if not exists $self->{QUERIES_TO_SCORE}{$score->{QUERY_ID_BASE}};
+    $score->{PARENT_SCORE} = $scores{&get_parent_ec($score)}
+      if &get_parent_ec($score);
+  	my %line = $self->get_line($score);
+  	push(@{$self->{LINES}}, \%line);
+  }
+  # Add aggregates
+  $self->add_macro_average($metric, @scores)
+  	if(grep {$_ =~ /MACRO/} @{$metrices{$metric}{AGGREGATES}});
+}
+  
+sub print_headers {
+  my ($self, @args) = @_;
+  $self->print_line( undef, @args );
+}
+
+sub print_lines {
+  my ($self) = @_;
+  foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
+    # Skip over if the sf-queries file passed as argument
+    # This is determined by looking up keys in %{$self->{INDEX}}
+    # which stores a mapping between LDC and SF query ids
+    next if( ($metric eq "LDCMEAN") && (scalar keys %{$self->{INDEX}} == 0) );
+    my $description = $metrices{$metric}{DESCRIPTION};
+    my $fields_to_print = $self->{FIELDS_TO_PRINT};
+    $self->prepare_lines($metric);
+	  $self->print_details() if $metric eq "SF";
+	  $self->print_headers($fields_to_print, undef, $program_output{AP}) if @{$self->{LINES}};
+	  foreach my $line (@{$self->{LINES}}) {
+	    $self->print_line($line, $fields_to_print, undef, $program_output{AP});
+	  }
+	  @{$self->{LINES}} = ();
+	  print {$program_output{AP}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
+  }
+  $self->print_summary($program_output{AP});
+  print {$program_output{"SUMMARY"}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
+}
+
+sub print_details {
+  my ($self) = @_;
+  print {$program_output{DEBUG}} "AP COMPUTATION DEBUG INFO BEGINS:\n";
+  foreach my $score(sort {$a->{EC} cmp $b->{EC} || $a->{LEVEL} cmp $b->{LEVEL}} @{$self->{SCORES}}) {
+  	my $query_id = $score->{EC};
+  	my $level = $score->{LEVEL};
+  	my $ap = sprintf("%0.4f", $score->{AP});
+  	my $num_ground_truth = $score->{NUM_GROUND_TRUTH};
+  	print {$program_output{DEBUG}} "="x80, "\n";
+    print {$program_output{DEBUG}} "QUERY_ID:         $query_id\n";
+    print {$program_output{DEBUG}} "LEVEL:            $level\n";
+    print {$program_output{DEBUG}} "AP:               $ap\n";
+    print {$program_output{DEBUG}} "NUM_GROUND_TRUTH: $num_ground_truth\n";
+    print {$program_output{DEBUG}} "GROUND TRUTH:\n";
+    print {$program_output{DEBUG}} join("\n", map {"  $_"} sort @{$score->{DEBUG}{ECS}}), "\n";
+    print {$program_output{DEBUG}} "RANKING:\n........\nRANK NODEID CONFIDENCE MAPPED_EC V\n";
+    my $rank = 1;
+    foreach my $nodeid(sort {$score->{DEBUG}{NODES}{$b}{CONFIDENCE} <=> $score->{DEBUG}{NODES}{$a}{CONFIDENCE} ||
+                        $score->{DEBUG}{NODES}{$a}{LINENUM} <=> $score->{DEBUG}{NODES}{$b}{LINENUM}} 
+                          keys %{$score->{DEBUG}{NODES}}) {
+      my $confidence = sprintf("%0.4f", $score->{DEBUG}{NODES}{$nodeid}{CONFIDENCE});
+      my $ec = $score->{DEBUG}{NODES}{$nodeid}{EC};
+      $ec = "-" unless $ec;
+      my $v = sprintf("%0.4f", $score->{DEBUG}{NODES}{$nodeid}{V});
+      print {$program_output{DEBUG}} "$rank $nodeid $confidence $ec $v\n";
+      $rank++;
+    }
+  }
+  print {$program_output{DEBUG}} "AP COMPUTATION DEBUG INFO ENDS\n";
+}
+
+sub print_summary {
+  my ($self, $output_handle) = @_;
+  my $fields_to_print = $self->{FIELDS_TO_PRINT};
+  $self->print_headers($fields_to_print, undef, $output_handle);
+  foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
+  	my $metric_name = $metrices{$metric}{NAME};
+    foreach my $line (@{$self->{SUMMARY}{$metric}}) {
+      $self->print_line($line, $fields_to_print, $metric_name, $output_handle);
+    }
+  }
+}
+
+sub get_parent_ec {
+  my ($score) = @_;
+  if($score->{EC} =~ /:/) {
+    my @elements = split(":", $score->{EC});
+    pop @elements;
+    return join(":", @elements);
+  }
+  return;
+}
+
+sub get_summary_stats {
+  my ($self) = @_;
+  foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
+  	@{$self->{SUMMARY}{$metric}} = ();
+  	$self->prepare_lines($metric);
+  }
+  
+  my %summary = %{$self->{SUMMARY}};
+  my @fields = qw(AP);
+  my %stats;
+  foreach my $metric(keys %summary) {
+  	foreach my $line( @{$summary{$metric}} ){
+  	  my $ec = $line->{EC};
+  	  my $level = $line->{LEVEL};
+  	  $stats{$metric}{$ec}{$level} = {map {$_=>$line->{$_}} @fields};
+  	}
+  }
+  
+  %stats;
+}
+
+# Determine which queries should be scored
+sub get_queries_to_score {
+  my ($logger, $spec, $queries) = @_;
+  my %query_slots;
+  # Spec can be empty (meaning score all queries), a colon-separated
+  # list of IDs, or a filename
+  if (!defined $spec) {
+    my @query_ids = $queries->get_all_top_level_query_ids();
+    %query_slots = map {$_=>scalar @{$queries->get($_)->{SLOTS}}-1} @query_ids;
+  }
+  elsif (-f $spec) {
+    open(my $infile, "<:utf8", $spec) or $logger->NIST_die("Could not open $spec: $!");
+    my %index;
+    while(<$infile>) {
+    	chomp;
+    	my ($csldc_query_id, $cssf_query_id_full, $num_slots) = split(/\s+/, $_);
+    	if (not exists $index{$csldc_query_id}) {
+    		$index{$csldc_query_id} = defined $num_slots ? $num_slots : -1; 
+    	}
+    	else {
+    		my $target_value = defined $num_slots ? $num_slots : -1;
+    		$logger->NIST_die("$csldc_query_id has multiple/conflicting num_slots in $spec")
+    			if($target_value != $index{$csldc_query_id});
+    	}
+    	my ($base, $cssf_query_id) = &Query::parse_queryid($cssf_query_id_full);
+    	unless ($queries->get($cssf_query_id)) {
+		  $logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $cssf_query_id, 'NO_SOURCE');
+		  next;
+    	}
+    	my $max_num_slot = scalar @{$queries->get($cssf_query_id)->{SLOTS}}-1;
+    	$num_slots = $max_num_slot unless defined $num_slots;
+    	
+    	$logger->NIST_die("Unexpected num_slots value $num_slots for $csldc_query_id in $spec")
+    		if $num_slots > $max_num_slot || $num_slots < 0;
+    	
+    	$query_slots{$cssf_query_id} = $num_slots;
+    }
+    close $infile;
+  }
+  else {
+    my @query_ids = split(/:/, $spec);
+    foreach my $full_query_id(@query_ids) {
+      my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+      unless ($queries->get($query_id)) {
+      	$logger->record_problem('UNKNOWN_QUERY_ID_WARNING', $query_id, 'NO_SOURCE');
+      	next;
+      }
+      my $num_slots = scalar @{$queries->get($query_id)->{SLOTS}}-1;
+      $query_slots{$query_id} = $num_slots;
+    }
+  }
+  my %query_ids_to_score;
+  foreach my $query_id (keys %query_slots) {
+    my $root = $queries->get_ancestor($query_id);
+    my $num_slots = $query_slots{$query_id}; 
+    $query_ids_to_score{$root->get("QUERY_ID")} = $num_slots unless @{$root->get("EXPANDED_QUERY_IDS")};
+    # If we've requested an unexpanded query ID, we need to add each of the expanded queries
+    foreach my $expanded_query_id (@{$root->get("EXPANDED_QUERY_IDS")}) {
+      $num_slots = $query_slots{$expanded_query_id}; 
+      $query_ids_to_score{$expanded_query_id} = $num_slots;
+    }
+  }
+  %query_ids_to_score;
 }
 
 package ScoresPrinter;
@@ -1091,6 +1493,22 @@ package main;
 
 use Cwd;
 
+sub score_ap {
+  my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $policy_options, $policy_selected, $logger) = @_;
+  my $ap_printer = APScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, 'EC:RUNID:LEVEL:AP', $logger);
+  # Score each query, printing the query-by-query scores
+ foreach my $query_id (sort keys %{$queries_to_score}) {
+    my $query = $queries->get($query_id);
+    # Get the scores just for this query in this run
+    my @scores = $submissions_and_assessments->score_query_aps($query, $policy_options, $policy_selected,
+							   DISCIPLINE => $discipline,
+							   RUNID => $runid,
+							   QUERY_BASE => $query_base);
+		$ap_printer->add_scores(@scores);
+  }
+  $ap_printer;
+}
+
 sub score_runid {
   my ($runid, $submissions_and_assessments, $queries, $queries_to_score, $use_tabs, $spec, $policy_options, $policy_selected, $logger) = @_;
   my $scores_printer = ScoresPrinter->new($use_tabs ? "\t" : undef, $queries, $runid, \%index, $queries_to_score, $spec, $logger);
@@ -1135,6 +1553,8 @@ print {$program_output{PARAMS}} "\nSAMPLE => BOOTSTRAP RESAMPLE" if defined $sam
 foreach my $runid (@runids) {
   my $scores_printer = &score_runid($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
   $scores_printer->print_lines();
+  my $ap_printer = &score_ap($runid, $submissions_and_assessments, $queries, \%queries_to_score, $use_tabs, $spec, \%policy_options, \%policy_selected, $logger);
+  $ap_printer->print_lines();
   if($samples_file) {
     my $samples = Bootstrap->new($logger, $samples_file);
     my $samples_scores_printer = SamplesScoresPrinter->new($logger, $samples, $scores_printer);
@@ -1157,6 +1577,8 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2017.1.2 - New implementation of AP computation added
+#          - Results are being printed to a single AP file, to be split later, upon verification of correctness
 # 2017.1.1 - AP computation from the last version removed; to be corrected in the next version
 # 2017.1.0 - Initial version of 2017; AP is being produced in addition to last year stats
 # 3.0 - Modified file extensions and suppressed empty file creation
