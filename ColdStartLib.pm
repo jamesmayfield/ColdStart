@@ -433,12 +433,16 @@ sub get_counts {
 
 sub get_start {
   my ($self) = @_;
-  $self->{PREDICATE_JUSTIFICATION}->get_start();
+  my $start = 0;
+  $start = $self->{PREDICATE_JUSTIFICATION}->get_start() if($self->{PREDICATE_JUSTIFICATION});
+  $start;
 }
 
 sub get_end {
   my ($self) = @_;
-  $self->{PREDICATE_JUSTIFICATION}->get_end();
+  my $end = 0;
+  $end = $self->{PREDICATE_JUSTIFICATION}->get_end() if($self->{PREDICATE_JUSTIFICATION});
+  $end;
 }
 
 # This is used to get a consistent string representing the provenancelist
