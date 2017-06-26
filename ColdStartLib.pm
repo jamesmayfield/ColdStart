@@ -126,7 +126,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
-  MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
+  MISMATCHED_RUNID              FATAL_ERROR Multiple runids were used: %s
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_DOCIDS_IN_RESPONSE   ERROR    Multiple DOCIDs used in response: %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s

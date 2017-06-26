@@ -119,22 +119,16 @@ open($program_output, ">:utf8", $outputfilename) or $logger->NIST_die("Could not
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $sf_output1 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $round1file);
-my $sf_output2 = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $round2file);
-my $runid1 = $sf_output1->get_runid();
-my $runid2 = $sf_output2->get_runid();
-if ($runid1 ne $runid2) {
-  $logger->record_problem('MISMATCHED_RUNID', $runid1, $runid2, 'NO_SOURCE');
-  $sf_output2->set_runid($runid1);
-}
+my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $round1file, $round2file);
+my @runids = keys %{$sf_output->{RUNIDS}};
+$logger->record_problem('MISMATCHED_RUNID', join(",", @runids), 'NO_SOURCE') if (@runids > 1);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
 if ($num_errors) {
   $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
 }
-print $program_output $sf_output1->tostring("2017SFsubmissions", "R1");
-print $program_output $sf_output2->tostring("2017SFsubmissions", "R2");
+print $program_output $sf_output->tostring("2017SFsubmissions");
 close $program_output;
 print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
 exit 0;

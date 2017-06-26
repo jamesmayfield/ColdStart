@@ -5,12 +5,16 @@ OUTPUT=tac:edl:sen:eal:nug
 KB=NO_ERRORS
 SF=NO_ERRORS
 JUSTIFICATIONS=1:3
-QB=CS17
+QB=CSSF17
 DIR=CS-TestSuite
 DOCS=-docs $(DIR)/AUX-Files/doclength.txt
 #########################################################################################
 
-
+expand-sfkb:
+	perl CS-ExpandKB-MASTER.pl \
+	  -output_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac \
+	  -kbname $(SF) \
+	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.cpt
 
 validate-all: validate-all-kbs validate-all-sfs
 
@@ -74,8 +78,18 @@ setup-sf:
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac.valid \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq
-	awk 'length($$1)<25{print}' $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r1
-	awk 'length($$1)>25{print}' $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r2
+	if [ -f $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog ]; \
+          then rm $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog; \
+        fi
+	perl CS-ValidateSF-MASTER.pl \
+          -error_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog \
+          $(DOCS) \
+          -justifications $(JUSTIFICATIONS) \
+          -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt \
+          $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
+          $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq
+	awk 'length($$1)<25{print}' $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r1
+	awk 'length($$1)>25{print}' $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r2
 	perl CS-GenerateQueries-MASTER.pl \
 	  $(DOCS) \
 	  -valid \
