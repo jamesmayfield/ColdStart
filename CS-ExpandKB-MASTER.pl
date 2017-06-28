@@ -18,8 +18,9 @@ my $error_output;
 
 # Constants
 my $NUM_RELATIONS = 5;
-my $MAX_DOCNUM = 10;
+my $MAX_DOCNUM = 100;
 my $MAX_START = 150;
+my $MAX_SPAN_LENGTH = 60;
 
 package RelationSet;
 
@@ -73,12 +74,12 @@ sub populate_from_text {
   my ($self, $mention_string, $docid, $span) = @_;
   my $length;
   $length = length($mention_string) if $mention_string;
-  $length = &_Utils::rand(60) unless $length;
+  $length = &_Utils::rand($MAX_SPAN_LENGTH) unless $length;
   ($self->{START}, $self->{END}) = split("-", $span) if $span;
   $self->{START} = &_Utils::rand($MAX_START) unless $self->{START};
   $self->{END} = $self->{START} + $length - 1 unless $self->{END};
   $self->{DOCUMENTID} = $docid if $docid;
-  $self->{DOCUMENTID} = "SIMPSONS_0".(&_Utils::rand($MAX_DOCNUM)+10) unless $docid;
+  $self->{DOCUMENTID} = "SIMPSONS_".(&_Utils::rand($MAX_DOCNUM)) unless $docid;
 }
 
 sub get {
@@ -356,7 +357,7 @@ package _Utils;
 
 sub rand {
   my ($arg) = @_;
-  return int(rand($arg))+1 if $arg;
+  return int(rand($arg))+100 if $arg;
   return sprintf("%0.4f", rand(1)) unless $arg;
 }
 
