@@ -121,8 +121,9 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Submission File/Assessment File Errors
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
+  DISCARDED_DEPENDENT           WARNING  Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: %s
   DISCARDED_ENTRY               WARNING  Following line has been discarded due to constraints on multiple justifications: %s
-  DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies will be removed: %s
+  DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies but one will be removed: %s
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
@@ -134,7 +135,6 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
   SEMICOLON_IN_PROVENANCE_E     ERROR    A semicolon is used in the provenance %s
   SEMICOLON_AS_SEPARATOR        WARNING  A semicolon is used as a triple separator in the provenance %s. The semicolon will be replaced with a comma. 
-  UNEXPECTED_JUSTIFICATIONS     WARNING  Unexpected number of justification per document (expected %d, got %d) for query %s and node %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -4345,69 +4345,53 @@ sub score_query {
 
 # This function marks all entries (and dependents) that should be discarded based on the required parameters
 sub mark_multiple_justifications {
-  my ($self, $justifications_allowed) = @_;
-  my ($justifications_perdoc, $justifications_total) = $justifications_allowed =~ /^(.*?):(.*?)$/;
-  my %discarded_dependents;
-  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    my @entries;
-    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
-      # Discard extra justifications per document
+  my ($self, $justifications_allowed_str) = @_;
+  my ($justifications_allowed_perdoc, $justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
+
+  my @levels = keys {map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ALL_ENTRIES}}};
+  my %fqnodeid_to_level = map {$_->{FQNODEID} => $_->{QUERY}{LEVEL}} @{$self->{ALL_ENTRIES}};
+
+  foreach my $level(sort {$a<=>$b} @levels) {
+    foreach my $fqnodeid (sort keys %fqnodeid_to_level) {
+      next unless $fqnodeid_to_level{$fqnodeid} == $level;
+      my @entries;
+      # Enforce per-fqnodeid-document pair constraint
+      # Typically only one justification per fqnodeid-document pair is allowed
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
+        my $k = 0;
+        foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
+                           grep {not exists $_->{DISCARD}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
+          push(@entries, $entry);
+          if ($justifications_allowed_perdoc ne 'M' && $k >= $justifications_allowed_perdoc) {
+            $entry->{DISCARD} = 1;
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE} . "\n",
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+          }
+          $k++;
+        }
+      }
+      # Enforce per-fqnodeid constraint
       my $k = 0;
       foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
-                          @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
-        push(@entries, $entry);
-        if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
+                        grep {not exists $_->{DISCARD}} @entries) {
+        if ($justifications_allowed ne 'M' && $k >= $justifications_allowed) {
           $entry->{DISCARD} = 1;
-          my $justifications_provided = scalar @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
-          $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $justifications_provided, $entry->{QUERY}->get("FULL_QUERY_ID"), $fqnodeid,
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE} . "\n",
             {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
-            if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-                 (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
-                   $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
-        }
-        else {
-          # Don't discard the dependent since this parent is not discarded and as per the requirement if
-          # one of the parents is not discarded all the dependents should not be discarded
-          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
         }
         $k++;
       }
     }
-    # Discard extra justifications over all
-    my $k = 0;
-    foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
-                        grep {not exists $_->{DISCARD}} @entries) {
-      if ($justifications_total ne 'M' && $k >= $justifications_total) {
+    # Discard dependents
+    my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
+                            grep {not exists $_->{DISCARD}}
+                              grep {$_->{QUERY}->{LEVEL} == $level}
+                                @{$self->{ALL_ENTRIES}};
+    foreach my $entry(grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ALL_ENTRIES}}) {
+      unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
         $entry->{DISCARD} = 1;
-        $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-          {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-        $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
-          if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-               $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
-      }
-      else {
-        # Don't discard the dependent since this parent is not discarded and as per the requirement if
-        # one of the parents is not discarded all the dependents should not be discarded
-        $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
-      }
-      $k++;
-    }
-  }
-
-  # Discard dependents having all discarded parents
-  # If any of the parents is not discarded the dependent should not be discarded
-  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
-      foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
-        if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
-          $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
-            $entry->{DISCARD} = 1;
-            $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-              {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-        }
+        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
       }
     }
   }

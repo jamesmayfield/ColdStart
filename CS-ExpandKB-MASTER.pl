@@ -385,6 +385,7 @@ sub load {
   while(my $line = <FILE>) {
     chomp $line;
     next if $line =~ /^\s*$/;
+	next if $line =~ /^\s*\#/;
     $self->populate_from_line($line);    
   }
   foreach my $relation(@{$self->{RELATIONS}->get("ALL_RELATIONS")}) {
