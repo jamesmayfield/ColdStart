@@ -2417,7 +2417,7 @@ sub is_path_correct {
     scalar keys %{$parent_submission->{ASSESSMENT}} > 0 &&
     exists $right_assessments{$parent_submission->{ASSESSMENT}{ASSESSMENT}} &&
 	$parent_submission->{TARGET_QUERY_ID} eq $query_id) {
-      return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
+      return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID}, $policy_selected);
     }
     elsif ($parent_submission->{TARGET_QUERY_ID} eq $query_id) {
       return 0;
@@ -2600,6 +2600,7 @@ sub get_parent_node_score {
   my $parent_mapped_ec = $self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}}{NODES}{$parent_nodeid}{EC};
   my $parent_node_score = 0;
   $parent_node_score = $parent_mapped_ec->{SCORE} if $parent_mapped_ec;
+  $parent_node_score
 }
 
 # Align the nodes with equivalence classes
@@ -2648,6 +2649,8 @@ sub get_candidate_ecs {
   }
   foreach my $entry(grep {$_->{FQNODEID} eq $nodeid} @submissions) {
     my $ec = $entry->{ASSESSMENT}{VALUE_EC};
+    next unless $ec;
+    $candidate_ecs->{$ec}{LINENUM} = $entry->{LINENUM} unless $candidate_ecs->{$ec}{LINENUM};
     $candidate_ecs->{$ec}{LINENUM} = $entry->{LINENUM}
       if($ec &&
           (not exists $candidate_ecs->{$ec}{LINENUM} ||

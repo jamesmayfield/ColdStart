@@ -10,6 +10,15 @@ DIR=CS-TestSuite
 DOCS=-docs $(DIR)/AUX-Files/doclength.txt
 #########################################################################################
 
+score-sf:
+	perl CS-Score-MASTER.pl \
+	  -expand $(QB) \
+	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog \
+	  -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score \
+	  $(DIR)/SF-TestSuite/$(SF)/ldc-query.xml \
+	  $(DIR)/SF-TestSuite/$(SF)/qrel.txt \
+	  $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt
+
 expand-sfkb:
 	perl CS-ExpandKB-MASTER.pl \
 	  -output_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac \

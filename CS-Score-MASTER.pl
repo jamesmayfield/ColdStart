@@ -254,7 +254,7 @@ sub print_lines {
 
 package APScoresPrinter;
 
-my %printable_fields = (
+our %printable_fields = (
   EC => {
   	NAME => 'EC',
     DESCRIPTION => "Query or equivalence class name",
@@ -289,7 +289,7 @@ my %printable_fields = (
   },
 );
 
-my %metrices = (
+our %metrices = (
   SF => {
   	ORDER => 1,
   	NAME => "SF",
@@ -664,7 +664,7 @@ package ScoresPrinter;
 # with the appropriate field name, or if we can calculate the value from that
 # output, FN needs to do the calculation and return the appropriate string.
 ### DO INCLUDE
-my %printable_fields = (
+our %printable_fields = (
   EC => {
   	NAME => 'EC',
     DESCRIPTION => "Query or equivalence class name",
@@ -853,7 +853,7 @@ my %policy_options = (
   },
 );
 
-my %metrices = (
+our %metrices = (
   SF => {
   	ORDER => 1,
   	NAME => "SF",
