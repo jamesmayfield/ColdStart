@@ -4400,65 +4400,65 @@ sub mark_multiple_justifications {
 # Pick entries with the highest confidence node corresponding to a query, removing all other entries
 # Also remove dependents of the removed entries
 sub manage_single_valued_slots {
-	my ($self) = @_;
-  my %discarded_dependents;
-  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    next if $self->{NODE_QUANTITY}{$fqnodeid} ne "single";
-    my %aggregate_conf;
-    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
-      # Compute the node confidences
-      my ($query_id) = map {$_->{QUERYID}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
-      my @confidences = sort {$b <=> $a} map {$_->{CONFIDENCE}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
-      my ($first_occurance) = sort {$a <=> $b} map {$_->{LINENUM}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}};
-      my $i=1;
-      my ($num, $den) = (0, 0);
-      foreach my $conf(@confidences) {
-        $num = $num + ($conf/$i);
-        $den = $den + (1/$i);
-        $i++;
-      }
-      $aggregate_conf{$fqnodeid}{CONFIDENCE} = $num / $den;
-      $aggregate_conf{$fqnodeid}{LINENUM} = $first_occurance;
-    }
-    # Select the node with highest confidence
-    my ($selected_node) =
-      sort {$aggregate_conf{$b}{CONFIDENCE} <=> $aggregate_conf{$a}{CONFIDENCE} ||
-             $aggregate_conf{$a}{LINENUM} <=> $aggregate_conf{$b}{LINENUM}}
-        keys %aggregate_conf;
-    # Discard justifications from nodes other than selected node
-    foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
-        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
-          if($fqnodeid ne $selected_node) {
-            $entry->{DISCARD} = 1;
-            $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-            $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
-               if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-                    (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
-                      $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
-          }
-          else{
-            # Don't discard the dependent since this parent is not discarded
-            $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
-          }
-        }
-      }
+  my ($self) = @_;
+  my %fqnodeids;
+  foreach my $fqnodeid(sort {length($a)<=>length($b)} keys {map {$_->{FQNODEID}=>1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}}) {
+    my ($parent_fqnodeid, $nodeid) = $fqnodeid =~ /^(.*):(.*?)$/;
+    $fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}{$fqnodeid} = 1;
+    unless ($fqnodeids{$parent_fqnodeid}{QUANTITY}) {
+      my ($node_quantity) = map {$_->{QUERY}->{QUANTITY}} grep {$_->{FQNODEID} eq $fqnodeid} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+      $fqnodeids{$parent_fqnodeid}{QUANTITY} = $node_quantity;
     }
   }
 
-  # Discard dependents having all discarded parents
-  # If any of the parents is not discarded the dependent should not be discarded
-  foreach my $fqnodeid (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    next if $self->{NODE_QUANTITY}{$fqnodeid} ne "single";
-    foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
-      foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
-        if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
-          $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
-            $entry->{DISCARD} = 1;
-            $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-              {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+  foreach my $parent_fqnodeid(sort {length($a)<=>length($b)} keys %fqnodeids) {
+    next unless $fqnodeids{$parent_fqnodeid}{QUANTITY} eq "single";
+    my %child_node_confidences;
+    my $level;
+    foreach my $child_fqnodeid(keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
+      my ($confidence, $first_occurence, @confidences);
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
+        foreach my $entry(grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
+          $level = $entry->{QUERY}->{LEVEL} unless $level;
+          push(@confidences, $entry->{CONFIDENCE});
+          $first_occurence = $entry->{LINENUM} unless $first_occurence;
+          $first_occurence = $entry->{LINENUM} if $first_occurence > $entry->{LINENUM};
         }
+      }
+      my ($i, $num, $den) = (1, 0, 0);
+      foreach my $conf(sort {$b<=>$a} @confidences) {
+        $num += ($conf/$i);
+        $den += (1/$i);
+        $i++;
+      }
+      $confidence = $num / $den;
+      $child_node_confidences{$child_fqnodeid} = {CONFIDENCE => $confidence, LINENUM => $first_occurence};
+    }
+    # Select the node with highest confidence
+    my ($selected_nodeid) =
+      sort {$child_node_confidences{$b}{CONFIDENCE} <=> $child_node_confidences{$a}{CONFIDENCE} ||
+             $child_node_confidences{$a}{LINENUM} <=> $child_node_confidences{$b}{LINENUM}}
+        keys %child_node_confidences;
+    # Discard justifications from child nodes other than selected node
+    foreach my $child_fqnodeid(grep {$_ ne $selected_nodeid} keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
+          $entry->{DISCARD} = 1;
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+        }
+      }
+    }
+    # Discard dependents
+    my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
+                            grep {not exists $_->{DISCARD}}
+                              grep {$_->{QUERY}->{LEVEL} == $level}
+                                @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+    foreach my $entry(grep {!$_->{DISCARD}} grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+      unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
+        $entry->{DISCARD} = 1;
+        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
       }
     }
   }
