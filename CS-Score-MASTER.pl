@@ -1233,6 +1233,8 @@ sub print_details {
           unless ($summary{$submission->{LINENUM}}) {
 		        $summary{$submission->{LINENUM}} = {
                                                  LINE => $submission->{LINE},
+                                                 FQNODEID => $submission->{FQNODEID} ? $submission->{FQNODEID} : "-",
+                                                 TARGET_QUERY_ID => $submission->{TARGET_QUERY}->get("FULL_QUERY_ID"),
                                                  ASSESSMENT_LINE => $assessment_line,
                                                  PREPOLICY_ASSESSMENT => $assessment,
                                                  POSTPOLICY_ASSESSMENT => [$label]
@@ -1249,7 +1251,9 @@ sub print_details {
 	print {$program_output{DEBUG}} "$ec\n";
 	
 	foreach my $line_num(sort {$a<=>$b} keys %summary) {
+		print {$program_output{DEBUG}} "\tFQNODEID:\t", $summary{$line_num}{FQNODEID}, "\n";
 		print {$program_output{DEBUG}} "\tSUBMISSION:\t", $summary{$line_num}{LINE}, "\n";
+		print {$program_output{DEBUG}} "\tTARGET_QID:\t", $summary{$line_num}{TARGET_QUERY_ID}, "\n";
 		print {$program_output{DEBUG}} "\tASSESSMENT:\t", $summary{$line_num}{ASSESSMENT_LINE}, "\n\n";
 		print {$program_output{DEBUG}} "\tPREPOLICY ASSESSMENT:\t", $summary{$line_num}{PREPOLICY_ASSESSMENT}, "\n";
 		print {$program_output{DEBUG}} "\tPOSTPOLICY ASSESSMENT:\t", join(",", sort @{$summary{$line_num}{POSTPOLICY_ASSESSMENT}}), "\n";
