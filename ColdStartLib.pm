@@ -4348,8 +4348,8 @@ sub mark_multiple_justifications {
   my ($self, $justifications_allowed_str) = @_;
   my ($justifications_allowed_perdoc, $justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
 
-  my @levels = keys {map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ALL_ENTRIES}}};
-  my %fqnodeid_to_level = map {$_->{FQNODEID} => $_->{QUERY}{LEVEL}} @{$self->{ALL_ENTRIES}};
+  my @levels = keys {map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}};
+  my %fqnodeid_to_level = map {$_->{FQNODEID} => $_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
 
   foreach my $level(sort {$a<=>$b} @levels) {
     foreach my $fqnodeid (sort keys %fqnodeid_to_level) {
@@ -4386,8 +4386,8 @@ sub mark_multiple_justifications {
     my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
                             grep {not exists $_->{DISCARD}}
                               grep {$_->{QUERY}->{LEVEL} == $level}
-                                @{$self->{ALL_ENTRIES}};
-    foreach my $entry(grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ALL_ENTRIES}}) {
+                                @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+    foreach my $entry(grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
       unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
         $entry->{DISCARD} = 1;
         $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
