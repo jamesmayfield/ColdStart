@@ -19,10 +19,8 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.5";   # (1) Node confidence computation function changed to have the denomerator
-                            #     same irrespective of how many justifications were provided.
-                            # (2) Also support added to have the confidence vary depending on allowed
-                            #     justifications passed through switch -justifications
+my $version = "2017.1.6";   # (1) Node mapping function changed to traverse the nodetree in breadth 
+                            #     first order rather than depth first..
 
 ### BEGIN INCLUDE Switches
 
@@ -2480,11 +2478,13 @@ sub new {
   my $self = {QUERY_ID => $full_query_id,
         QUERY_ID_BASE => $query_id_base,
         SUBMISSIONS_AND_ASSESSMENTS => $submissions_and_assessments,
+        NODES_BY_LEVEL => {},
         NODE_TREE => {},
-	      SCORES => [],
-	      SLOT0_QUANTITY => $slot0_quantity,
-	      SLOT1_QUANTITY => $slot1_quantity,
-	      LOGGER => $logger};
+        MAPPED_ECS => {},
+        SCORES => [],
+        SLOT0_QUANTITY => $slot0_quantity,
+        SLOT1_QUANTITY => $slot1_quantity,
+        LOGGER => $logger};
   bless($self, $class);
   $self->compute_scores();
   $self;
@@ -2608,36 +2608,29 @@ sub get_parent_node_score {
 # Align the nodes with equivalence classes
 sub map_all_nodes {
   my ($self) = @_;
-  $self->map_subtree_nodes($self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}});
-}
-
-sub map_subtree_nodes {
-  my ($self, $subtree) = @_;
-  my %mapped_ecs;
-  foreach my $nodeid(sort {$subtree->{NODES}{$b}{CONFIDENCE} <=> $subtree->{NODES}{$a}{CONFIDENCE} ||
-                        $subtree->{NODES}{$a}{LINENUM} <=> $subtree->{NODES}{$b}{LINENUM}
-                  } keys %{$subtree->{NODES}}) {
-    my $candidate_ecs = $self->get_candidate_ecs($subtree, $nodeid);
-    my $selected_ec;
-    ($selected_ec) = sort {$candidate_ecs->{$b}{SCORE}<=>$candidate_ecs->{$a}{SCORE} ||
+  foreach my $level (sort {$a<=>$b} keys %{$self->{NODES_BY_LEVEL}}) {
+    foreach my $nodeid(sort {$self->{NODES_BY_LEVEL}{$level}{$b}{CONFIDENCE} <=> $self->{NODES_BY_LEVEL}{$level}{$a}{CONFIDENCE} ||
+                        $self->{NODES_BY_LEVEL}{$level}{$a}{LINENUM} <=> $self->{NODES_BY_LEVEL}{$level}{$b}{LINENUM}
+                  } keys %{$self->{NODES_BY_LEVEL}{$level}}) {
+      my $node = $self->{NODES_BY_LEVEL}{$level}{$nodeid};
+      my $candidate_ecs = $self->get_candidate_ecs($node, $nodeid);
+      my $selected_ec;
+      ($selected_ec) = sort {$candidate_ecs->{$b}{SCORE}<=>$candidate_ecs->{$a}{SCORE} ||
                               $candidate_ecs->{$b}{LINENUM}<=>$candidate_ecs->{$a}{LINENUM}}
-                       grep {!$mapped_ecs{$_}}
-                         keys %{$candidate_ecs};
-    $subtree->{NODES}{$nodeid}{EC} = {NAME=>$selected_ec, SCORE=>$candidate_ecs->{$selected_ec}{SCORE}}
-                                       if $selected_ec;
-    $mapped_ecs{$selected_ec} = $nodeid if $selected_ec;
-  }  
-  foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
-    $self->map_subtree_nodes($subtree->{NODES}{$child_nodeid});
+                         grep {!$self->{MAPPED_ECS}{$_}}
+                           keys %{$candidate_ecs};
+      $node->{EC} = {NAME=>$selected_ec, SCORE=>$candidate_ecs->{$selected_ec}{SCORE}} if $selected_ec;
+      $self->{MAPPED_ECS}{$selected_ec} = $nodeid if $selected_ec;
+    }
   }
 }
 
 # Get candidate ecs, corresponding score and line numbers
 sub get_candidate_ecs {
-  my ($self, $subtree, $nodeid) = @_;
+  my ($self, $node, $nodeid) = @_;
   my ($k) = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
   # FIXME: This needs to depend upon post-policy decisions to allow INEXACTs as correct for example
-  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT'} $self->get_flattened_entries($subtree, $nodeid);
+  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT'} $self->get_flattened_entries($node);
   my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
                          grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
@@ -2671,10 +2664,10 @@ sub get_num_justifying_docs {
 }
 
 sub get_flattened_entries {
-  my ($self, $subtree, $nodeid) = @_;
+  my ($self, $node) = @_;
   my @entries;
-  foreach my $docid(keys %{$subtree->{NODES}{$nodeid}{ENTRIES}}) {
-    foreach my $entry(@{$subtree->{NODES}{$nodeid}{ENTRIES}{$docid}}) {
+  foreach my $docid(keys %{$node->{ENTRIES}}) {
+    foreach my $entry(@{$node->{ENTRIES}{$docid}}) {
       push(@entries, $entry);
     }
   }
@@ -2743,7 +2736,7 @@ sub add_node {
   my ($hop0_nodeid, $hop1_nodeid) = ("$query_id:$p1");
   $hop1_nodeid = $nodeid if $p2;
   my $entries = $self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_NODEID}{$nodeid};
-  
+    
   $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid} = {
     ENTRIES => $entries, 
     LINENUM => $self->get_first_occurence($entries)
@@ -2753,6 +2746,14 @@ sub add_node {
     ENTRIES => $entries, 
     LINENUM => $self->get_first_occurence($entries)
   } if $hop1_nodeid;
+  
+  my $level = 0;
+  $level = 1 if $p2;
+  unless($self->{FQNODEIDS}{$level}{$nodeid}) {
+  	my $node = $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid};
+  	$node = $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid}{NODES}{$hop1_nodeid} if $hop1_nodeid;
+    $self->{NODES_BY_LEVEL}{$level}{$nodeid} = $node;
+  }  
 }
 
 sub get_first_occurence {

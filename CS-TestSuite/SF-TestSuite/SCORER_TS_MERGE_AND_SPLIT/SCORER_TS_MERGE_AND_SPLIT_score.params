@@ -1,7 +1,7 @@
-#At: Thu Jun 29 11:26:28 2017
+#At: Thu Jun 29 16:42:56 2017
 
 #Invoked as:
-/home/skr1/git/cold-start-collaborative/ColdStart$ perl CS-Score-MASTER.pl -expand CSSF17 -error_file CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT_score.errlog -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT_score CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT.valid.ldc.tab.txt
+/Users/rajput/cold-start-collaborative/ColdStart$ perl CS-Score-MASTER.pl -expand CSSF17 -error_file CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT_score.errlog -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT_score CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT.valid.ldc.tab.txt
 
 #Policy Selected:
   IGNORE => UNASSESSED:DUPLICATE

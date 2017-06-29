@@ -1,4 +1,4 @@
-Last modified: 8th June 2017
+Last modified: 29th June 2017
 
 # 1 Introduction
 
@@ -14,7 +14,8 @@ The content in this README is focused at the participants of various TAC tracks 
 1. CS-GenerateQueries-MASTER.pl (v2017.1.0)
 2. CS-ResolveQueries-MASTER.pl (v2017.1.0)
 3. CS-ValidateKB-MASTER.pl (v2017.1.1)
-4. CS-ValidateSF-MASTER.pl (v2017.1.0)
+4. CS-ValidateSF-MASTER.pl (v2017.1.1)
+5. CS-Score-MASTER.pl (v2017.1.5)
 
 ## 2.1 Scripts usage
 
@@ -170,7 +171,93 @@ parameters are:
   filename   File containing query output. (Required).
 ~~~
 
-# 3 Overview of various scenarios
+### 2.1.5 Usage of CS-Score-MASTER.pl
+~~~
+CS-Score-MASTER.pl:  Score one or more TAC Cold Start runs
+
+Usage: CS-Score-MASTER.pl {-switch {-switch ...}} files...
+
+Legal switches are:
+  -discipline <value>      Discipline for identifying ground truth (see below
+                             for options) (Default = ASSESSED).
+  -error_file <value>      Where should error output be sent? (filename, stdout
+                             or stderr) (Default = stderr).
+  -expand <value>          Expand multi-entrypoint queries, using string
+                             provided as base for expanded query names
+  -fields <value>          Colon-separated list of output fields to print (see
+                             below for options) (Default =
+                             EC:RUNID:LEVEL:GT:SUBMITTED:CORRECT:INCORRECT:INEXACT:INCOR/
+                             RECT_PARENT:UNASSESSED:REDUNDANT:RIGHT:WRONG:IGNORED:P:R:F).
+  -help                    Show help
+  -ignore <value>          Colon-separated list of assessment codes, submitted
+                             value corresponding to which to be ignored
+                             (post-policy) (see policy options below for legal
+                             choices) (Default = UNASSESSED:DUPLICATE).
+  -justifications <value>  Are multiple justifications allowed? Legal values are
+                             of the form A:B where A represents justifications
+                             per document and B represents total justifications.
+                             Use 'M' to allow any number of justifications, for
+                             e.g., 'M:10' to allow multiple justifications per
+                             document but overall not more than 10 (best or top)
+                             justifications. (Default = 1:3).
+  -output_file <value>     Where should program output be sent? (prefix of
+                             filename, stdout or stderr) (Default = stdout).
+  -queries <value>         file (one LDC query ID, SF query ID pair, separated
+                             by space, per line with an optional number
+                             separated by space representing the hop upto which
+                             evaluation is to be performed) or colon-separated
+                             list of SF query IDs to be scored (if omitted, all
+                             query files in 'files' parameter will be scored)
+  -right <value>           Colon-separated list of assessment codes, submitted
+                             value corresponding to which to be counted as right
+                             (post-policy) (see policy options below for legal
+                             choices) (Default = CORRECT).
+  -runids <value>          Colon-separated list of run IDs to be scored (if
+                             omitted, all runids will be scored)
+  -samples <value>         Specify the Bootstrap resamples file.
+  -tabs                    Use tabs to separate output fields instead of spaces
+                             (useful for export to spreadsheet)
+  -version                 Print version number and exit
+  -wrong <value>           Colon-separated list of assessment codes, submitted
+                             value corresponding to which to be counted as wrong
+                             (post-policy) (see policy options below for legal
+                             choices) (Default =
+                             INCORRECT:INCORRECT_PARENT:INEXACT).
+parameters are:
+  files  Query file, submission file and judgment file (Required).
+
+-discipline is one of the following:
+  ASSESSED:     No match unless this exact entry appears in the assessments
+  STRING_CASE:  String matches modulo case differences; provenance need not match
+  STRING_EXACT: Exact string match, but provenance need not match
+-fields is a colon-separated list drawn from the following:
+  CORRECT:          Number of assessed correct responses (pre-policy)
+  EC:               Query or equivalence class name
+  F:                F1 = 2PR/(P+R)
+  GT:               Number of ground truth values
+  IGNORED:          Number of responses that were ignored (post-policy)
+  INCORRECT:        Number of assessed incorrect responses (pre-policy)
+  INCORRECT_PARENT: Total number of submitted entries with parents incorrect
+  INEXACT:          Number of assessed inexact responses (pre-policy)
+  LEVEL:            Hop level
+  P:                Precision
+  R:                Recall
+  REDUNDANT:        Number of duplicate submitted values in equivalence clase (post-policy)
+  RIGHT:            Number of submitted values counted as right (post-policy)
+  RUNID:            Run ID
+  SUBMITTED:        Total number of submitted entries
+  UNASSESSED:       Total number of unassessed submitted entries
+  WRONG:            Number of submitted values counted as wrong (post-policy)
+policy options are a colon-separated list drawn from the following:
+  CORRECT:          Number of assessed correct responses. Legal choice for -right.
+  DUPLICATE:        Number of duplicate responses. Legal choice for -right, -wrong and -ignore.
+  INCORRECT:        Number of assessed incorrect responses. Legal choice for -wrong.
+  INCORRECT_PARENT: Number of responses that had incrorrect (grand-)parent. Legal choice for -wrong and -ignore.
+  INEXACT:          Number of assessed inexact responses. Legal choice for -right, -wrong and -ignore.
+  UNASSESSED:       Number of unassessed responses. Legal choice for -wrong and -ignore.
+~~~
+
+# 3 Generating input files for component-based evaluation
 
 Starting in 2017, the ColdStart KB will allow assertions involving events, and sentiments, in addition to the those involving standard slot-filling slots from the previous year. The participants will also be encouraged to specify external links to the nodes.
 
@@ -201,13 +288,15 @@ perl CS-ResolveQueries.pl -error_file CSrun.errlog tac_kbp_2017_cold_start_slot_
 
 The output will be written in the file named `CSrun.SF`. Also, note that we are using the validated KB `CSrun.tac.valid` as one of the input files instead of the original KB `CSrun.tac`.
 
+CS-ResolveQueries-MASTER.xml will produce all the responses to a given query as found in the knowledge base irrespective of the constraints on how many justifications were allowed. 
+
 Once you have generated the validated KB `CSrun.tac.valid`, you would run the following command in order to generate the validated SF file necessary for component-based slot-filling evaluation:
 
 ~~~
 perl CS-ValidateSF-MASTER.pl -error_file CSrun.SF.errlog -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -output_file CSrun.valid.ldc.tab.txt tac_kbp_2017_cold_start_slot_filling_evaluation_queries.xml CSrun.SF
 ~~~
 
-The output of this step `CSrun.valid.ldc.tab.txt` will be used for component-based slot-filling evaluation.
+The output of this step `CSrun.valid.ldc.tab.txt` will be used for component-based slot-filling evaluation. Please note that CS-ValidateSF-MASTER.pl will apply the constraints on how many justifications were to allowed.
 
 ## 3.3 Generating valid input file for evaluating Entity Discovery and Linking component
 
@@ -256,3 +345,8 @@ The value of the `-output` switch does not need to be a singular value, rather i
 ~~~
 perl CS-ValidateKB-MASTER.pl -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -error_file CSrun.errlog -output tac:edl:sen:eag:eng CSrun.tac
 ~~~
+
+# 4. Evaluating Slot Filling component
+
+Refer to README-Scoring for details.
+
