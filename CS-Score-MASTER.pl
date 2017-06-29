@@ -509,10 +509,9 @@ sub print_lines {
 	foreach my $line (@{$self->{LINES}}) {
 	  $self->print_line($line, $fields_to_print, undef, $program_output{AP});
 	}
+    print {$program_output{AP}} "\n";
 	@{$self->{LINES}} = ();
   }
-  print {$program_output{AP}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
-
   $self->print_summary($program_output{AP});
   print {$program_output{"AP"}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
 }
@@ -551,7 +550,7 @@ sub print_details {
 sub print_summary {
   my ($self, $output_handle) = @_;
   my $fields_to_print = $self->{FIELDS_TO_PRINT};
-  print $output_handle "Following section provides summary of AP scores:\n";
+  print $output_handle "SUMMARY: This section provides summary of AP scores\n\n";
   $self->print_headers($fields_to_print, undef, $output_handle);
   foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
   	my $metric_name = $metrices{$metric}{NAME};
