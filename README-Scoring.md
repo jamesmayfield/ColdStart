@@ -91,16 +91,19 @@ perl CS-Score.pl -output_file CSrun_score -queries queryids.txt -error_file CSru
 
 The scorer may produce either SF score variant or all of the following depending on the options selected. Aggregates reported for the variants are:
 
-        |               |   Aggregates Reported         |
-	|               | Micro-average | Macro-average |
-        |               |---------------|---------------|
-        | Score Variant | AP | P/R/F1   |  AP | P/R/F1  |
-	|---------------|---------------|---------------|
-	| SF            | No | Yes      | Yes |Yes      |
-	|---------------|---------------|---------------|
-	| LDC-MAX       | No | Yes      | No  |Yes      |
-	|---------------|---------------|---------------|
-	| LDC-MEAN      | No | No       | Yes |Yes      |
+~~~
+|               |   Aggregates Reported         |
+|               |-------------------------------|
+|               | Micro-average | Macro-average |
+|               |---------------|---------------|
+| Score Variant | AP | P/R/F1   |  AP | P/R/F1  |
+|---------------|----|----------|-----|---------|
+| SF            | No | Yes      | Yes |Yes      |
+|---------------|----|----------|-----|---------|
+| LDC-MAX       | No | Yes      | No  |Yes      |
+|---------------|----|----------|-----|---------|
+| LDC-MEAN      | No | No       | Yes |Yes      |
+~~~
 
 Aggregates are computed for the hops individually and also as combined across all hops.
 
