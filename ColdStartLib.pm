@@ -2697,6 +2697,8 @@ sub compute_subtree_confidences {
 
 sub compute_node_confidence {
   my ($self, $entries) = @_;
+  my $justifications_allowed_str = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED};
+  my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
   my @confidences;
   foreach my $docid(keys %{$entries}) {
     foreach my $entry(@{$entries->{$docid}}) {
@@ -2708,7 +2710,15 @@ sub compute_node_confidence {
   foreach my $confidence(sort {$b<=>$a} @confidences) {
     $numerator += ($confidence/$i);
     $denomerator += (1/$i);
+    last if ($num_justifications_allowed ne "M" && $i==$num_justifications_allowed);
     $i++;
+  }
+  if($num_justifications_allowed ne "M") {
+    # Denomerator needs to be the same irrespective of how many justifications were there
+    $denomerator = 0;
+    for ($i=1; $i<=$num_justifications_allowed; $i++){
+      $denomerator += (1/$i);
+    }
   }
   $numerator/$denomerator;
 }
@@ -4404,6 +4414,8 @@ sub mark_multiple_justifications {
 # Also remove dependents of the removed entries
 sub manage_single_valued_slots {
   my ($self) = @_;
+  my $justifications_allowed_str = $self->{JUSTIFICATIONS_ALLOWED};
+  my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
   my %fqnodeids;
   foreach my $fqnodeid(sort {length($a)<=>length($b)} keys {map {$_->{FQNODEID}=>1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}}) {
     my ($parent_fqnodeid, $nodeid) = $fqnodeid =~ /^(.*):(.*?)$/;
@@ -4432,7 +4444,15 @@ sub manage_single_valued_slots {
       foreach my $conf(sort {$b<=>$a} @confidences) {
         $num += ($conf/$i);
         $den += (1/$i);
+        last if ($num_justifications_allowed ne "M" && $i==$num_justifications_allowed);
         $i++;
+      }
+      if($num_justifications_allowed ne "M") {
+        # Denomerator needs to be the same irrespective of how many justifications were there
+        $den = 0;
+        for ($i=1; $i<=$num_justifications_allowed; $i++){
+          $den += (1/$i);
+        }
       }
       $confidence = $num / $den;
       $child_node_confidences{$child_fqnodeid} = {CONFIDENCE => $confidence, LINENUM => $first_occurence};
