@@ -171,7 +171,7 @@ The official score computation differs from the AP computation because for our r
 
 Therefore the official AP-based score is (0.6667 + 1.6667/2)/4.
 ~~~
-================================================================================
+=============================================================================================
 QUERY_ID:         CSSF17_ENG_afddc4ed21
 LEVEL:            1
 AP:               0.3750
@@ -183,14 +183,15 @@ GROUND TRUTH:
   CSSF17_ENG_afddc4ed21:2:2
 RANKING:
 ........
-RANK NODEID CONFIDENCE MAPPED_EC V
-1 CSSF17_ENG_afddc4ed21:Entity102:Entity111 0.7396 CSSF17_ENG_afddc4ed21:1:2 0.6667
-2 CSSF17_ENG_afddc4ed21:Entity102:Entity110 0.6001 CSSF17_ENG_afddc4ed21:1:1 1.0000
-3 CSSF17_ENG_afddc4ed21:Entity103:Entity111 0.4653 -                         0.0000
-4 CSSF17_ENG_afddc4ed21:Entity104:Entity110 0.4581 -                         0.0000
-5 CSSF17_ENG_afddc4ed21:Entity104:Entity111 0.4513 -                         0.0000
-6 CSSF17_ENG_afddc4ed21:Entity103:Entity110 0.4172 -                         0.0000
-================================================================================
+RANK NODEID                                     CONFIDENCE  MAPPED_EC                  V
+---------------------------------------------------------------------------------------------
+1    CSSF17_ENG_afddc4ed21:Entity102:Entity111  0.7396      CSSF17_ENG_afddc4ed21:1:2  0.6667
+2    CSSF17_ENG_afddc4ed21:Entity102:Entity110  0.6001      CSSF17_ENG_afddc4ed21:1:1  1.0000
+3    CSSF17_ENG_afddc4ed21:Entity103:Entity111  0.4653      -                          0.0000
+4    CSSF17_ENG_afddc4ed21:Entity104:Entity110  0.4581      -                          0.0000
+5    CSSF17_ENG_afddc4ed21:Entity104:Entity111  0.4513      -                          0.0000
+6    CSSF17_ENG_afddc4ed21:Entity103:Entity110  0.4172      -                          0.0000
+=============================================================================================
 ~~~
 
 ## 4.4 Output files
