@@ -1,0 +1,7 @@
+List of commands executed:
+
+cd /home/skr1/cold-start-collaborative/ColdStart
+make expand-sfkb SF=SCORER_TS_PERFECT_SCORE
+make setup-sf SF=SCORER_TS_PERFECT_SCORE DOCS=
+
+perl CS-Score-MASTER.pl -expand CSSF17 -error_file /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/SCORER_TS_PERFECT_SCORE_score.errlog -output_file /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/SCORER_TS_PERFECT_SCORE_score /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/ldc-query.xml /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/qrel.txt /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/SCORER_TS_PERFECT_SCORE.valid.ldc.tab.txt

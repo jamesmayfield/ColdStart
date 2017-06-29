@@ -1,0 +1,405 @@
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:113-148	Springfield Elementary School	ORG	SIMPSONS_014:118-148	0.0036	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 31)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:147-171	Springfield High School	ORG	SIMPSONS_015:85-109	0.0162	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 106)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:7-63	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.9509	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 36)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:150-181	Springfield High School	ORG	SIMPSONS_016:149-173	0.9943	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 116)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:72-79	Springfield High School	ORG	SIMPSONS_016:149-173	0.9088	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 111)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:24-72	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.6733	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 61)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:38-47	Springfield High School	ORG	SIMPSONS_017:125-149	0.4268	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 126)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:58-64	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.0584	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 66)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:119-177	Springfield High School	ORG	SIMPSONS_019:33-57	0.6023	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 131)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3b46ec5ede57	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:22-59	Springfield Elementary School	ORG	SIMPSONS_020:41-71	0.3759	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 86)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:113-148	Springfield Elementary School	ORG	SIMPSONS_014:118-148	0.0036	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 34)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:147-171	Springfield High School	ORG	SIMPSONS_015:85-109	0.0162	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 109)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:7-63	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.9509	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 39)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:150-181	Springfield High School	ORG	SIMPSONS_016:149-173	0.9943	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 119)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:72-79	Springfield High School	ORG	SIMPSONS_016:149-173	0.9088	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 114)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:24-72	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.6733	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 64)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:38-47	Springfield High School	ORG	SIMPSONS_017:125-149	0.4268	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 129)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:58-64	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.0584	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 69)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:119-177	Springfield High School	ORG	SIMPSONS_019:33-57	0.6023	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 134)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_4f03d45bc20a	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:22-59	Springfield Elementary School	ORG	SIMPSONS_020:41-71	0.3759	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 89)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:75-104	Springfield High School	ORG	SIMPSONS_011:48-72	0.8404	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 93)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:15-36	Springfield High School	ORG	SIMPSONS_014:36-60	0.7285	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 103)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:8-14	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.0158	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 43)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:115-174	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5617	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 48)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:105-140	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.6050	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 78)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:75-134	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.3753	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 73)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:18-30	Springfield Elementary School	ORG	SIMPSONS_019:74-104	0.6980	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 83)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:22-26	Springfield High School	ORG	SIMPSONS_019:33-57	0.1451	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 143)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:3-28	Springfield High School	ORG	SIMPSONS_019:33-57	0.1723	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 138)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_bc49f811f307	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:51-76	Springfield High School	ORG	SIMPSONS_019:33-57	0.7091	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 148)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_SPLIT	SIMPSONS_011:119-172	Bart	PER	SIMPSONS_011:130-135	0.1178	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 1)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_SPLIT	SIMPSONS_011:9-17	Lisa	PER	SIMPSONS_011:138-143	0.0123	:Entity104
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 11)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_SPLIT	SIMPSONS_015:27-29	Lisa Simpson	PER	SIMPSONS_015:102-115	0.1298	:Entity104
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 15)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_SPLIT	SIMPSONS_016:41-64	Lisa	PER	SIMPSONS_016:72-77	0.1749	:Entity103
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 8)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_SPLIT	SIMPSONS_018:121-171	Lisa	PER	SIMPSONS_018:77-82	0.4358	:Entity103
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 9)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_SPLIT	SIMPSONS_018:35-53	Bart Simpson	PER	SIMPSONS_018:72-85	0.2557	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 4)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:75-104	Springfield High School	ORG	SIMPSONS_011:48-72	0.8404	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 94)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:15-36	Springfield High School	ORG	SIMPSONS_014:36-60	0.7285	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 104)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:8-14	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.0158	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 44)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:115-174	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5617	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 49)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:105-140	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.6050	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 79)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:75-134	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.3753	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 74)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:18-30	Springfield Elementary School	ORG	SIMPSONS_019:74-104	0.6980	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 84)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:22-26	Springfield High School	ORG	SIMPSONS_019:33-57	0.1451	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 144)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:3-28	Springfield High School	ORG	SIMPSONS_019:33-57	0.1723	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 139)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:51-76	Springfield High School	ORG	SIMPSONS_019:33-57	0.7091	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 149)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_18ee585af031	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:113-148	Springfield Elementary School	ORG	SIMPSONS_014:118-148	0.0036	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 32)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_18ee585af031	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:147-171	Springfield High School	ORG	SIMPSONS_015:85-109	0.0162	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 107)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_18ee585af031	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:72-79	Springfield High School	ORG	SIMPSONS_016:149-173	0.9088	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 112)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_18ee585af031	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:58-64	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.0584	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 67)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1fa227e2e937	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:60-63	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.1492	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 17)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1fa227e2e937	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:34-69	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.4448	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 57)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1fa227e2e937	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:37-37	Springfield High School	ORG	SIMPSONS_019:33-57	0.0916	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 152)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1fa227e2e937	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:60-117	Springfield High School	ORG	SIMPSONS_019:33-57	0.0782	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 157)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:113-148	Springfield Elementary School	ORG	SIMPSONS_014:118-148	0.0036	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 33)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:147-171	Springfield High School	ORG	SIMPSONS_015:85-109	0.0162	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 108)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:7-63	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.9509	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 38)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:150-181	Springfield High School	ORG	SIMPSONS_016:149-173	0.9943	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 118)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:72-79	Springfield High School	ORG	SIMPSONS_016:149-173	0.9088	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 113)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:24-72	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.6733	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 63)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:38-47	Springfield High School	ORG	SIMPSONS_017:125-149	0.4268	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 128)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:58-64	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.0584	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 68)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:119-177	Springfield High School	ORG	SIMPSONS_019:33-57	0.6023	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 133)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_23ae2bc83fbd	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:22-59	Springfield Elementary School	ORG	SIMPSONS_020:41-71	0.3759	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 88)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:102-152	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.7211	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 23)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:60-63	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.1492	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 18)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_012:84-86	Springfield High School	ORG	SIMPSONS_012:4-28	0.4244	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 98)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_013:138-172	Springfield Elementary School	ORG	SIMPSONS_013:146-176	0.0282	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 28)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:139-139	Springfield High School	ORG	SIMPSONS_016:149-173	0.3079	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 123)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:34-69	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.4448	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 58)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:9-49	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5769	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 53)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:37-37	Springfield High School	ORG	SIMPSONS_019:33-57	0.0916	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 153)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:60-117	Springfield High School	ORG	SIMPSONS_019:33-57	0.0782	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 158)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_2d21b0131619	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:7-62	Springfield High School	ORG	SIMPSONS_020:140-164	0.6707	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 163)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:75-104	Springfield High School	ORG	SIMPSONS_011:48-72	0.8404	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 92)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:15-36	Springfield High School	ORG	SIMPSONS_014:36-60	0.7285	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 102)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:8-14	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.0158	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 42)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:115-174	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5617	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 47)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:105-140	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.6050	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 77)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:75-134	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.3753	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 72)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:18-30	Springfield Elementary School	ORG	SIMPSONS_019:74-104	0.6980	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 82)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:22-26	Springfield High School	ORG	SIMPSONS_019:33-57	0.1451	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 142)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:3-28	Springfield High School	ORG	SIMPSONS_019:33-57	0.1723	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 137)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f7b77574583	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:51-76	Springfield High School	ORG	SIMPSONS_019:33-57	0.7091	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 147)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:102-152	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.7211	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 24)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:60-63	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.1492	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 19)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_012:84-86	Springfield High School	ORG	SIMPSONS_012:4-28	0.4244	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 99)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_013:138-172	Springfield Elementary School	ORG	SIMPSONS_013:146-176	0.0282	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 29)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:139-139	Springfield High School	ORG	SIMPSONS_016:149-173	0.3079	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 124)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:34-69	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.4448	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 59)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:9-49	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5769	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 54)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:37-37	Springfield High School	ORG	SIMPSONS_019:33-57	0.0916	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 154)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:60-117	Springfield High School	ORG	SIMPSONS_019:33-57	0.0782	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 159)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:7-62	Springfield High School	ORG	SIMPSONS_020:140-164	0.6707	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 164)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:60-63	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.1492	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 16)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_012:84-86	Springfield High School	ORG	SIMPSONS_012:4-28	0.4244	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 96)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_013:138-172	Springfield Elementary School	ORG	SIMPSONS_013:146-176	0.0282	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 26)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:8-14	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.0158	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 41)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:115-174	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5617	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 46)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:139-139	Springfield High School	ORG	SIMPSONS_016:149-173	0.3079	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 121)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:34-69	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.4448	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 56)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:9-49	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5769	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 51)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:75-134	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.3753	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 71)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:22-26	Springfield High School	ORG	SIMPSONS_019:33-57	0.1451	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 141)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:3-28	Springfield High School	ORG	SIMPSONS_019:33-57	0.1723	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 136)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:37-37	Springfield High School	ORG	SIMPSONS_019:33-57	0.0916	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 151)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:60-117	Springfield High School	ORG	SIMPSONS_019:33-57	0.0782	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 156)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_b1d009063e02	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:7-62	Springfield High School	ORG	SIMPSONS_020:140-164	0.6707	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 161)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:113-148	Springfield Elementary School	ORG	SIMPSONS_014:118-148	0.0036	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 35)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:147-171	Springfield High School	ORG	SIMPSONS_015:85-109	0.0162	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 110)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:7-63	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.9509	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 40)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:150-181	Springfield High School	ORG	SIMPSONS_016:149-173	0.9943	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 120)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:72-79	Springfield High School	ORG	SIMPSONS_016:149-173	0.9088	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 115)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:24-72	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.6733	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 65)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:38-47	Springfield High School	ORG	SIMPSONS_017:125-149	0.4268	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 130)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_017:58-64	Springfield Elementary School	ORG	SIMPSONS_017:22-52	0.0584	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 70)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:119-177	Springfield High School	ORG	SIMPSONS_019:33-57	0.6023	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 135)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_f4ad4eed22ad	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:22-59	Springfield Elementary School	ORG	SIMPSONS_020:41-71	0.3759	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 90)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:75-104	Springfield High School	ORG	SIMPSONS_011:48-72	0.8404	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 95)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_014:15-36	Springfield High School	ORG	SIMPSONS_014:36-60	0.7285	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 105)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_015:8-14	Springfield Elementary School	ORG	SIMPSONS_015:54-84	0.0158	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 45)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:115-174	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5617	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 50)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:105-140	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.6050	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 80)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_018:75-134	Springfield Elementary School	ORG	SIMPSONS_018:103-133	0.3753	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 75)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:18-30	Springfield Elementary School	ORG	SIMPSONS_019:74-104	0.6980	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 85)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:22-26	Springfield High School	ORG	SIMPSONS_019:33-57	0.1451	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 145)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:3-28	Springfield High School	ORG	SIMPSONS_019:33-57	0.1723	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 140)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_0b413ff323e6	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:51-76	Springfield High School	ORG	SIMPSONS_019:33-57	0.7091	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 150)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:102-152	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.7211	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 25)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_011:60-63	Springfield Elementary School	ORG	SIMPSONS_011:67-97	0.1492	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 20)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_012:84-86	Springfield High School	ORG	SIMPSONS_012:4-28	0.4244	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 100)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_013:138-172	Springfield Elementary School	ORG	SIMPSONS_013:146-176	0.0282	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 30)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:139-139	Springfield High School	ORG	SIMPSONS_016:149-173	0.3079	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 125)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:34-69	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.4448	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 60)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_016:9-49	Springfield Elementary School	ORG	SIMPSONS_016:10-40	0.5769	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 55)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:37-37	Springfield High School	ORG	SIMPSONS_019:33-57	0.0916	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 155)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_019:60-117	Springfield High School	ORG	SIMPSONS_019:33-57	0.0782	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 160)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_519d8ecfd43c	per:schools_attended	SCORER_TS_SPLIT	SIMPSONS_020:7-62	Springfield High School	ORG	SIMPSONS_020:140-164	0.6707	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/GeneratorKB/SCORER_TS_SPLIT.rq line 165)
+WARNING: Unable to infer language from DOCID SIMPSONS_011. Using default language ENGLISH. (CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/sf-query.xml line In query CSSF17_ENG_afddc4ed21 and 1 other place)
+WARNING: Unable to infer language from DOCID SIMPSONS_012. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_013. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_014. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_015. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_016. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_017. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_018. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_019. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_020. Using default language ENGLISH.
+245 warnings encountered

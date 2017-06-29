@@ -1,0 +1,12 @@
+QID/EC                  RunID           Hop   GT Submitted Correct Incorrect Inexact PIncorrect Unassessed  Dup Right Wrong Ignored Prec   Recall F1    
+CSSF17_ENG_afddc4ed21   SCORER_TS_MERGE 0      2         3       3         0       0          0          0    1     2     0       1 1.0000 1.0000 1.0000
+CSSF17_ENG_afddc4ed21:1 SCORER_TS_MERGE 1      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+CSSF17_ENG_afddc4ed21:2 SCORER_TS_MERGE 1      2         0       0         0       0          0          0    0     0     0       0 0.0000 0.0000 0.0000
+ALL-Micro               SCORER_TS_MERGE 0      2         3       3         0       0          0          0    1     2     0       1 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_MERGE 1      4         6       6         0       0          0          0    4     2     0       4 1.0000 0.5000 0.6667
+ALL-Micro               SCORER_TS_MERGE ALL    6         9       9         0       0          0          0    5     4     0       5 1.0000 0.6667 0.8000
+ALL-Macro               SCORER_TS_MERGE 0                                                                                           1.0000 1.0000 1.0000
+ALL-Macro               SCORER_TS_MERGE 1                                                                                           0.5000 0.5000 0.5000
+ALL-Macro               SCORER_TS_MERGE ALL                                                                                         0.6667 0.6667 0.6667
+
+*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.

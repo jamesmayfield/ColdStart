@@ -1,0 +1,282 @@
+================================================================================
+CSSF17_ENG_afddc4ed21
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_161:237-383	Bart	PER	SIMPSONS_161:185-190	0.9976	:Entity102
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_ff060fa2398b
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_1	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_161:237-383	Bart	SIMPSONS_161:185-190	C	NAM	C	CSSF17_ENG_afddc4ed21:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	RIGHT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_153:163-319	Lisa	PER	SIMPSONS_153:194-199	0.8624	:Entity102
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_1eddf58e01b6
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_2	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_153:163-319	Lisa	SIMPSONS_153:194-199	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	RIGHT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_132:177-279	Lisa Simpson	PER	SIMPSONS_132:136-149	0.7648	:Entity103
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_da9bfaeece35
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_3	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_132:177-279	Lisa Simpson	SIMPSONS_132:136-149	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_110:137-284	Lisa Simpson	PER	SIMPSONS_110:165-178	0.6920	:Entity104
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_08e3ae1a1723
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_4	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_110:137-284	Lisa Simpson	SIMPSONS_110:165-178	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_101:125-224	Lisa	PER	SIMPSONS_101:114-119	0.5675	:Entity102
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_2f7818a4b942
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_5	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_101:125-224	Lisa	SIMPSONS_101:114-119	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_170:193-296	Lisa Simpson	PER	SIMPSONS_170:197-210	0.5654	:Entity103
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_70f02c8c32af
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_6	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_170:193-296	Lisa Simpson	SIMPSONS_170:197-210	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_116:216-325	Lisa Simpson	PER	SIMPSONS_116:100-113	0.4173	:Entity104
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_027894de4d1b
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_7	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_116:216-325	Lisa Simpson	SIMPSONS_116:100-113	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_101:226-336	Lisa Simpson	PER	SIMPSONS_101:198-211	0.4029	:Entity103
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_cb8568c571b5
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_8	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_101:226-336	Lisa Simpson	SIMPSONS_101:198-211	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_188:146-262	Lisa Simpson	PER	SIMPSONS_188:233-246	0.4014	:Entity104
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_92a4ebcff8ec
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_9	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_188:146-262	Lisa Simpson	SIMPSONS_188:233-246	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+================================================================================
+CSSF17_ENG_afddc4ed21:1
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_08e3ae1a1723	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_107:151-272	Springfield Elementary School	ORG	SIMPSONS_107:236-266	0.9369	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_96dcce8cd902
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_1_10	CSSF17_ENG_afddc4ed21_08e3ae1a1723:per:schools_attended	SIMPSONS_107:151-272	Springfield Elementary School	SIMPSONS_107:236-266	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	RIGHT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_08e3ae1a1723	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_104:204-314	Springfield High School	ORG	SIMPSONS_104:176-200	0.8577	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_c49dccf99e4d
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_1_11	CSSF17_ENG_afddc4ed21_08e3ae1a1723:per:schools_attended	SIMPSONS_104:204-314	Springfield High School	SIMPSONS_104:176-200	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	RIGHT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_08e3ae1a1723	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_196:173-298	Springfield High School	ORG	SIMPSONS_196:212-236	0.8465	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_057a4728ddea
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_1_12	CSSF17_ENG_afddc4ed21_08e3ae1a1723:per:schools_attended	SIMPSONS_196:173-298	Springfield High School	SIMPSONS_196:212-236	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_08e3ae1a1723	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_135:155-269	Springfield Elementary School	ORG	SIMPSONS_135:243-273	0.7648	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_bec8a6761712
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_1_13	CSSF17_ENG_afddc4ed21_08e3ae1a1723:per:schools_attended	SIMPSONS_135:155-269	Springfield Elementary School	SIMPSONS_135:243-273	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_08e3ae1a1723	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_184:182-312	Springfield High School	ORG	SIMPSONS_184:191-215	0.5559	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_d2c6f2702c10
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_1_14	CSSF17_ENG_afddc4ed21_08e3ae1a1723:per:schools_attended	SIMPSONS_184:182-312	Springfield High School	SIMPSONS_184:191-215	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity104:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_08e3ae1a1723	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_197:165-267	Springfield Elementary School	ORG	SIMPSONS_197:170-200	0.5075	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_f00cc500d614
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_08e3ae1a1723_1_15	CSSF17_ENG_afddc4ed21_08e3ae1a1723:per:schools_attended	SIMPSONS_197:165-267	Springfield Elementary School	SIMPSONS_197:170-200	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_2f7818a4b942	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_187:137-237	Springfield High School	ORG	SIMPSONS_187:113-137	0.9370	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_2f7818a4b942_4c5092184397
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_2f7818a4b942_1_16	CSSF17_ENG_afddc4ed21_2f7818a4b942:per:schools_attended	SIMPSONS_187:137-237	Springfield High School	SIMPSONS_187:113-137	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_2f7818a4b942	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_149:182-302	Springfield High School	ORG	SIMPSONS_149:123-147	0.8171	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_2f7818a4b942_bb4d40dcfcc3
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_2f7818a4b942_1_17	CSSF17_ENG_afddc4ed21_2f7818a4b942:per:schools_attended	SIMPSONS_149:182-302	Springfield High School	SIMPSONS_149:123-147	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_2f7818a4b942	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_145:190-318	Springfield Elementary School	ORG	SIMPSONS_145:112-142	0.8051	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_2f7818a4b942_67571097bf0d
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_2f7818a4b942_1_18	CSSF17_ENG_afddc4ed21_2f7818a4b942:per:schools_attended	SIMPSONS_145:190-318	Springfield Elementary School	SIMPSONS_145:112-142	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_2f7818a4b942	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_116:115-242	Springfield High School	ORG	SIMPSONS_116:118-142	0.5727	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_2f7818a4b942_bcaa88a12094
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_2f7818a4b942_1_19	CSSF17_ENG_afddc4ed21_2f7818a4b942:per:schools_attended	SIMPSONS_116:115-242	Springfield High School	SIMPSONS_116:118-142	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_2f7818a4b942	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_191:130-246	Springfield Elementary School	ORG	SIMPSONS_191:102-132	0.5466	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_2f7818a4b942_5368623ada43
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_2f7818a4b942_1_20	CSSF17_ENG_afddc4ed21_2f7818a4b942:per:schools_attended	SIMPSONS_191:130-246	Springfield Elementary School	SIMPSONS_191:102-132	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_2f7818a4b942	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_144:191-290	Springfield Elementary School	ORG	SIMPSONS_144:156-186	0.5049	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_2f7818a4b942_20dc0acf3417
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_2f7818a4b942_1_21	CSSF17_ENG_afddc4ed21_2f7818a4b942:per:schools_attended	SIMPSONS_144:191-290	Springfield Elementary School	SIMPSONS_144:156-186	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_cb8568c571b5	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_159:145-289	Springfield High School	ORG	SIMPSONS_159:210-234	0.8733	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_cb8568c571b5_64781683048b
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_cb8568c571b5_1_22	CSSF17_ENG_afddc4ed21_cb8568c571b5:per:schools_attended	SIMPSONS_159:145-289	Springfield High School	SIMPSONS_159:210-234	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_cb8568c571b5	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_137:208-359	Springfield Elementary School	ORG	SIMPSONS_137:113-143	0.6755	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_cb8568c571b5_ec163b0df8bf
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_cb8568c571b5_1_23	CSSF17_ENG_afddc4ed21_cb8568c571b5:per:schools_attended	SIMPSONS_137:208-359	Springfield Elementary School	SIMPSONS_137:113-143	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_cb8568c571b5	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_156:185-305	Springfield Elementary School	ORG	SIMPSONS_156:192-222	0.6422	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_cb8568c571b5_cbb17e7f9c3f
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_cb8568c571b5_1_24	CSSF17_ENG_afddc4ed21_cb8568c571b5:per:schools_attended	SIMPSONS_156:185-305	Springfield Elementary School	SIMPSONS_156:192-222	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_cb8568c571b5	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_115:104-233	Springfield High School	ORG	SIMPSONS_115:225-249	0.6056	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_cb8568c571b5_017d79031b03
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_cb8568c571b5_1_25	CSSF17_ENG_afddc4ed21_cb8568c571b5:per:schools_attended	SIMPSONS_115:104-233	Springfield High School	SIMPSONS_115:225-249	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_cb8568c571b5	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_187:161-299	Springfield Elementary School	ORG	SIMPSONS_187:172-202	0.5694	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_cb8568c571b5_81fa7d488861
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_cb8568c571b5_1_26	CSSF17_ENG_afddc4ed21_cb8568c571b5:per:schools_attended	SIMPSONS_187:161-299	Springfield Elementary School	SIMPSONS_187:172-202	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_cb8568c571b5	per:schools_attended	SCORER_TS_MERGE_AND_SPLIT	SIMPSONS_149:168-268	Springfield High School	ORG	SIMPSONS_149:123-147	0.4418	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_cb8568c571b5_9e7ff5ef0802
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_cb8568c571b5_1_27	CSSF17_ENG_afddc4ed21_cb8568c571b5:per:schools_attended	SIMPSONS_149:168-268	Springfield High School	SIMPSONS_149:123-147	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+================================================================================
+CSSF17_ENG_afddc4ed21:2
+
+AP COMPUTATION DEBUG INFO BEGINS:
+================================================================================
+QUERY_ID:         CSSF17_ENG_afddc4ed21
+LEVEL:            0
+AP:               0.3333
+NUM_GROUND_TRUTH: 2
+GROUND TRUTH:
+  CSSF17_ENG_afddc4ed21:1
+  CSSF17_ENG_afddc4ed21:2
+RANKING:
+........
+RANK NODEID CONFIDENCE MAPPED_EC V
+1 CSSF17_ENG_afddc4ed21:Entity102 0.8825 CSSF17_ENG_afddc4ed21:1 0.6667
+2 CSSF17_ENG_afddc4ed21:Entity103 0.6446 - 0.0000
+3 CSSF17_ENG_afddc4ed21:Entity104 0.5642 - 0.0000
+================================================================================
+QUERY_ID:         CSSF17_ENG_afddc4ed21
+LEVEL:            1
+AP:               0.5000
+NUM_GROUND_TRUTH: 4
+GROUND TRUTH:
+  CSSF17_ENG_afddc4ed21:1:1
+  CSSF17_ENG_afddc4ed21:1:2
+  CSSF17_ENG_afddc4ed21:2:1
+  CSSF17_ENG_afddc4ed21:2:2
+RANKING:
+........
+RANK NODEID CONFIDENCE MAPPED_EC V
+1 CSSF17_ENG_afddc4ed21:Entity102:Entity111 0.7396 CSSF17_ENG_afddc4ed21:1:2 1.0000
+2 CSSF17_ENG_afddc4ed21:Entity102:Entity110 0.6001 CSSF17_ENG_afddc4ed21:1:1 1.0000
+3 CSSF17_ENG_afddc4ed21:Entity103:Entity111 0.4653 CSSF17_ENG_afddc4ed21:1:2 0.0000
+4 CSSF17_ENG_afddc4ed21:Entity104:Entity110 0.4581 CSSF17_ENG_afddc4ed21:1:1 0.0000
+5 CSSF17_ENG_afddc4ed21:Entity104:Entity111 0.4513 CSSF17_ENG_afddc4ed21:1:2 0.0000
+6 CSSF17_ENG_afddc4ed21:Entity103:Entity110 0.4172 CSSF17_ENG_afddc4ed21:1:1 0.0000
+================================================================================
+QUERY_ID:         CSSF17_ENG_afddc4ed21
+LEVEL:            ALL
+AP:               0.3611
+NUM_GROUND_TRUTH: 6
+GROUND TRUTH:
+  CSSF17_ENG_afddc4ed21:1
+  CSSF17_ENG_afddc4ed21:1:1
+  CSSF17_ENG_afddc4ed21:1:2
+  CSSF17_ENG_afddc4ed21:2
+  CSSF17_ENG_afddc4ed21:2:1
+  CSSF17_ENG_afddc4ed21:2:2
+RANKING:
+........
+RANK NODEID CONFIDENCE MAPPED_EC V
+1 CSSF17_ENG_afddc4ed21:Entity102 0.8825 CSSF17_ENG_afddc4ed21:1 0.6667
+2 CSSF17_ENG_afddc4ed21:Entity102:Entity111 0.7396 CSSF17_ENG_afddc4ed21:1:2 1.0000
+3 CSSF17_ENG_afddc4ed21:Entity103 0.6446 - 0.0000
+4 CSSF17_ENG_afddc4ed21:Entity102:Entity110 0.6001 CSSF17_ENG_afddc4ed21:1:1 1.0000
+5 CSSF17_ENG_afddc4ed21:Entity104 0.5642 - 0.0000
+6 CSSF17_ENG_afddc4ed21:Entity103:Entity111 0.4653 CSSF17_ENG_afddc4ed21:1:2 0.0000
+7 CSSF17_ENG_afddc4ed21:Entity104:Entity110 0.4581 CSSF17_ENG_afddc4ed21:1:1 0.0000
+8 CSSF17_ENG_afddc4ed21:Entity104:Entity111 0.4513 CSSF17_ENG_afddc4ed21:1:2 0.0000
+9 CSSF17_ENG_afddc4ed21:Entity103:Entity110 0.4172 CSSF17_ENG_afddc4ed21:1:1 0.0000
+AP COMPUTATION DEBUG INFO ENDS

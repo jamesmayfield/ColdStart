@@ -1,0 +1,41 @@
+WARNING: Entity :Entity101 has no canonical mention in document SIMPSONS_011
+WARNING: Entity :Entity101 has no canonical mention in document SIMPSONS_016
+WARNING: Entity :Entity101 has no canonical mention in document SIMPSONS_017
+WARNING: Entity :Entity101 has no canonical mention in document SIMPSONS_018
+WARNING: Entity :Entity101 has no canonical mention in document SIMPSONS_019
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_011
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_013
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_014
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_016
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_017
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_018
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_019
+WARNING: Entity :Entity102 has no canonical mention in document SIMPSONS_020
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_011
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_013
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_015
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_016
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_017
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_018
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_019
+WARNING: Entity :Entity103 has no canonical mention in document SIMPSONS_020
+WARNING: Entity :Entity110 has no canonical mention in document SIMPSONS_013
+WARNING: Entity :Entity110 has no canonical mention in document SIMPSONS_014
+WARNING: Entity :Entity110 has no canonical mention in document SIMPSONS_015
+WARNING: Entity :Entity110 has no canonical mention in document SIMPSONS_016
+WARNING: Entity :Entity110 has no canonical mention in document SIMPSONS_017
+WARNING: Entity :Entity110 has no canonical mention in document SIMPSONS_019
+WARNING: Entity :Entity110 has no canonical mention in document SIMPSONS_020
+WARNING: Entity :Entity111 has no canonical mention in document SIMPSONS_011
+WARNING: Entity :Entity111 has no canonical mention in document SIMPSONS_013
+WARNING: Entity :Entity111 has no canonical mention in document SIMPSONS_016
+WARNING: Entity :Entity111 has no canonical mention in document SIMPSONS_018
+WARNING: Entity :Entity111 has no canonical mention in document SIMPSONS_019
+WARNING: Entity :Entity111 has no canonical mention in document SIMPSONS_020
+WARNING: No inverse relation asserted for children(:Entity101, :Entity102) (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SFSystem1KB.tac line 41 and 4 other places)
+WARNING: No inverse relation asserted for children(:Entity101, :Entity103) (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SFSystem1KB.tac line 46 and 4 other places)
+WARNING: No inverse relation asserted for schools_attended(:Entity102, :Entity110) (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SFSystem1KB.tac line 51 and 4 other places)
+WARNING: No inverse relation asserted for schools_attended(:Entity102, :Entity111) (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SFSystem1KB.tac line 56 and 4 other places)
+WARNING: No inverse relation asserted for schools_attended(:Entity103, :Entity110) (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SFSystem1KB.tac line 61 and 4 other places)
+WARNING: No inverse relation asserted for schools_attended(:Entity103, :Entity111) (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SFSystem1KB.tac line 66 and 4 other places)
+64 warnings encountered

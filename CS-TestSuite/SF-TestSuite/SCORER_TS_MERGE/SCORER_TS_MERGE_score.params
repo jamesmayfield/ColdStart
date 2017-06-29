@@ -1,0 +1,9 @@
+#At: Thu Jun 29 09:27:36 2017
+
+#Invoked as:
+/home/skr1/git/cold-start-collaborative/ColdStart$ perl CS-Score-MASTER.pl -expand CSSF17 -error_file CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE/SCORER_TS_MERGE_score.errlog -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE/SCORER_TS_MERGE_score CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE/SCORER_TS_MERGE.valid.ldc.tab.txt
+
+#Policy Selected:
+  IGNORE => UNASSESSED:DUPLICATE
+  RIGHT => CORRECT
+  WRONG => INCORRECT:INCORRECT_PARENT:INEXACT

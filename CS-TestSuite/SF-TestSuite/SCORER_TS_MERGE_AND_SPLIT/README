@@ -1,0 +1,6 @@
+cd /home/skr1/cold-start-collaborative/ColdStart
+make expand-sfkb SF=SCORER_TS_MERGE_AND_SPLIT
+make setup-sf SF=SCORER_TS_MERGE_AND_SPLIT DOCS=
+
+perl CS-score-MASTER.pl -expand CSSF17 -error_file /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT_score.errlog -output_file /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT_score /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/ldc-query.xml /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/qrel.txt /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_MERGE_AND_SPLIT/SCORER_TS_MERGE_AND_SPLIT.valid.ldc.tab.txt
+

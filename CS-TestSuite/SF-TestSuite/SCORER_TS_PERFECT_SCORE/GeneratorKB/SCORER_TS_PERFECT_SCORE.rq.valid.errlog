@@ -1,0 +1,236 @@
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:28-55	Springfield High School	ORG	SIMPSONS_011:62-86	0.6965	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 70)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:63-70	Springfield High School	ORG	SIMPSONS_011:62-86	0.8183	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 75)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:125-169	Springfield Elementary School	ORG	SIMPSONS_013:129-159	0.0272	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 15)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:19-39	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2505	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 25)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:48-83	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2827	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 30)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:90-115	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.8490	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 35)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:119-148	Springfield High School	ORG	SIMPSONS_016:29-53	0.8572	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 85)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:25-62	Springfield High School	ORG	SIMPSONS_019:16-40	0.4378	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 100)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:12-53	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.1313	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 60)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3bc5f4e625cb	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:47-76	Springfield High School	ORG	SIMPSONS_020:56-80	0.3024	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 110)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:72-97	Lisa	PER	SIMPSONS_011:109-114	0.0782	:Entity103
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 6)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PERFECT_SCORE	SIMPSONS_017:10-10	Bart	PER	SIMPSONS_017:129-134	0.1119	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 1)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PERFECT_SCORE	SIMPSONS_017:149-157	Bart	PER	SIMPSONS_017:129-134	0.8031	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 3)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:41-98	Lisa	PER	SIMPSONS_019:53-58	0.4401	:Entity103
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 10)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:28-55	Springfield High School	ORG	SIMPSONS_011:62-86	0.6965	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 69)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:63-70	Springfield High School	ORG	SIMPSONS_011:62-86	0.8183	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 74)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:125-169	Springfield Elementary School	ORG	SIMPSONS_013:129-159	0.0272	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 14)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:19-39	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2505	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 24)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:48-83	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2827	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 29)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:90-115	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.8490	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 34)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:119-148	Springfield High School	ORG	SIMPSONS_016:29-53	0.8572	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 84)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:25-62	Springfield High School	ORG	SIMPSONS_019:16-40	0.4378	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 99)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:12-53	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.1313	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 59)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_1d84347aa4a8	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:47-76	Springfield High School	ORG	SIMPSONS_020:56-80	0.3024	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 109)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:63-82	Springfield High School	ORG	SIMPSONS_011:62-86	0.8502	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 65)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:4-7	Springfield High School	ORG	SIMPSONS_013:48-72	0.0636	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 80)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_014:15-55	Springfield Elementary School	ORG	SIMPSONS_014:94-124	0.5604	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 20)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:73-126	Springfield Elementary School	ORG	SIMPSONS_016:49-79	0.5264	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 40)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_017:63-101	Springfield Elementary School	ORG	SIMPSONS_017:35-65	0.1206	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 45)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_018:145-196	Springfield High School	ORG	SIMPSONS_018:139-163	0.5391	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 90)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:67-103	Springfield Elementary School	ORG	SIMPSONS_019:47-77	0.7203	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 50)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:73-123	Springfield High School	ORG	SIMPSONS_019:16-40	0.1619	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 95)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:45-99	Springfield High School	ORG	SIMPSONS_020:56-80	0.1532	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 105)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_371f27e9beb3	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:68-103	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.9842	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 55)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:28-55	Springfield High School	ORG	SIMPSONS_011:62-86	0.6965	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 66)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:19-39	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2505	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 21)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:48-83	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2827	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 26)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:47-76	Springfield High School	ORG	SIMPSONS_020:56-80	0.3024	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 106)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:63-82	Springfield High School	ORG	SIMPSONS_011:62-86	0.8502	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 64)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:4-7	Springfield High School	ORG	SIMPSONS_013:48-72	0.0636	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 79)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_014:15-55	Springfield Elementary School	ORG	SIMPSONS_014:94-124	0.5604	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 19)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:73-126	Springfield Elementary School	ORG	SIMPSONS_016:49-79	0.5264	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 39)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_017:63-101	Springfield Elementary School	ORG	SIMPSONS_017:35-65	0.1206	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 44)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_018:145-196	Springfield High School	ORG	SIMPSONS_018:139-163	0.5391	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 89)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:67-103	Springfield Elementary School	ORG	SIMPSONS_019:47-77	0.7203	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 49)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:73-123	Springfield High School	ORG	SIMPSONS_019:16-40	0.1619	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 94)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:45-99	Springfield High School	ORG	SIMPSONS_020:56-80	0.1532	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 104)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_81b3cdc75294	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:68-103	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.9842	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 54)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:4-7	Springfield High School	ORG	SIMPSONS_013:48-72	0.0636	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 76)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:73-126	Springfield Elementary School	ORG	SIMPSONS_016:49-79	0.5264	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 36)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_017:63-101	Springfield Elementary School	ORG	SIMPSONS_017:35-65	0.1206	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 41)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:45-99	Springfield High School	ORG	SIMPSONS_020:56-80	0.1532	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 101)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:28-55	Springfield High School	ORG	SIMPSONS_011:62-86	0.6965	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 68)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:63-70	Springfield High School	ORG	SIMPSONS_011:62-86	0.8183	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 73)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:125-169	Springfield Elementary School	ORG	SIMPSONS_013:129-159	0.0272	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 13)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:19-39	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2505	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 23)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:48-83	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2827	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 28)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:90-115	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.8490	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 33)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:119-148	Springfield High School	ORG	SIMPSONS_016:29-53	0.8572	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 83)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:25-62	Springfield High School	ORG	SIMPSONS_019:16-40	0.4378	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 98)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:12-53	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.1313	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 58)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_ef22e0549dce	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:47-76	Springfield High School	ORG	SIMPSONS_020:56-80	0.3024	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 108)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:28-55	Springfield High School	ORG	SIMPSONS_011:62-86	0.6965	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 67)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:63-70	Springfield High School	ORG	SIMPSONS_011:62-86	0.8183	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 72)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:125-169	Springfield Elementary School	ORG	SIMPSONS_013:129-159	0.0272	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 12)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:19-39	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2505	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 22)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:48-83	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.2827	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 27)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_015:90-115	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.8490	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 32)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:119-148	Springfield High School	ORG	SIMPSONS_016:29-53	0.8572	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 82)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:25-62	Springfield High School	ORG	SIMPSONS_019:16-40	0.4378	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 97)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:12-53	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.1313	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 57)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:47-76	Springfield High School	ORG	SIMPSONS_020:56-80	0.3024	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 107)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_011:63-82	Springfield High School	ORG	SIMPSONS_011:62-86	0.8502	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 62 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_013:4-7	Springfield High School	ORG	SIMPSONS_013:48-72	0.0636	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 77 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_014:15-55	Springfield Elementary School	ORG	SIMPSONS_014:94-124	0.5604	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 17 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_016:73-126	Springfield Elementary School	ORG	SIMPSONS_016:49-79	0.5264	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 37 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_017:63-101	Springfield Elementary School	ORG	SIMPSONS_017:35-65	0.1206	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 42 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_018:145-196	Springfield High School	ORG	SIMPSONS_018:139-163	0.5391	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 87 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:67-103	Springfield Elementary School	ORG	SIMPSONS_019:47-77	0.7203	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 47 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_019:73-123	Springfield High School	ORG	SIMPSONS_019:16-40	0.1619	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 92 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:45-99	Springfield High School	ORG	SIMPSONS_020:56-80	0.1532	:Entity111 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 102 and 1 other place)
+WARNING: Following line appears more than once in the submission therefore all copies but one will be removed: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_PERFECT_SCORE	SIMPSONS_020:68-103	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.9842	:Entity110 (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/GeneratorKB/SCORER_TS_PERFECT_SCORE.rq line 52 and 1 other place)
+WARNING: Unable to infer language from DOCID SIMPSONS_011. Using default language ENGLISH. (CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/sf-query.xml line In query CSSF17_ENG_afddc4ed21 and 1 other place)
+WARNING: Unable to infer language from DOCID SIMPSONS_013. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_014. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_015. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_016. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_017. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_018. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_019. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_020. Using default language ENGLISH.
+158 warnings encountered
