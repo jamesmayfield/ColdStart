@@ -1,7 +1,17 @@
-List of commands executed:
-
 cd /home/skr1/cold-start-collaborative/ColdStart
+
+# The following would be useful only if a new test case is being developed using a GeneratorKB in compact format.
+# This command would expand the compact KB into a validatable KB.
+# Note that the compact KB is a format for facilitating test case development and so it is not validatable.
+
 make expand-sfkb SF=SCORER_TS_PERFECT_SCORE
+
+# The following runs resolve queries using the query file provided and later validates the SF file
+
 make setup-sf SF=SCORER_TS_PERFECT_SCORE DOCS=
 
-perl CS-Score-MASTER.pl -expand CSSF17 -error_file /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/SCORER_TS_PERFECT_SCORE_score.errlog -output_file /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/SCORER_TS_PERFECT_SCORE_score /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/ldc-query.xml /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/qrel.txt /home/skr1/cold-start-collaborative/ColdStart/CS-TestSuite/SF-TestSuite/SCORER_TS_PERFECT_SCORE/SCORER_TS_PERFECT_SCORE.valid.ldc.tab.txt
+# Score the validated SF file using a qrel.txt file
+# Note that the qrel.txt should be placed in the test case directory before scoring (obviously).
+
+make score-sf SF=SCORER_TS_PERFECT_SCORE DOCS=
+
