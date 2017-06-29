@@ -7,7 +7,8 @@ Last modified: 29th June 2017
 4. How to validate an existing SF test case
 5. How to add a new KB test case
 6. How to add a new SF test case
-7. List of existing test cases
+7. How to score a test case
+8. List of existing test cases
 
 # How to setup the *TestSuite*
 
