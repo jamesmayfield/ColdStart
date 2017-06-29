@@ -253,13 +253,13 @@ The debug file begins with per-query response pre-and-post-policy assessment inf
 An example line is shown below:
 
 ~~~
-        FQNODEID:       CSSF17_ENG_afddc4ed21:Entity104
-        SUBMISSION:     CSSF17_ENG_afddc4ed21   per:children    SCORER_TS_SPLIT SIMPSONS_012:67-112     Lisa Simpson    PER     SIMPSONS_012:81-94      0.9864  :Entity104
-        TARGET_QID:     CSSF17_ENG_afddc4ed21_1fa227e2e937
-        ASSESSMENT:     CSSF17_ENG_afddc4ed21_0_011     CSSF17_ENG_afddc4ed21:per:children      SIMPSONS_012:67-112     Lisa Simpson    SIMPSONS_012:81-94      C       NAM     C       CSSF17_ENG_afddc4ed21:1 NAM
+FQNODEID:       CSSF17_ENG_afddc4ed21:Entity104
+SUBMISSION:     CSSF17_ENG_afddc4ed21   per:children    SCORER_TS_SPLIT SIMPSONS_012:67-112     Lisa Simpson    PER     SIMPSONS_012:81-94      0.9864  :Entity104
+TARGET_QID:     CSSF17_ENG_afddc4ed21_1fa227e2e937
+ASSESSMENT:     CSSF17_ENG_afddc4ed21_0_011     CSSF17_ENG_afddc4ed21:per:children      SIMPSONS_012:67-112     Lisa Simpson    SIMPSONS_012:81-94      C       NAM     C       CSSF17_ENG_afddc4ed21:1 NAM
 
-        PREPOLICY ASSESSMENT:   CORRECT
-        POSTPOLICY ASSESSMENT:  IGNORE,REDUNDANT
+PREPOLICY ASSESSMENT:   CORRECT
+POSTPOLICY ASSESSMENT:  IGNORE,REDUNDANT
 ~~~
 
 These fields are described here:
