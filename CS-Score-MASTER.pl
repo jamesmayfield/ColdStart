@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2017.1.2";
+my $version = "2017.1.3";
 
 # Filehandles for program and error output
 my @output_postfix = qw(DEBUG AP SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
@@ -1583,10 +1583,15 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2017.1.3 - Minor changes and formatting correction. Number have been verifed using
+#            an initial set of test cases
 # 2017.1.2 - New implementation of AP computation added
-#          - Results are being printed to a single AP file, to be split later, upon verification of correctness
-# 2017.1.1 - AP computation from the last version removed; to be corrected in the next version
-# 2017.1.0 - Initial version of 2017; AP is being produced in addition to last year stats
+#          - Results are being printed to a single AP file, to be split later, upon
+#            verification of correctness
+# 2017.1.1 - AP computation from the last version removed; to be corrected in the next
+#            version
+# 2017.1.0 - Initial version of 2017; AP is being produced in addition to last year
+#            stats
 # 3.0 - Modified file extensions and suppressed empty file creation
 #     - Some clarification in the usage messages
 # 2.9 - Added the .arguments output file listing the arguments and policy selected
