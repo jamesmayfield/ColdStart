@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "2017.1.0";
+my $version = "2017.1.1";
 
 my $statsfile;
 
@@ -340,7 +340,7 @@ sub add_assertion {
 
   # Handle single-valued slots that are given more than one filler
   my $is_multiple_of;
-  if ($predicate->{QUANTITY} eq 'single') {
+  if ($predicate->{QUANTITY} eq 'single' && !$kb->{LOGGER}{IGNORE_WARNINGS}{MULTIPLE_FILLS_ENTITY}) {
     foreach my $existing ($kb->get_assertions($subject, $verb)) {
       # Again, ignore assertions that have already been omitted from the output
       next if $existing->{OMIT_FROM_OUTPUT};
@@ -1523,6 +1523,7 @@ $switches->put('multiple', $multiple_attestations);
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
 $switches->addVarSwitch('ignore', "Colon-separated list of warnings to ignore. Legal values are: " .
 			Logger->new()->get_warning_names());
+$switches->put('ignore', 'MULTIPLE_FILLS_ENTITY');
 $switches->addVarSwitch('task', "Specify task to validate. Legal values are: " . join(", ", map {"$_ ($tasks{$_}{DESCRIPTION})"} sort keys %tasks) . ".");
 $switches->put('task', 'CSKB');
 $switches->addVarSwitch('stats_file', "Specify a file into which statistics about the KB being validated will be placed");
@@ -1724,4 +1725,6 @@ exit 0;
 # 5.2 - MULTIPLE_MENTIONS_NO_CANONICAL error handling added. named-mention missing warnings removed when nominal and canonical are both present.
 # 5.3 - Fixing the handling of multiple nominal_mentions for an entity from the same document
 # 2017.1.0 - First release of 2017
+# 2017.1.1 - Warning: MULTIPLE_FILLS_ENTITY is now being ignored by default since 2017 specification allows multiple fills
+#          - We are also passing multiple fills for single-valued slots onto the validated KB; Only the best node is picked later on for scoring purposes
 1;

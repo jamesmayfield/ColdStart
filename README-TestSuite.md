@@ -1,4 +1,4 @@
-Last modified: 19th April 2017
+Last modified: 29th June 2017
 
 # Outline
 1. How to setup the *TestSuite*
@@ -7,7 +7,8 @@ Last modified: 19th April 2017
 4. How to validate an existing SF test case
 5. How to add a new KB test case
 6. How to add a new SF test case
-7. List of existing test cases
+7. How to score a test case
+8. List of existing test cases
 
 # How to setup the *TestSuite*
 
@@ -84,6 +85,14 @@ In order to add a new SF test case NEW_TEST, follow the steps given below:
 
 **NOTE: Make sure the doclength file (at CS-TestSuite/AUX-Files/doclength.txt) contains the information about any new document you might be using in the NEW_TEST case.**
 
+# How to score a test case
+
+Only the scorer test cases listed below can be scored. Others/new test cases require qrel.txt to be placed in the test-case directory before they can be scored.
+
+In order to score a test case *TEST_CASE*, run the following command:
+
+**make score-sf SF=TEST_CASE**
+
 # List of existing test cases
 
 ### KB Test Cases
@@ -145,3 +154,13 @@ Following SF test cases are part of the *TestSuite*:
  | 10 | WRONG_QUERY |
  | 11 | WRONG_SLOT_NAME |
 
+### Scorer Test Cases
+
+Following scorer test cases are part of the *TestSuite* under SF Test Cases:
+
+ | S# | Name |
+ | - | - |
+ | 1 | SCORER_TS_PERFECT_SCORE |
+ | 2 | SCORER_TS_MERGE |
+ | 3 | SCORER_TS_MERGE_AND_SPLIT |
+ | 4 | SCORER_TS_SPLIT |

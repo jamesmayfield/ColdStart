@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CS17_4567">
+    <mentions>
+      <mention>
+        <name>Homer</name>
+        <docid>SIMPSONS_011</docid>
+        <beg>55</beg>
+        <end>59</end>
+      </mention>
+    </mentions>
+    <enttype>per</enttype>
+    <nodeid>per_001</nodeid>
+    <slot0>per:children</slot0>
+    <slot1>per:schools_attended</slot1>
+  </query>
+</query_set>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CSSF17_ENG_afddc4ed21_1d84347aa4a8">
+    <name>Lisa</name>
+    <docid>SIMPSONS_018</docid>
+    <beg>6</beg>
+    <end>11</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_371f27e9beb3">
+    <name>Bart</name>
+    <docid>SIMPSONS_019</docid>
+    <beg>131</beg>
+    <end>136</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_3f17b45ffc61">
+    <name>Lisa</name>
+    <docid>SIMPSONS_011</docid>
+    <beg>109</beg>
+    <end>114</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_81b3cdc75294">
+    <name>Bart</name>
+    <docid>SIMPSONS_018</docid>
+    <beg>24</beg>
+    <end>29</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_8c63760f6ed4">
+    <name>Bart</name>
+    <docid>SIMPSONS_017</docid>
+    <beg>129</beg>
+    <end>134</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_ef22e0549dce">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_016</docid>
+    <beg>126</beg>
+    <end>139</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+</query_set>

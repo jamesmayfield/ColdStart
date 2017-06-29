@@ -19,7 +19,8 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.0";   # (1) First release of 2017
+my $version = "2017.1.6";   # (1) Node mapping function changed to traverse the nodetree in breadth 
+                            #     first order rather than depth first..
 
 ### BEGIN INCLUDE Switches
 
@@ -120,12 +121,13 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Submission File/Assessment File Errors
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
+  DISCARDED_DEPENDENT           WARNING  Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: %s
   DISCARDED_ENTRY               WARNING  Following line has been discarded due to constraints on multiple justifications: %s
-  DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies will be removed: %s
+  DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies but one will be removed: %s
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
-  MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
+  MISMATCHED_RUNID              FATAL_ERROR Multiple runids were used: %s
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_DOCIDS_IN_RESPONSE   ERROR    Multiple DOCIDs used in response: %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
@@ -133,7 +135,6 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
   SEMICOLON_IN_PROVENANCE_E     ERROR    A semicolon is used in the provenance %s
   SEMICOLON_AS_SEPARATOR        WARNING  A semicolon is used as a triple separator in the provenance %s. The semicolon will be replaced with a comma. 
-  UNEXPECTED_JUSTIFICATIONS     WARNING  Unexpected number of justification per document (expected %d, got %d) for query %s and node %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -432,12 +433,16 @@ sub get_counts {
 
 sub get_start {
   my ($self) = @_;
-  $self->{PREDICATE_JUSTIFICATION}->get_start();
+  my $start = 0;
+  $start = $self->{PREDICATE_JUSTIFICATION}->get_start() if($self->{PREDICATE_JUSTIFICATION});
+  $start;
 }
 
 sub get_end {
   my ($self) = @_;
-  $self->{PREDICATE_JUSTIFICATION}->get_end();
+  my $end = 0;
+  $end = $self->{PREDICATE_JUSTIFICATION}->get_end() if($self->{PREDICATE_JUSTIFICATION});
+  $end;
 }
 
 # This is used to get a consistent string representing the provenancelist
@@ -2023,6 +2028,7 @@ sub new {
   my ($class, $logger, $assessments, @assessments) = @_;
   my $self = {
     LOGGER => $logger,
+    JUSTIFICATIONS_ALLOWED => $assessments->{JUSTIFICATIONS_ALLOWED},
     STATS => {},
     QUERIES => {},
   };
@@ -2242,6 +2248,9 @@ sub score_subtree {
   			= (0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   # Look through the submissions for this node
   my %categorized_submissions;
+  push(@{$categorized_submissions{ASSESSMENTS}}, map {@{$subtree->{ECS}{$_}{ASSESSMENTS}}}
+                                                   grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}}
+                                                     keys %{$subtree->{ECS}});
   foreach my $ec (keys %{$subtree->{ECS}}) {
     # Gather stats for this EC independently in case we want to report stats by EC
     my %ec_categorized_submissions = $self->categorize_submissions($ec, $policy_options, $policy_selected);
@@ -2332,7 +2341,7 @@ sub categorize_submissions {
   my %retVal;
   my $subtree = $self->get($ec);
   foreach my $submission ( @{$subtree->{SUBMISSIONS} || []} ) {
-    if(!$self->is_path_correct($ec, $submission->{QUERY_ID})) {
+    if(!$self->is_path_correct($ec, $submission->{QUERY_ID}, $policy_selected)) {
       # record that the (grand-)parent is incorrect
       push(@{$retVal{INCORRECT_PARENT}}, $submission);
     }
@@ -2391,7 +2400,8 @@ sub categorize_submissions {
 
 # To determine correctness of the path of a submission
 sub is_path_correct {
-  my ($self, $ec, $query_id) = @_;
+  my ($self, $ec, $query_id, $policy_selected) = @_;
+  my %right_assessments = map {$_=>1} split(":", $policy_selected->{RIGHT});
   my @ec_components = split(/:/, $ec);
   my $base_query_id = shift @ec_components;
   # The path is correct if you hit the top node
@@ -2405,9 +2415,9 @@ sub is_path_correct {
     # Check this recursively
     if ( exists $parent_submission->{ASSESSMENT} && 
     scalar keys %{$parent_submission->{ASSESSMENT}} > 0 &&
-    $parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+    exists $right_assessments{$parent_submission->{ASSESSMENT}{ASSESSMENT}} &&
 	$parent_submission->{TARGET_QUERY_ID} eq $query_id) {
-      return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
+      return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID}, $policy_selected);
     }
     elsif ($parent_submission->{TARGET_QUERY_ID} eq $query_id) {
       return 0;
@@ -2418,9 +2428,9 @@ sub is_path_correct {
 # To score a set of queries, score the subtree for each query
 sub score {
   my ($self, $runid, $policy_options, $policy_selected) = @_;
-  foreach my $query_id (keys %{$self->{QUERIES}}) {
-  	my (undef, $cssf_query_id) = &Query::parse_queryid($query_id);
-    $self->score_subtree($cssf_query_id, $query_id, $self->{QUERIES}{$query_id}, $runid, $policy_options, $policy_selected);
+  foreach my $full_query_id (keys %{$self->{QUERIES}}) {
+    my (undef, $query_id) = &Query::parse_queryid($full_query_id);
+    $self->score_subtree($query_id, $full_query_id, $self->{QUERIES}{$full_query_id}, $runid, $policy_options, $policy_selected);
   }
 }
 
@@ -2451,6 +2461,319 @@ sub get_all_scores {
 }
 
 ### END INCLUDE Scoring
+### BEGIN INCLUDE NodeTree
+
+#####################################################################################
+##### Node Tree
+#####################################################################################
+
+package NodeTree;
+
+sub new {
+  my ($class, $submissions_and_assessments, $query_id, $query_id_base) = @_;
+  my $logger = $submissions_and_assessments->{LOGGER};
+  my $full_query_id = $submissions_and_assessments->{QUERIES}->get($query_id)->get("FULL_QUERY_ID");
+  my $slot0_quantity = $submissions_and_assessments->{QUERIES}->get($query_id)->get("SLOT0_QUANTITY");
+  my $slot1_quantity = $submissions_and_assessments->{QUERIES}->get($query_id)->get("SLOT1_QUANTITY");
+  my $self = {QUERY_ID => $full_query_id,
+        QUERY_ID_BASE => $query_id_base,
+        SUBMISSIONS_AND_ASSESSMENTS => $submissions_and_assessments,
+        NODES_BY_LEVEL => {},
+        NODE_TREE => {},
+        MAPPED_ECS => {},
+        SCORES => [],
+        SLOT0_QUANTITY => $slot0_quantity,
+        SLOT1_QUANTITY => $slot1_quantity,
+        LOGGER => $logger};
+  bless($self, $class);
+  $self->compute_scores();
+  $self;
+}
+
+sub compute_scores {
+  my ($self) = @_;
+  $self->populate_tree();
+  $self->compute_all_confidences();
+  $self->map_all_nodes();
+  $self->prepare_rankings();
+  $self->associate_ground_truth();
+  $self->compute_aps();
+}
+
+sub compute_aps {
+  my ($self) = @_;
+  my $runid = $self->{SUBMISSIONS_AND_ASSESSMENTS}{RUNID};
+  my $query_id = $self->{QUERY_ID};
+  my $query_id_base = $self->{QUERY_ID_BASE};
+  foreach my $level(sort keys %{$self->{RANKINGS}}) {
+    my $ap = $self->compute_ap($level);
+    my $score = Score->new();
+    my $num_ground_truth = $self->{RANKINGS}{$level}{NUM_GROUND_TRUTH};
+    $score->put('QUERY_ID_BASE', $query_id_base);
+    $score->put('EC', $query_id);
+    $score->put('RUNID', $runid);
+    $score->put('LEVEL', $level);
+    $score->put('NUM_GROUND_TRUTH', $num_ground_truth);
+    $score->put('AP', $ap);
+    $score->put('DEBUG', $self->{RANKINGS}{$level});
+    push(@{$self->{SCORES}}, $score); 
+  }
+}
+
+sub compute_ap {
+  my ($self, $level) = @_;
+  my $ranking = $self->{RANKINGS}{$level};
+  my $num_ground_truth = $self->{RANKINGS}{$level}{NUM_ECS};
+  my @list;
+  foreach my $nodeid(sort {$ranking->{NODES}{$b}{CONFIDENCE} <=> $ranking->{NODES}{$a}{CONFIDENCE} ||
+                        $ranking->{NODES}{$a}{LINENUM} <=> $ranking->{NODES}{$b}{LINENUM}} keys %{$ranking->{NODES}}) {
+    push(@list, {NODEID=>$nodeid, SCORE=>$ranking->{NODES}{$nodeid}{V}});
+  }
+  my $i=1;
+  my $sum_score = 0;
+  my $sum_precision = 0;
+  foreach my $element(@list) {
+    if($element->{SCORE} > 0) {
+      $sum_score += $element->{SCORE};
+      $sum_precision += ($sum_score/$i);
+    }
+    $i++;
+  }
+  $self->{LOGGER}->NIST_die("AP is greater than 1.0") if $sum_precision > $ranking->{NUM_GROUND_TRUTH};
+  $ranking->{NUM_GROUND_TRUTH} ? $sum_precision/$ranking->{NUM_GROUND_TRUTH} : 0;
+}
+
+sub associate_ground_truth {
+  my ($self) = @_;
+  my ($full_query_id) = $self->{QUERY_ID};
+  my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+	my %ecs = map {$_->{VALUE_EC} => 1} grep {$_->{VALUE_EC}}
+              @{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id}};
+  foreach my $ec(keys %ecs) {
+    my $level = split(":", $ec) - 2;
+    push(@{$self->{RANKINGS}{$level}{ECS}}, $ec);
+    push(@{$self->{RANKINGS}{ALL}{ECS}}, $ec);
+  }
+  foreach my $hop(sort keys %{$self->{RANKINGS}}) {
+    $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS}};
+  }
+  $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT0_QUANTITY} eq 'single');
+  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT1_QUANTITY} eq 'single');
+  $self->{RANKINGS}{ALL}{NUM_GROUND_TRUTH} = $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} + $self->{RANKINGS}{1}{NUM_GROUND_TRUTH}
+    if($self->{SLOT0_QUANTITY} eq 'single' || $self->{SLOT1_QUANTITY} eq 'single');
+}
+
+sub prepare_rankings {
+  my ($self, $subtree) = @_;
+  $subtree = $self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}} unless $subtree;
+  foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
+  	$self->insert_node_into_rankings($subtree, $child_nodeid);
+    $self->prepare_rankings($subtree->{NODES}{$child_nodeid});
+  }
+}
+
+sub insert_node_into_rankings {
+  my ($self, $subtree, $nodeid) = @_;
+  my $level = split(":", $nodeid) - 2;
+  my $node = $subtree->{NODES}{$nodeid};
+  my ($mapped_ec, $v);
+  $mapped_ec = $node->{EC}{NAME} if $node->{EC};
+  $v = $node->{EC} ? $node->{EC}{SCORE} : 0;
+  $v = 0 if $level && $self->get_parent_node_score($nodeid) == 0;
+  $self->{RANKINGS}{$level}{NODES}{$nodeid} = {
+  	  CONFIDENCE => $node->{CONFIDENCE},
+  	  EC => $mapped_ec,
+  	  V => $v,
+  	  LINENUM => $node->{LINENUM}
+  };
+  $self->{RANKINGS}{ALL}{NODES}{$nodeid} = {
+  	  CONFIDENCE => $node->{CONFIDENCE},
+  	  EC => $mapped_ec,
+  	  V => $v,
+  	  LINENUM => $node->{LINENUM}
+  };
+}
+
+sub get_parent_node_score {
+  my ($self, $child_nodeid) = @_;
+  my @elements = split(":", $child_nodeid);
+  pop @elements;
+  my $parent_nodeid = join(":", @elements);
+  my $parent_mapped_ec = $self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}}{NODES}{$parent_nodeid}{EC};
+  my $parent_node_score = 0;
+  $parent_node_score = $parent_mapped_ec->{SCORE} if $parent_mapped_ec;
+  $parent_node_score
+}
+
+# Align the nodes with equivalence classes
+sub map_all_nodes {
+  my ($self) = @_;
+  foreach my $level (sort {$a<=>$b} keys %{$self->{NODES_BY_LEVEL}}) {
+    foreach my $nodeid(sort {$self->{NODES_BY_LEVEL}{$level}{$b}{CONFIDENCE} <=> $self->{NODES_BY_LEVEL}{$level}{$a}{CONFIDENCE} ||
+                        $self->{NODES_BY_LEVEL}{$level}{$a}{LINENUM} <=> $self->{NODES_BY_LEVEL}{$level}{$b}{LINENUM}
+                  } keys %{$self->{NODES_BY_LEVEL}{$level}}) {
+      my $node = $self->{NODES_BY_LEVEL}{$level}{$nodeid};
+      my $candidate_ecs = $self->get_candidate_ecs($node, $nodeid);
+      my $selected_ec;
+      ($selected_ec) = sort {$candidate_ecs->{$b}{SCORE}<=>$candidate_ecs->{$a}{SCORE} ||
+                              $candidate_ecs->{$b}{LINENUM}<=>$candidate_ecs->{$a}{LINENUM}}
+                         grep {!$self->{MAPPED_ECS}{$_}}
+                           keys %{$candidate_ecs};
+      $node->{EC} = {NAME=>$selected_ec, SCORE=>$candidate_ecs->{$selected_ec}{SCORE}} if $selected_ec;
+      $self->{MAPPED_ECS}{$selected_ec} = $nodeid if $selected_ec;
+    }
+  }
+}
+
+# Get candidate ecs, corresponding score and line numbers
+sub get_candidate_ecs {
+  my ($self, $node, $nodeid) = @_;
+  my ($k) = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
+  # FIXME: This needs to depend upon post-policy decisions to allow INEXACTs as correct for example
+  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT'} $self->get_flattened_entries($node);
+  my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
+                         grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
+                           @submissions};
+  foreach my $candidate_ec(keys %{$candidate_ecs}) {
+    my @node_submissions = grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
+    my $numerator = scalar @node_submissions;
+    my $denomerator = $self->get_num_justifying_docs($candidate_ec);
+    my $num_queries = scalar keys {map {$_->{QUERY_ID}=>1} @node_submissions};
+    $denomerator = $k*$num_queries if $k ne "M" && $k*$num_queries < $denomerator;
+    $candidate_ecs->{$candidate_ec} = {SCORE => $denomerator ? $numerator/$denomerator : 0};
+  }
+  foreach my $entry(grep {$_->{FQNODEID} eq $nodeid} @submissions) {
+    my $ec = $entry->{ASSESSMENT}{VALUE_EC};
+    next unless $ec;
+    $candidate_ecs->{$ec}{LINENUM} = $entry->{LINENUM} unless $candidate_ecs->{$ec}{LINENUM};
+    $candidate_ecs->{$ec}{LINENUM} = $entry->{LINENUM}
+      if($ec &&
+          (not exists $candidate_ecs->{$ec}{LINENUM} ||
+            $candidate_ecs->{$ec}{LINENUM} > $entry->{LINENUM}));
+  }
+  $candidate_ecs;
+}
+
+sub get_num_justifying_docs {
+  my ($self, $ec) = @_;
+  my ($full_query_id) = split(":", $ec);
+  my ($base, $query_id) = &Query::parse_queryid($full_query_id);
+  keys {map {$_->{DOCID}=>1}
+  	grep {$_->{VALUE_EC} eq $ec}
+      @{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id}}};
+}
+
+sub get_flattened_entries {
+  my ($self, $node) = @_;
+  my @entries;
+  foreach my $docid(keys %{$node->{ENTRIES}}) {
+    foreach my $entry(@{$node->{ENTRIES}{$docid}}) {
+      push(@entries, $entry);
+    }
+  }
+  @entries;
+}
+
+sub compute_all_confidences {
+  my ($self) = @_;
+  foreach my $nodeid(keys %{$self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}}{NODES}}) {
+    $self->compute_subtree_confidences($self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}}{NODES}{$nodeid});
+  }
+}
+
+sub compute_subtree_confidences {
+  my ($self, $subtree, $parent_confidence) = @_;
+  $subtree->{CONFIDENCE} = $self->compute_node_confidence($subtree->{ENTRIES});
+  $subtree->{CONFIDENCE} *= $parent_confidence if defined $parent_confidence;
+  foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
+    $self->compute_subtree_confidences($subtree->{NODES}{$child_nodeid}, $subtree->{CONFIDENCE});
+  }
+}
+
+sub compute_node_confidence {
+  my ($self, $entries) = @_;
+  my $justifications_allowed_str = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED};
+  my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
+  my @confidences;
+  foreach my $docid(keys %{$entries}) {
+    foreach my $entry(@{$entries->{$docid}}) {
+      push(@confidences, $entry->{CONFIDENCE});
+    }
+  }
+  my $i=1;
+  my ($numerator, $denomerator) = (0,0);
+  foreach my $confidence(sort {$b<=>$a} @confidences) {
+    $numerator += ($confidence/$i);
+    $denomerator += (1/$i);
+    last if ($num_justifications_allowed ne "M" && $i==$num_justifications_allowed);
+    $i++;
+  }
+  if($num_justifications_allowed ne "M") {
+    # Denomerator needs to be the same irrespective of how many justifications were there
+    $denomerator = 0;
+    for ($i=1; $i<=$num_justifications_allowed; $i++){
+      $denomerator += (1/$i);
+    }
+  }
+  $numerator/$denomerator;
+}
+
+sub get_nodeids {
+  my ($self) = @_;
+  grep {$_ =~ /^$self->{QUERY_ID}/} %{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_NODEID}};
+}
+
+sub populate_tree {
+  my ($self) = @_;
+  foreach my $nodeid(sort {length($a)<=>length($b)} $self->get_nodeids()){
+    $self->add_node($nodeid);
+  }
+}
+
+sub add_node {
+  my ($self, $nodeid) = @_;
+  my ($query_id, $p1, $p2) = split(":", $nodeid);
+  my ($hop0_nodeid, $hop1_nodeid) = ("$query_id:$p1");
+  $hop1_nodeid = $nodeid if $p2;
+  my $entries = $self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_NODEID}{$nodeid};
+    
+  $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid} = {
+    ENTRIES => $entries, 
+    LINENUM => $self->get_first_occurence($entries)
+  } unless($self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid});
+  
+  $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid}{NODES}{$hop1_nodeid} = {
+    ENTRIES => $entries, 
+    LINENUM => $self->get_first_occurence($entries)
+  } if $hop1_nodeid;
+  
+  my $level = 0;
+  $level = 1 if $p2;
+  unless($self->{FQNODEIDS}{$level}{$nodeid}) {
+  	my $node = $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid};
+  	$node = $self->{NODE_TREE}{QUERIES}{$query_id}{NODES}{$hop0_nodeid}{NODES}{$hop1_nodeid} if $hop1_nodeid;
+    $self->{NODES_BY_LEVEL}{$level}{$nodeid} = $node;
+  }  
+}
+
+sub get_first_occurence {
+  my ($self, $entries) = @_;
+  my $linenum;
+  foreach my $docid(keys %{$entries}) {
+    foreach my $entry(@{$entries->{$docid}}) {
+      $linenum = $entry->{LINENUM} unless $linenum;
+      $linenum = $entry->{LINENUM} if($entry->{LINENUM} < $linenum);
+    }
+  }
+  $linenum;
+}
+
+sub get_scores {
+	my ($self) = @_;
+  @{$self->{SCORES}};
+}
+
+### END INCLUDE NodeTree
 ### BEGIN INCLUDE EvaluationQueryOutput
 
 #####################################################################################
@@ -3544,7 +3867,7 @@ sub load {
     $line_encodings{$md5} = 1;
     if (@elements != @{$columns}) {
 ### DO NOT INCLUDE
-print STDERR "Wrong number of elements: <<", join(">> <<", @elements), ">>\n";
+print STDERR "Wrong number of elements in file (at line $.): $filename\n: <<", join(">> <<", @elements), ">>\n";
 print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
 ### DO INCLUDE
       $logger->record_problem('WRONG_NUM_ENTRIES', scalar @{$columns}, scalar @elements, $where);
@@ -3633,14 +3956,25 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
     # Map assessments onto a standard set valid across years
     foreach my $key (keys %{$entry}) {
       next unless $key =~ /_ASSESSMENT$/;
-      $entry->{$key} = $schema->{ASSESSMENT_CODES}{$entry->{$key}}
-	or $logger->NIST_die("Unknown assessment code: $entry->{$key}");
+      unless($schema->{ASSESSMENT_CODES}{$entry->{$key}}) {
+        $logger->NIST_die("Unknown assessment code: $entry->{$key} in file: $filename at line: $.\n");
+      }
+      $entry->{$key} = $schema->{ASSESSMENT_CODES}{$entry->{$key}};
+    }
+
+    # Set the fully-qualified NODEID and insert information about NODE_QUANTITY
+    if($entry->{NODEID}) {
+      my $prefix = $entry->{QUERY}->get("FULL_QUERY_ID");
+      ($prefix) = map {$_->{FQNODEID}} grep {$_->{TARGET_QUERY_ID} eq $entry->{QUERY}->get("QUERY_ID")} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}
+        if $entry->{QUERY}->get("LEVEL") == 1;
+      $entry->{FQNODEID} = $prefix.$entry->{NODEID};
+      $self->{NODE_QUANTITY}{$entry->{FQNODEID}} = $entry->{QUERY}->get("QUANTITY");
     }
 
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
     push(@{$self->{ENTRIES_BY_QUERY_ID_BASE}{$schema->{TYPE}}{$entry->{QUERY_ID_BASE}}}, $entry);
     push(@{$self->{ENTRIES_BY_ANSWER}{$entry->{QUERY_ID}}{$entry->{TARGET_QUERY_ID}}{$schema->{TYPE}}}, $entry);
-    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{QUERY_ID}}{$entry->{NODEID}}{$entry->{DOCID}}}, $entry) if $entry->{NODEID};
+    push(@{$self->{ENTRIES_BY_NODEID}{$entry->{FQNODEID}}{$entry->{DOCID}}}, $entry) if $entry->{NODEID};
     push(@{$self->{ENTRIES_BY_EC}{$entry->{QUERY_ID}}{$entry->{VALUE_EC}}}, $entry)
 	if $entry->{TYPE} eq 'ASSESSMENT' &&
 	   ($entry->{ASSESSMENT} eq 'CORRECT' || $entry->{ASSESSMENT} eq 'INEXACT');
@@ -3884,6 +4218,36 @@ sub get_scoring_options_description {
   &main::build_documentation(\%scoring_options);
 }
 
+# Compute the APs based scores, as introduced in 2017
+sub score_query_aps {
+  my ($self, $original_query, $policy_options, $policy_selected, %options) = @_;
+  # Validate the scoring options
+  foreach my $key (keys %options) {
+    $self->NIST_die("Unknown scoring option: $key") unless $scoring_options{$key};
+  }
+  # Set option defaults, and ensure required options are present
+  foreach my $key (keys %scoring_options) {
+    $options{$key} = $scoring_options{$key}{DEFAULT}
+      if defined $scoring_options{$key}{DEFAULT} && !defined $options{$key};
+    $self->{LOGGER}->NIST_die("No $key provided")
+      if $scoring_options{$key}{REQUIRED} && !defined $options{$key};
+  }
+  my @queries_to_score = ($original_query);
+  my $new_query_base = $options{QUERY_BASE};
+  if ($new_query_base) {
+    my $subqueries = $original_query->expand($new_query_base);
+    @queries_to_score = $subqueries->get_all_queries();
+  }
+  my @scores;
+  foreach my $query (@queries_to_score) {
+    my $query_id = $query->{QUERY_ID};
+    my $query_id_base = $query->get('QUERY_ID_BASE');
+    my $nodetree = NodeTree->new($self, $query_id, $query_id_base);
+    push(@scores, $nodetree->get_scores());
+  }
+  @scores;
+}
+
 # Score a query by building the equivalence class tree for that query,
 # placing each submission at the correct point in the tree, scoring
 # each node of the tree, and collecting the resulting scores
@@ -3997,73 +4361,130 @@ sub score_query {
 
 # This function marks all entries (and dependents) that should be discarded based on the required parameters
 sub mark_multiple_justifications {
-  my ($self, $justifications_allowed) = @_;
-  my ($justifications_perdoc, $justifications_total) = $justifications_allowed =~ /^(.*?):(.*?)$/;
-  my %discarded_dependents;
-  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
+  my ($self, $justifications_allowed_str) = @_;
+  my ($justifications_allowed_perdoc, $justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
+
+  my @levels = keys {map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}};
+  my %fqnodeid_to_level = map {$_->{FQNODEID} => $_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+
+  foreach my $level(sort {$a<=>$b} @levels) {
+    foreach my $fqnodeid (sort keys %fqnodeid_to_level) {
+      next unless $fqnodeid_to_level{$fqnodeid} == $level;
       my @entries;
-      # Discard extra justifications per document
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
+      # Enforce per-fqnodeid-document pair constraint
+      # Typically only one justification per fqnodeid-document pair is allowed
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$fqnodeid}}) {
         my $k = 0;
         foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
-                            @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
-           push(@entries, $entry);
-           if ($justifications_perdoc ne 'M' && $k >= $justifications_perdoc) {
-             $entry->{DISCARD} = 1;
-             my $justifications_provided = scalar @{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}};
-             $self->{LOGGER}->record_problem('UNEXPECTED_JUSTIFICATIONS', $justifications_perdoc, $justifications_provided, $entry->{QUERY}->get("FULL_QUERY_ID"), $nodeid,
-               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-             $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-               {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
-               if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-                    (exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} &&
-                      $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0));
-           }
-           else {
-             # Don't discard the dependent since this parent is not discarded and as per the requirement if
-             # one of the parents is not discarded all the dependents should not be discarded
-             $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
-           }
-           $k++;
+                           grep {not exists $_->{DISCARD}} @{$self->{ENTRIES_BY_NODEID}{$fqnodeid}{$docid}}) {
+          push(@entries, $entry);
+          if ($justifications_allowed_perdoc ne 'M' && $k >= $justifications_allowed_perdoc) {
+            $entry->{DISCARD} = 1;
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE} . "\n",
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+          }
+          $k++;
         }
       }
-      # Discard extra justifications over all
+      # Enforce per-fqnodeid constraint
       my $k = 0;
       foreach my $entry(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} || $a->{LINENUM} <=> $b->{LINENUM}}
-                          grep {not exists $_->{DISCARD}} @entries) {
-        if ($justifications_total ne 'M' && $k >= $justifications_total) {
+                        grep {not exists $_->{DISCARD}} @entries) {
+        if ($justifications_allowed ne 'M' && $k >= $justifications_allowed) {
           $entry->{DISCARD} = 1;
-          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE} . "\n",
             {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 1
-            if (not exists $discarded_dependents{$entry->{TARGET_QUERY_ID}} ||
-                  $discarded_dependents{$entry->{TARGET_QUERY_ID}} != 0);
-        }
-        else{
-          # Don't discard the dependent since this parent is not discarded and as per the requirement if
-          # one of the parents is not discarded all the dependents should not be discarded
-          $discarded_dependents{$entry->{TARGET_QUERY_ID}} = 0;
         }
         $k++;
       }
     }
+    # Discard dependents
+    my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
+                            grep {not exists $_->{DISCARD}}
+                              grep {$_->{QUERY}->{LEVEL} == $level}
+                                @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+    foreach my $entry(grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+      unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
+        $entry->{DISCARD} = 1;
+        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
+      }
+    }
+  }
+}
+
+# Pick entries with the highest confidence node corresponding to a query, removing all other entries
+# Also remove dependents of the removed entries
+sub manage_single_valued_slots {
+  my ($self) = @_;
+  my $justifications_allowed_str = $self->{JUSTIFICATIONS_ALLOWED};
+  my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
+  my %fqnodeids;
+  foreach my $fqnodeid(sort {length($a)<=>length($b)} keys {map {$_->{FQNODEID}=>1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}}) {
+    my ($parent_fqnodeid, $nodeid) = $fqnodeid =~ /^(.*):(.*?)$/;
+    $fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}{$fqnodeid} = 1;
+    unless ($fqnodeids{$parent_fqnodeid}{QUANTITY}) {
+      my ($node_quantity) = map {$_->{QUERY}->{QUANTITY}} grep {$_->{FQNODEID} eq $fqnodeid} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+      $fqnodeids{$parent_fqnodeid}{QUANTITY} = $node_quantity;
+    }
   }
 
-  # Discard dependents having all discarded parents
-  # If any of the parents is not discarded the dependent should not be discarded
-  foreach my $query_id (keys %{$self->{ENTRIES_BY_NODEID}}) {
-    foreach my $nodeid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}}) {
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}}) {
-        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$query_id}{$nodeid}{$docid}}) {
-          if (exists $discarded_dependents{ $entry->{QUERY_ID} } &&
-            $discarded_dependents{ $entry->{QUERY_ID} } == 1) {
-              $entry->{DISCARD} = 1;
-              $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-                {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-          }
+  foreach my $parent_fqnodeid(sort {length($a)<=>length($b)} keys %fqnodeids) {
+    next unless $fqnodeids{$parent_fqnodeid}{QUANTITY} eq "single";
+    my %child_node_confidences;
+    my $level;
+    foreach my $child_fqnodeid(keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
+      my ($confidence, $first_occurence, @confidences);
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
+        foreach my $entry(grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
+          $level = $entry->{QUERY}->{LEVEL} unless $level;
+          push(@confidences, $entry->{CONFIDENCE});
+          $first_occurence = $entry->{LINENUM} unless $first_occurence;
+          $first_occurence = $entry->{LINENUM} if $first_occurence > $entry->{LINENUM};
         }
+      }
+      my ($i, $num, $den) = (1, 0, 0);
+      foreach my $conf(sort {$b<=>$a} @confidences) {
+        $num += ($conf/$i);
+        $den += (1/$i);
+        last if ($num_justifications_allowed ne "M" && $i==$num_justifications_allowed);
+        $i++;
+      }
+      if($num_justifications_allowed ne "M") {
+        # Denomerator needs to be the same irrespective of how many justifications were there
+        $den = 0;
+        for ($i=1; $i<=$num_justifications_allowed; $i++){
+          $den += (1/$i);
+        }
+      }
+      $confidence = $num / $den;
+      $child_node_confidences{$child_fqnodeid} = {CONFIDENCE => $confidence, LINENUM => $first_occurence};
+    }
+    # Select the node with highest confidence
+    my ($selected_nodeid) =
+      sort {$child_node_confidences{$b}{CONFIDENCE} <=> $child_node_confidences{$a}{CONFIDENCE} ||
+             $child_node_confidences{$a}{LINENUM} <=> $child_node_confidences{$b}{LINENUM}}
+        keys %child_node_confidences;
+    # Discard justifications from child nodes other than selected node
+    foreach my $child_fqnodeid(grep {$_ ne $selected_nodeid} keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
+      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
+          $entry->{DISCARD} = 1;
+          $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
+        }
+      }
+    }
+    # Discard dependents
+    my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
+                            grep {not exists $_->{DISCARD}}
+                              grep {$_->{QUERY}->{LEVEL} == $level}
+                                @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+    foreach my $entry(grep {!$_->{DISCARD}} grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+      unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
+        $entry->{DISCARD} = 1;
+        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
       }
     }
   }
@@ -4101,6 +4522,9 @@ sub new {
     # found to be a duplicate of another based on NODEID (and DOCID).
     # The dependents of such would also be marked as to be discarded
     $self->mark_multiple_justifications($justifications_allowed) if $schema->{CHECK_MULTIPLE_JUSTIFICATIONS};
+    # Pick entries with the highest confidence node corresponding to a query, removing all other entries
+    # Make sure we remove dependents of the removed entries
+    $self->manage_single_valued_slots() if $schema->{CHECK_MULTIPLE_JUSTIFICATIONS};
   }
   $self;
 }

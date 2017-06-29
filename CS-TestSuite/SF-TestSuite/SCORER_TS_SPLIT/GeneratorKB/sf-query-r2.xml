@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CSSF17_ENG_afddc4ed21_0b413ff323e6">
+    <name>Lisa</name>
+    <docid>SIMPSONS_018</docid>
+    <beg>77</beg>
+    <end>82</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_18ee585af031">
+    <name>Bart Simpson</name>
+    <docid>SIMPSONS_015</docid>
+    <beg>14</beg>
+    <end>27</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_1fa227e2e937">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_012</docid>
+    <beg>81</beg>
+    <end>94</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_23ae2bc83fbd">
+    <name>Bart</name>
+    <docid>SIMPSONS_017</docid>
+    <beg>53</beg>
+    <end>58</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_2d21b0131619">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_013</docid>
+    <beg>56</beg>
+    <end>69</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_3f7b77574583">
+    <name>Lisa</name>
+    <docid>SIMPSONS_012</docid>
+    <beg>90</beg>
+    <end>95</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_519d8ecfd43c">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_015</docid>
+    <beg>102</beg>
+    <end>115</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_b1d009063e02">
+    <name>Lisa</name>
+    <docid>SIMPSONS_011</docid>
+    <beg>138</beg>
+    <end>143</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_f4ad4eed22ad">
+    <name>Bart Simpson</name>
+    <docid>SIMPSONS_020</docid>
+    <beg>46</beg>
+    <end>59</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+</query_set>

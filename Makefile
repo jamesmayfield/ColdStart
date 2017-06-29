@@ -5,9 +5,28 @@ OUTPUT=tac:edl:sen:eal:nug
 KB=NO_ERRORS
 SF=NO_ERRORS
 JUSTIFICATIONS=1:3
-QB=CS17
+QB=CSSF17
 DIR=CS-TestSuite
+DOCS=-docs $(DIR)/AUX-Files/doclength.txt
 #########################################################################################
+
+score-sf:
+	if [ -f $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog ]; \
+      then rm $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog; \
+    fi
+	perl CS-Score-MASTER.pl \
+	  -expand $(QB) \
+	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog \
+	  -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score \
+	  $(DIR)/SF-TestSuite/$(SF)/ldc-query.xml \
+	  $(DIR)/SF-TestSuite/$(SF)/qrel.txt \
+	  $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt
+
+expand-sfkb:
+	perl CS-ExpandKB-MASTER.pl \
+	  -output_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac \
+	  -kbname $(SF) \
+	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.cpt
 
 validate-all: validate-all-kbs validate-all-sfs
 
@@ -15,7 +34,7 @@ diff-all: diff-all-kbs diff-all-sfs
 
 validate-kb-basic:
 	perl CS-ValidateKB-MASTER.pl \
-	  -docs $(DIR)/AUX-Files/doclength.txt \
+	  $(DOCS) \
 	  -output $(OUTPUT) \
 	  -output_file $(DIR)/KB-TestSuite/$(KB)/$(KB).valid \
 	  -error_file $(DIR)/KB-TestSuite/$(KB)/$(KB).errlog \
@@ -38,7 +57,7 @@ validate-kb-full:
 	  then rm $(DIR)/KB-TestSuite/$(KB)/$(KB).nug.valid; \
 	fi
 	perl CS-ValidateKB-MASTER.pl \
-	  -docs $(DIR)/AUX-Files/doclength.txt \
+	  $(DOCS) \
 	  -output $(OUTPUT) \
 	  -error_file $(DIR)/KB-TestSuite/$(KB)/$(KB).errlog \
 	  $(DIR)/KB-TestSuite/$(KB)/$(KB).tac
@@ -50,7 +69,7 @@ setup-sf:
 	  then rm $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac.valid; \
 	fi
 	perl CS-ValidateKB-MASTER.pl \
-	  -docs $(DIR)/AUX-Files/doclength.txt \
+	  $(DOCS) \
 	  -output tac \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.errlog \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac
@@ -63,7 +82,7 @@ setup-sf:
 	  $(DIR)/SF-TestSuite/$(SF)/ldc-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml
 	perl CS-GenerateQueries-MASTER.pl \
-	  -docs $(DIR)/AUX-Files/doclength.txt \
+	  $(DOCS) \
 	  -valid \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/sf-query-r1.xml
@@ -71,10 +90,20 @@ setup-sf:
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac.valid \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq
-	awk 'length($$1)<25{print}' $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r1
-	awk 'length($$1)>25{print}' $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r2
+	if [ -f $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog ]; \
+          then rm $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog; \
+        fi
+	perl CS-ValidateSF-MASTER.pl \
+          -error_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog \
+          $(DOCS) \
+          -justifications $(JUSTIFICATIONS) \
+          -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt \
+          $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
+          $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq
+	awk 'length($$1)<25{print}' $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r1
+	awk 'length($$1)>25{print}' $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r2
 	perl CS-GenerateQueries-MASTER.pl \
-	  -docs $(DIR)/AUX-Files/doclength.txt \
+	  $(DOCS) \
 	  -valid \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/sf-query-r2.xml \
@@ -99,7 +128,7 @@ validate-sf:
 	fi
 	perl CS-ValidateSF-MASTER.pl \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF).errlog \
-	  -docs $(DIR)/AUX-Files/doclength.txt \
+	  $(DOCS) \
 	  -justifications $(JUSTIFICATIONS) \
 	  -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
