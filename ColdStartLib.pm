@@ -19,8 +19,10 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.4";   # (1) - New implementation of AP computation added
-                            # (2) - Results are being printed to a single AP file, to be split later, upon verification of correctness
+my $version = "2017.1.5";   # (1) Node confidence computation function changed to have the denomerator
+                            #     same irrespective of how many justifications were provided.
+                            # (2) Also support added to have the confidence vary depending on allowed
+                            #     justifications passed through switch -justifications
 
 ### BEGIN INCLUDE Switches
 

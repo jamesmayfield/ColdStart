@@ -1583,6 +1583,10 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2017.1.4 - Node confidence computation function changed to have the denomerator
+#            same irrespective of how many justifications were provided.
+#            Also support added to have the confidence vary depending on allowed
+#            justifications passed through parameter -justifications
 # 2017.1.3 - Minor changes and formatting correction. Number have been verifed using
 #            an initial set of test cases
 # 2017.1.2 - New implementation of AP computation added
