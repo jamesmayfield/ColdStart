@@ -264,12 +264,14 @@ POSTPOLICY ASSESSMENT:  IGNORE,REDUNDANT
 
 These fields are described here:
 
+~~~
    FQNODEID               Fully-qualified KB node ID corresponding to the response in case of KB->SF submission (or the automatically generated node ID in case of SF submission) 
    SUBMISSION             A response line in the submission file
    TARGET_QID             Query ID of the next round query
    ASSESSMENT             Line from the assessment file that corresponds to this answer, if any
    PREPOLICY ASSESSMENT   The assessment of the response in the assessment file
    POSTPOLICY ASSESSMENT  The categorization of the response for the purpose of scoring; MOTE that the categorization of REDUNDANT responses affects only P/R/F1
+~~~
 
 ### 4.6.2 AP computation debug information
 
