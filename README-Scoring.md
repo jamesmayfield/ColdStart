@@ -201,7 +201,7 @@ As mentioned above that the scorer produces a subset of the following files depe
     CSrun_score.params       Lists when, how, and with what options the scorer was invoked
     CSrun_score.errlog       Reports errors encounterd while scoring, if any
     CSrun_score.ap           Lists SF and LDC-MEAN variants of the AP scores including the summary at the end
-    CSrun_score.debug        Includes response level pre-policy and post-policy assessments
+    CSrun_score.debug        Includes response level pre-policy and post-policy assessments and AP computation steps
     CSrun_score.sf           Lists counts and scores based on SF variant
     CSrun_score.ldcmax       Lists counts and scores based on LDC-MAX variant
     CSrun_score.ldcmean      Lists counts and scores based on LDC-MEAN variant
@@ -214,7 +214,7 @@ As mentioned above that the scorer produces a subset of the following files depe
 
 By default, for each query and hop level, the scorer outputs the following counts:
 
-    GT	        Total number of ground truth answers (equivalence classes) as found by the assessors,
+    GT          Total number of ground truth answers (equivalence classes) as found by the assessors,
     Submitted   Number of responses in the submission,
     Correct     Number of responses in the submission that were assessed as Correct,
     Incorrect   Number of responses in the submission that were assessed as Wrong,
@@ -233,3 +233,83 @@ By default, for each query and hop level, the scorer outputs the following count
 where Right, Wrong, and Ignored are computed based on selected post-policy decision, specified using switches `-right, -wrong, and -ignore` (See the usage for detail). 
     
 Note that scores for round # 2 (or hop-1) are reported at the equivalence class (EC) level and not at the generated query level. For example, the scores given for `CSSF15_ENG_0458206f71:2` are the scores corresponding to the entity found as answer for round # 1 (or hop-0) query `CSSF15_ENG_0458206f71` which was placed by assessors in equivalence class 2. Similarly, the scores given for `CSSF15_ENG_0458206f71:0` are the scores corresponding to all hop-1 answers which correspond to incorrect hop-0 fillers. 
+
+## 4.6 Understanding the debug file
+
+The debug file has been extended in 2017. Major changes include:
+
+(1) Addition of debug information for AP computation, and
+(2) Storing TARGET_QID and FQNODEID with each submission entry.
+
+This section describes the content of the debug file in details. The file can be broken down into two major parts:
+
+(1) Per-query response pre/post-policy assessment
+(2) AP computation debug information
+
+### 4.6.1 Per-query response pre-and-post-policy assessment
+
+The debug file begins with per-query response pre-and-post-policy assessment information where each query response is mapped to its pre-and-post-policy assessment, in particular, if the response has an assessment, the line from the assessment file is paired with it.
+
+An example line is shown below:
+
+~~~
+        FQNODEID:       CSSF17_ENG_afddc4ed21:Entity104
+        SUBMISSION:     CSSF17_ENG_afddc4ed21   per:children    SCORER_TS_SPLIT SIMPSONS_012:67-112     Lisa Simpson    PER     SIMPSONS_012:81-94      0.9864  :Entity104
+        TARGET_QID:     CSSF17_ENG_afddc4ed21_1fa227e2e937
+        ASSESSMENT:     CSSF17_ENG_afddc4ed21_0_011     CSSF17_ENG_afddc4ed21:per:children      SIMPSONS_012:67-112     Lisa Simpson    SIMPSONS_012:81-94      C       NAM     C       CSSF17_ENG_afddc4ed21:1 NAM
+
+        PREPOLICY ASSESSMENT:   CORRECT
+        POSTPOLICY ASSESSMENT:  IGNORE,REDUNDANT
+~~~
+
+These fields are described here:
+
+   FQNODEID               Fully-qualified KB node ID corresponding to the response in case of KB->SF submission (or the automatically generated node ID in case of SF submission) 
+   SUBMISSION             A response line in the submission file
+   TARGET_QID             Query ID of the next round query
+   ASSESSMENT             Line from the assessment file that corresponds to this answer, if any
+   PREPOLICY ASSESSMENT   The assessment of the response in the assessment file
+   POSTPOLICY ASSESSMENT  The categorization of the response for the purpose of scoring; MOTE that the categorization of REDUNDANT responses affects only P/R/F1
+
+### 4.6.2 AP computation debug information
+
+AP computation debug information is printed at the end of the debug file beginning with line:
+
+~~~
+AP COMPUTATION DEBUG INFO BEGINS:
+~~~
+
+This section presents debug information for each query-and-hop separately. An example is shown below:
+
+~~~
+QUERY_ID:         CSSF17_ENG_afddc4ed21
+LEVEL:            1
+AP:               1.0000
+NUM_GROUND_TRUTH: 4
+GROUND TRUTH:
+  CSSF17_ENG_afddc4ed21:1:1
+  CSSF17_ENG_afddc4ed21:1:2
+  CSSF17_ENG_afddc4ed21:2:1
+  CSSF17_ENG_afddc4ed21:2:2
+RANKING:
+........
+RANK NODEID CONFIDENCE MAPPED_EC V
+1 CSSF17_ENG_afddc4ed21:Entity103:Entity111 0.7516 CSSF17_ENG_afddc4ed21:1:2 1.0000
+2 CSSF17_ENG_afddc4ed21:Entity103:Entity110 0.6633 CSSF17_ENG_afddc4ed21:1:1 1.0000
+3 CSSF17_ENG_afddc4ed21:Entity102:Entity111 0.5120 CSSF17_ENG_afddc4ed21:2:2 1.0000
+4 CSSF17_ENG_afddc4ed21:Entity102:Entity110 0.5031 CSSF17_ENG_afddc4ed21:2:1 1.0000
+5 CSSF17_ENG_afddc4ed21:Entity104:Entity110 0.3694 - 0.0000
+6 CSSF17_ENG_afddc4ed21:Entity104:Entity111 0.3573 - 0.0000
+~~~
+
+For each query-and-hop, we provide the following:
+
+   QUERY_ID          The query ID
+   LEVEL             The hop number
+   AP                AP-based score computed using the V values in list given in the corresponding RANKING section
+   NUM_GROUND_TRUTH  The number of correct answers (used as the denomerator for AP computation)
+   GROUND TRUTH      The list of equivalence classes assigned by LDC *1
+   RANKING           The ranked list used for AP computation *2
+
+*1: The number of equivalence classes as assigned by LDC might differ from NUM_GROUND_TRUTH (for e.g. in case of singluar valued slots when LDC found two ages of a person, in which case, NUM_GROUND_TRUTH would be set to 1)
+*2: The ranked list provides a list of NODES with (1) its confidence, (2) the equivalence class which the node is aligned to (MAPPED_EC), and (3) the value V
