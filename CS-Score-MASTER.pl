@@ -503,16 +503,18 @@ sub print_lines {
     my $description = $metrices{$metric}{DESCRIPTION};
     my $fields_to_print = $self->{FIELDS_TO_PRINT};
     $self->prepare_lines($metric);
-	  $self->print_details() if $metric eq "SF";
-	  $self->print_headers($fields_to_print, undef, $program_output{AP}) if @{$self->{LINES}};
-	  foreach my $line (@{$self->{LINES}}) {
-	    $self->print_line($line, $fields_to_print, undef, $program_output{AP});
-	  }
-	  @{$self->{LINES}} = ();
-	  print {$program_output{AP}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
+	$self->print_details() if $metric eq "SF";
+	print {$program_output{AP}} "$metrices{$metric}{DESCRIPTION}\n\n";
+	$self->print_headers($fields_to_print, undef, $program_output{AP}) if @{$self->{LINES}};
+	foreach my $line (@{$self->{LINES}}) {
+	  $self->print_line($line, $fields_to_print, undef, $program_output{AP});
+	}
+	@{$self->{LINES}} = ();
   }
+  print {$program_output{AP}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
+
   $self->print_summary($program_output{AP});
-  print {$program_output{"SUMMARY"}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
+  print {$program_output{"AP"}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
 }
 
 sub print_details {
@@ -549,6 +551,7 @@ sub print_details {
 sub print_summary {
   my ($self, $output_handle) = @_;
   my $fields_to_print = $self->{FIELDS_TO_PRINT};
+  print $output_handle "Following section provides summary of AP scores:\n";
   $self->print_headers($fields_to_print, undef, $output_handle);
   foreach my $metric(sort {$metrices{$a}{ORDER}<=>$metrices{$b}{ORDER}} keys %metrices) {
   	my $metric_name = $metrices{$metric}{NAME};
