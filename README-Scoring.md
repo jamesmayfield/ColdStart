@@ -304,12 +304,14 @@ RANK NODEID CONFIDENCE MAPPED_EC V
 
 For each query-and-hop, we provide the following:
 
+~~~
    QUERY_ID          The query ID
    LEVEL             The hop number
    AP                AP-based score computed using the V values in list given in the corresponding RANKING section
    NUM_GROUND_TRUTH  The number of correct answers (used as the denomerator for AP computation)
    GROUND TRUTH      The list of equivalence classes assigned by LDC *1
    RANKING           The ranked list used for AP computation *2
+~~~
 
 *1: The number of equivalence classes as assigned by LDC might differ from NUM_GROUND_TRUTH (for e.g. in case of singluar valued slots when LDC found two ages of a person, in which case, NUM_GROUND_TRUTH would be set to 1)
 *2: The ranked list provides a list of NODES with (1) its confidence, (2) the equivalence class which the node is aligned to (MAPPED_EC), and (3) the value V
