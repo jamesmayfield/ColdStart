@@ -1,4 +1,4 @@
-#At: Thu Jun 29 09:29:11 2017
+#At: Thu Jun 29 11:26:40 2017
 
 #Invoked as:
 /home/skr1/git/cold-start-collaborative/ColdStart$ perl CS-Score-MASTER.pl -expand CSSF17 -error_file CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/SCORER_TS_SPLIT_score.errlog -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/SCORER_TS_SPLIT_score CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_SPLIT/SCORER_TS_SPLIT.valid.ldc.tab.txt
