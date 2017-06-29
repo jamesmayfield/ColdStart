@@ -11,6 +11,9 @@ DOCS=-docs $(DIR)/AUX-Files/doclength.txt
 #########################################################################################
 
 score-sf:
+	if [ -f $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog ]; \
+      then rm $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog; \
+    fi
 	perl CS-Score-MASTER.pl \
 	  -expand $(QB) \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog \
