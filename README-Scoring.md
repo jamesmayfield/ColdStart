@@ -163,11 +163,11 @@ The official score computation differs from the AP computation because for our r
 | Rank | V | Precision at Rank |
 |----|----|----|
 | 1 | 0.6667 | 0.6667/1 |
-| 2 | 1 | 1.6667/2   |
-| 3 | 0 | - |
-| 4 | 0 | - |
-| 5 | 0 | - |
-| 6 | 0 | - |
+| 2 | 1.0000 | 1.6667/2   |
+| 3 | 0.0000 | - |
+| 4 | 0.0000 | - |
+| 5 | 0.0000 | - |
+| 6 | 0.0000 | - |
 
 Therefore the official AP-based score is (0.6667 + 1.6667/2)/4.
 ~~~
