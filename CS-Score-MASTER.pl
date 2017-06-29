@@ -513,7 +513,7 @@ sub print_lines {
 	@{$self->{LINES}} = ();
   }
   $self->print_summary($program_output{AP});
-  print {$program_output{"AP"}} "\n*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.\n";
+  print {$program_output{"AP"}} "\n*ALL-Macro AP refer to mean of corresponding AP values.\n";
 }
 
 sub print_details {
