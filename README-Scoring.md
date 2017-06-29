@@ -119,7 +119,27 @@ Micro-averages are computed as:
 	
 Macro-averages are computed as the mean Precision, mean Recall, mean F1 and mean AP.
 
-### 4.1.3 Computation of AP-based score
+## 4.2 Score Variants
+
+The official score for 2017 is an AP-based score for which the following score variants are produced:
+
+	1. SF        Slot-filling score variant considering all entrypoints as a separate query,
+	2. LDC-MEAN  LDC level score variant in which AP for each LDC query is the mean of APs of all entrypoints for that LDC query.
+
+The scorer may produce the following score variants for P/R/F1 depending on the query file used for scoring:
+
+	1. SF        Slot-filling score variant considering all entrypoints as a separate query,
+	2. LDC-MAX   LDC level score variant considering the run's best entrypoint per LDC query on the basis of F1 score combined across both hops,
+	3. LDC-MEAN  LDC level score variant in which the Precision, Recall, and F1 for each LDC query is the mean Precision, mean Recall, and mean F1 for all entrypoints for that LDC query.
+
+In order to have the scorer produce LDC-MAX and LDC-MEAN score variants, the scorer must use: 
+
+	a. LDC queries file (for example, `tac_kbp_2016_cold_start_evaluation_queries.xml`), and 
+	b. -expand switch with correct expansion string (for example, `-expand CSSF16`).
+
+Summary of scores is presented towards the end of the scorer output.
+
+## 4.3 Computation of AP-based score
 
 The official score for 2017 is an AP-based score which is computed as described below.
 
@@ -149,7 +169,7 @@ The official score computation differs from the AP computation because for our r
 | 5 | 0 | - |
 | 6 | 0 | - |
 
-Therefore the official AP-based score is (0.6667 + 1.6667/2)/4. 
+Therefore the official AP-based score is (0.6667 + 1.6667/2)/4.
 ~~~
 ================================================================================
 QUERY_ID:         CSSF17_ENG_afddc4ed21
@@ -173,27 +193,7 @@ RANK NODEID CONFIDENCE MAPPED_EC V
 ================================================================================
 ~~~
 
-## 4.2 Score Variants
-
-The official score for 2017 is an AP-based score for which the following score variants are produced:
-
-	1. SF        Slot-filling score variant considering all entrypoints as a separate query,
-	2. LDC-MEAN  LDC level score variant in which AP for each LDC query is the mean of APs of all entrypoints for that LDC query.
-
-The scorer may produce the following score variants for P/R/F1 depending on the query file used for scoring:
-
-	1. SF        Slot-filling score variant considering all entrypoints as a separate query,
-	2. LDC-MAX   LDC level score variant considering the run's best entrypoint per LDC query on the basis of F1 score combined across both hops,
-	3. LDC-MEAN  LDC level score variant in which the Precision, Recall, and F1 for each LDC query is the mean Precision, mean Recall, and mean F1 for all entrypoints for that LDC query.
-
-In order to have the scorer produce LDC-MAX and LDC-MEAN score variants, the scorer must use: 
-
-	a. LDC queries file (for example, `tac_kbp_2016_cold_start_evaluation_queries.xml`), and 
-	b. -expand switch with correct expansion string (for example, `-expand CSSF16`).
-
-Summary of scores is presented towards the end of the scorer output.
-
-## 4.3 Output files
+## 4.4 Output files
 
 As mentioned above that the scorer produces a subset of the following files depending on the options selected.
 
@@ -209,7 +209,7 @@ As mentioned above that the scorer produces a subset of the following files depe
     CSrun_score.samplescores Lists the bootstrap resample statistics
     CSrun_score.confidence   Reports confidence intervals based on the bootstrap resampling statistics using the percentile method
 
-## 4.4 Output fields
+## 4.5 Output fields
 
 By default, for each query and hop level, the scorer outputs the following counts:
 
@@ -224,7 +224,7 @@ By default, for each query and hop level, the scorer outputs the following count
     Right       Number of responses in the submission counted as Right, as specified by argument to swtich `-right`,
     Wrong       Number of responses in the submission counted as Wrong, as specified by argument to swtich `-wrong`, 
     Ignored     Number of responses in the submission that were ignored for the purpose of score computation, as specified by argument to the switch `-ignore`,
-    AP          Computed as described in Section 4.1.3 above,
+    AP          Computed as described in Section 4.3 above,
     Precision   Computed as: Right / (Right + Wrong),
     Recall      Computed as: Right / GT,
     F1          Computed as: 2 * Precision * Recall / (Precision + Recall).
