@@ -1398,12 +1398,14 @@ sub get_child_ids {
 
 # Convert the QuerySet to text form, suitable for print as a TAC evaluation query file
 sub tostring {
-  my ($self, $indent, $queryids, $omit, $languages) = @_;
+  my ($self, $indent, $queryids, $omit, $languages, $retain_sf) = @_;
+  $retain_sf = "false" unless defined $retain_sf;
   $indent = "" unless defined $indent;
   my $string = "$indent<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n$indent<query_set>\n";
   foreach my $query (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID}}
 		     values %{$self->{QUERIES}}) {
     next if $query->{GENERATED};
+    my @local_omit = @{$omit};
     if($languages) {
     	my @query_languages = @{$query->{LANGUAGES}};
     	my %selected_languages = map {$_=>1} split(":", $languages);
@@ -1417,7 +1419,31 @@ sub tostring {
     	next if $skip;
     } 
     next unless !defined $queryids || $queryids->{$query->{QUERY_ID}};
-    $string .= $query->tostring("$indent  ", $omit);
+    # Exclude: (1) queries with hop-0 event slot, or
+    #          (2) hop-1 event slots
+    if($retain_sf eq "true"){
+      my $slot0 = $query->get("SLOT0");
+      # capture identifier for event slots
+      my ($eal_identifier) = $slot0 =~ /^.*?:(.*?)\_/;
+      # capture the slot name for potential match with sentiment slots
+      my ($sen_identifier) = $slot0 =~ /^.*?:(.*?)$/;
+      # Move on to the next query if it has an event in hop-0 slot
+      next if (defined $eal_identifier && exists $PredicateSet::legal_event_types{$eal_identifier}) ||
+                exists $PredicateSet::legal_sentiment_slots{$sen_identifier};
+      if($query->get("SLOT1")) {
+      	# If the query has a hop-1 slot
+        my $slot1 = $query->get("SLOT1");
+        # capture identifier for event slots
+        my ($eal_identifier) = $slot1 =~ /^.*?:(.*?)\_/;
+        # capture the slot name for potential match with sentiment slots
+        my ($sen_identifier) = $slot1 =~ /^.*?:(.*?)$/;
+        # Omit the SLOT1 if event related slot appears in hop-1
+        push(@local_omit, "SLOT1")
+          if (defined $eal_identifier && exists $PredicateSet::legal_event_types{$eal_identifier}) ||
+                exists $PredicateSet::legal_sentiment_slots{$sen_identifier};
+      }
+    }
+    $string .= $query->tostring("$indent  ", \@local_omit);
   }
   $string .= "$indent</query_set>\n";
   $string;
@@ -1765,6 +1791,7 @@ our %legal_event_types = &build_hash(qw(conflict.attack
   movement.transport-person personnel.elect personnel.end-position personnel.start-position
   transaction.transaction transaction.transfer-money transaction.transfer-ownership));
 our %legal_string_types = &build_hash(qw(string));
+our %legal_sentiment_slots = &build_hash(qw(likes dislikes is_liked_by is_disliked_by));
 
 # Is one type specification compatible with another?  The second
 # argument must be a hash representing a set of types. The first
