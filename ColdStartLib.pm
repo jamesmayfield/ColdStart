@@ -389,7 +389,7 @@ sub populate_from_text {
   my @docids = map {$_->get_docid() if $_}
     grep {defined $_}
       ($filler_string,$predicate_justification,$base_filler,$additional_justification);
-  my %docids = {map{$_=>1 if $_} @docids};
+  my %docids = map{$_=>1 if $_} @docids;
   unless (scalar keys %docids == 1) {
     $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $self->tooriginalstring(), $where);
   }
