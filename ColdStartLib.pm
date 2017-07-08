@@ -219,6 +219,8 @@ sub record_problem {
   $self->{PROBLEM_COUNTS}{$format->{TYPE}}++;
   my $type = $format->{TYPE};
   my $message = "$type: " . sprintf($format->{FORMAT}, @args);
+  # Use Encode to support Unicode.
+  $message = Encode::encode_utf8($message);
   my $where = (ref $source ? "$source->{FILENAME} line $source->{LINENUM}" : $source);
   $self->NIST_die("$message\n$where") if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
   $self->{PROBLEMS}{$problem}{$message}{$where}++;
