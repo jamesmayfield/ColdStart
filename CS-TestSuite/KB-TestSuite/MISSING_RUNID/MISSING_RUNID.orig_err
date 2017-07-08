@@ -1,5 +1,5 @@
 ERROR: The first line of the file does not contain a legal runid (CS-TestSuite/KB-TestSuite/MISSING_RUNID/MISSING_RUNID.tac line 1)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-1 error encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+1 error encountered at (main:CS-ValidateKB-MASTER.pl:1710)

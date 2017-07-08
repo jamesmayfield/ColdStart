@@ -10,6 +10,6 @@ ERROR: Cannot infer type for Node :Entity004 (CS-TestSuite/KB-TestSuite/INCOMPAT
 ERROR: Cannot infer type for Node :Event_0001 (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 18)
 ERROR: Cannot infer type for Node :String101 (CS-TestSuite/KB-TestSuite/INCOMPATIBLE_NODE_NAME/INCOMPATIBLE_NODE_NAME.tac line 12)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-13 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+13 errors encountered at (main:CS-ValidateKB-MASTER.pl:1710)

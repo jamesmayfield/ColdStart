@@ -2,6 +2,6 @@ ERROR: NYT_ENG_20130603.0033:1959 is not a valid docid/offset pair string (CS-Te
 ERROR: Node :Entity004 has more than one named/nominal mention in document NYT_ENG_20130603.0033 but has no canonical mention
 WARNING: Failed to assert that canonical_mention(:Entity004, "Tim Samaras") in document NO DOCUMENT is also a mention (CS-TestSuite/KB-TestSuite/SYNTAX_ERROR/SYNTAX_ERROR.tac line 9)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-2 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+5 errors encountered at (main:CS-ValidateKB-MASTER.pl:1710)

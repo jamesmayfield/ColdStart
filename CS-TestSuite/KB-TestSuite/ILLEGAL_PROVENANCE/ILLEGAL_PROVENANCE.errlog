@@ -42,6 +42,6 @@ ERROR: Relation residents_of_city(:Entity_0001, :Entity_0007) uses node :Entity_
 ERROR: NIL is not an allowed value for BASE_FILLER provenance for event assertions (CS-TestSuite/KB-TestSuite/ILLEGAL_PROVENANCE/ILLEGAL_PROVENANCE.tac line 133 and 1 other place)
 ERROR: Wrong number of entries on line (expected 3, got 4) (CS-TestSuite/KB-TestSuite/ILLEGAL_PROVENANCE/ILLEGAL_PROVENANCE.tac line 39)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-37 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+65 errors encountered at (main:CS-ValidateKB-MASTER.pl:1710)

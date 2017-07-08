@@ -21,5 +21,7 @@ MULTIPLE_FILLS
 :Entity005	mention	"Paul"	NYT_ENG_20130603.0033:886-889	1.0
 :Entity005	canonical_mention	"Paul"	NYT_ENG_20130603.0033:886-889	1.0
 #                       v Entity005 has two different ages specified
+#                         Both will be passed on to the validated KB; the best node will be picked by the scorer
+#                         Therefore the warning that was generated earlier at this point is no more generated
 :Entity005	per:age	:String001	NYT_ENG_20130603.0033:869-870;NYT_ENG_20130603.0033:886-889	1.0	
 :Entity005	per:age	:String002	NYT_ENG_20130603.0033:850-851;NYT_ENG_20130603.0033:840-860	1.0
