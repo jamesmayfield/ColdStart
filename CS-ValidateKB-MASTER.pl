@@ -366,7 +366,8 @@ sub add_assertion {
   # Create the assertion, but don't record it yet. We do this before
   # handling $is_duplicate_of because we may want to use the new
   # assertion rather than the duplicate
-  my $assertion = {SUBJECT => $subject,
+  my $assertion = {LOGGER => $kb->{LOGGER},
+           SUBJECT => $subject,
 		   VERB => $verb,
 		   OBJECT => $object,
 		   PRINT_STRING => "$verb($subject, $object)",
