@@ -7,6 +7,6 @@ WARNING: Confidence value in scientific format: 4.7e-01  (CS-TestSuite/KB-TestSu
 WARNING: Decimal point missing in confidence value: 1 (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 7)
 WARNING: No inverse relation asserted for parents(:Entity004, :Entity005) (CS-TestSuite/KB-TestSuite/ILLEGAL_CONFIDENCE_VALUE/ILLEGAL_CONFIDENCE_VALUE.tac line 23)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-4 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+4 errors encountered at (main:CS-ValidateKB-MASTER.pl:1710)

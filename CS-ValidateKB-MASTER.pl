@@ -223,8 +223,9 @@ sub get_entity_type {
 
 # Assert a particular triple into the KB
 sub add_assertion {
-  my ($kb, $subject, $verb, $object, $provenance, $confidence, $source, $comment) = @_;
+  my ($kb, $subject, $verb, $object, $provenance_string, $confidence, $source, $comment) = @_;
   $comment = "" unless defined $comment;
+  my $logger = $kb->{LOGGER};
   # First, normalize all of the triple components
   my $subject_entity = $kb->intern($subject, $source);
   unless (defined $subject_entity) {
@@ -255,6 +256,12 @@ sub add_assertion {
     is_liked_by => 1,
     is_disliked_by => 1,
   );
+  my $provenance = &get_provenance( {LOGGER => $logger,
+                                       SOURCE =>$source,
+                                       PROVENANCE_STRING => $provenance_string,
+                                       SUBJECT => $subject,
+                                       OBJECT => $object,
+                                       VERB => $verb});
   foreach my $v(keys %verbs_with_restricted_prov) {
     if($verb =~ /$v/ ) {
       my %counts = $provenance->get_counts();
@@ -315,20 +322,21 @@ sub add_assertion {
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {
       # Don't worry about duplicates of assertions that have already been omitted from the output
       next if $existing->{OMIT_FROM_OUTPUT};
+      my $existing_provenance = &get_provenance($existing);
       # If only one is allowed, any matching assertion is a duplicate
       if ($multiple_attestations eq 'ONE') {
 	$is_duplicate_of = $existing;
 	last existing;
       }
       # In all other cases, it's not a duplicate unless it was extracted from the same document
-      next existing unless $existing->{PROVENANCE}->get_docid() eq $provenance->get_docid();
+      next existing unless $existing_provenance->get_docid() eq $provenance->get_docid();
       if ($multiple_attestations eq 'ONEPERDOC') {
 	$is_duplicate_of = $existing;
 	last existing;
       }
       # If "many" duplicate assertions are allowed, we only have a
       # problem if it is being asserted about exactly the same mention
-      next if $existing->{PROVENANCE}->tostring() ne $provenance->tostring();
+      next if $existing_provenance->tostring() ne $provenance->tostring();
       # This if is entirely unnecessary, but it makes everything look nice and symmetric
       if ($multiple_attestations eq 'MANY') {
 	# This is an actual duplicate of exactly the same information
@@ -337,7 +345,6 @@ sub add_assertion {
       }
     }
   }
-
   # Handle single-valued slots that are given more than one filler
   my $is_multiple_of;
   if ($predicate->{QUANTITY} eq 'single' && !$kb->{LOGGER}{IGNORE_WARNINGS}{MULTIPLE_FILLS_ENTITY}) {
@@ -359,7 +366,8 @@ sub add_assertion {
   # Create the assertion, but don't record it yet. We do this before
   # handling $is_duplicate_of because we may want to use the new
   # assertion rather than the duplicate
-  my $assertion = {SUBJECT => $subject,
+  my $assertion = {LOGGER => $kb->{LOGGER},
+           SUBJECT => $subject,
 		   VERB => $verb,
 		   OBJECT => $object,
 		   PRINT_STRING => "$verb($subject, $object)",
@@ -367,7 +375,7 @@ sub add_assertion {
 		   PREDICATE => $predicate,
 		   REALIS => $realis,
 		   OBJECT_ENTITY => $object_entity,
-		   PROVENANCE => $provenance,
+		   PROVENANCE_STRING => $provenance_string,
 		   CONFIDENCE => $confidence,
 		   SOURCE => $source,
 		   COMMENT => $comment};
@@ -390,7 +398,8 @@ sub add_assertion {
   # Now we can decide how to handle the duplicate
   if ($is_duplicate_of) {
     # Make sure this isn't exactly the same assertion
-    if ($provenance->tostring() eq $is_duplicate_of->{PROVENANCE}->tostring()) {
+    my $is_duplicate_of_prov = &get_provenance($is_duplicate_of);
+    if ($provenance->tostring() eq $is_duplicate_of_prov->tostring()) {
       $kb->{LOGGER}->record_problem('DUPLICATE_ASSERTION', "$is_duplicate_of->{SOURCE}{FILENAME} line $is_duplicate_of->{SOURCE}{LINENUM}", $source);
       $kb->{STATS}{REJECTED_ASSERTIONS}{DUPLICATE}++;
       return;
@@ -473,7 +482,8 @@ sub get_assertions {
 
   return(@{$kb->{ASSERTIONS3}{$subject}{$verb}{$object} || []}) if defined $object;
   return(@{$kb->{DOCIDS}{$subject}{$verb}{$docid} || []}) if defined $docid;
-  return(@{$kb->{ASSERTIONS2}{$subject}{$verb} || []}) if defined $verb;
+  return(map {@$_} values %{$kb->{ASSERTIONS3}{$subject}{$verb} || {}}) if defined $verb;
+  #return(@{$kb->{ASSERTIONS2}{$subject}{$verb} || []}) if defined $verb;
   return(@{$kb->{ASSERTIONS1}{$subject} || []}) if defined $subject;
   return(@{$kb->{ASSERTIONS0} || []});
 }
@@ -481,6 +491,20 @@ sub get_assertions {
 sub get_links {
   my ($kb, $subject, $kb_target) = @_;
   return(@{$kb->{LINKS}{$subject}{$kb_target}});
+}
+
+sub get_provenance {
+  my ($assertion) = @_;
+  my $provenance;
+  if(lc $assertion->{VERB} eq "type" || lc $assertion->{VERB} eq "link"){
+    $provenance = ProvenanceList->new($assertion->{LOGGER}, $assertion->{SOURCE});
+  }
+  else{
+    $provenance = ProvenanceList->new($assertion->{LOGGER}, $assertion->{SOURCE},
+                                        $assertion->{PROVENANCE_STRING}, $assertion->{SUBJECT},
+                                        $assertion->{OBJECT}, $assertion->{VERB});
+  }
+  $provenance;
 }
 
 sub mention_exists {
@@ -558,7 +582,11 @@ sub check_mention_string {
                                $kb->get_assertions($subject, 'pronominal_mention', undef, $docid),
                                $kb->get_assertions($subject, 'canonical_mention', undef, $docid));
       # Read the file
-      my $filename = $mentions[0]->{PROVENANCE}->get_docfile() if @mentions;
+      my $filename;
+      if(@mentions) {
+        my $mention0_provenance = &get_provenance($mentions[0]);
+        $filename = $mention0_provenance->get_docfile();
+      }
       next unless $filename;
       my $entire_file;
       {
@@ -571,12 +599,13 @@ sub check_mention_string {
       foreach my $mention(@mentions) {
         my $mention_string = &main::remove_quotes($mention->{OBJECT});
         my $mention_string_from_file;
-        my $start = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
-        my $end = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end();
+        my $mention_provenance = &get_provenance($mention);
+        my $start = $mention_provenance->{PREDICATE_JUSTIFICATION}->get_start();
+        my $end = $mention_provenance->{PREDICATE_JUSTIFICATION}->get_end();
         $mention_string_from_file = substr($entire_file, $start, $end-$start+1);
         $kb->{LOGGER}->record_problem('INACCURACTE_MENTION_STRING',
                                          $mention_string,
-                                         $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring(),
+                                         $mention_provenance->{PREDICATE_JUSTIFICATION}->tostring(),
                                          $mention->{SOURCE})
           if $mention_string ne $mention_string_from_file;
       }
@@ -595,21 +624,22 @@ sub assert_inverses {
     # Accomodating the requirement for 2017
     # Duplicate assertions are allowed therefore generate missing inverses for all duplicates
     # An assertion is a duplicate if subject, verb, object matches but the provenance differ
-    unless (grep {$assertion->{PROVENANCE}->tooriginalstring() eq $_->{PROVENANCE}->tooriginalstring()}
+    unless (grep {$assertion->{PROVENANCE_STRING} eq $_->{PROVENANCE_STRING}}
               $kb->get_assertions($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT})) {
       $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
 			    $assertion->{SUBJECT}, $assertion->{OBJECT}, $assertion->{SOURCE});
       # Assert the inverse if it's not already there
       my $inverse_name = $assertion->{PREDICATE}{INVERSE_NAME};
       $inverse_name .= ".".$assertion->{REALIS} if $assertion->{REALIS};
-      my $provenance = $assertion->{PROVENANCE};
+      my $provenance = &get_provenance($assertion);
       if(exists $provenance->{FILLER_STRING} && defined $provenance->{FILLER_STRING}) {
         my $docid = $provenance->get_docid();
         my $subject = $assertion->{SUBJECT};
         my ($canonical_mention) = $kb->get_assertions($subject, 'canonical_mention', undef, $docid);
         $kb->{LOGGER}->record_problem('MISSING_CANONICAL_E', $subject, $docid, $assertion->{SOURCE})
           unless ($canonical_mention);
-        $provenance->{FILLER_STRING} = $canonical_mention->{PROVENANCE}{PREDICATE_JUSTIFICATION};
+        my $canonical_mention_prov = &get_provenance($canonical_mention);
+        $provenance->{FILLER_STRING} = $canonical_mention_prov->{PREDICATE_JUSTIFICATION};
         $kb->{LOGGER}->record_problem('MISSING_FILLER_STRING_PROV',
           $provenance->tooriginalstring(),
           $assertion->{SOURCE}) unless $provenance->{FILLER_STRING};
@@ -619,7 +649,7 @@ sub assert_inverses {
         }
       }
       my $inverse = $kb->add_assertion($assertion->{OBJECT}, $inverse_name, $assertion->{SUBJECT},
-				       $provenance, $assertion->{CONFIDENCE}, $assertion->{SOURCE});
+				       $provenance->tooriginalstring(), $assertion->{CONFIDENCE}, $assertion->{SOURCE});
       # And flag this as an inferred relation
       $inverse->{INFERRED} = 'true';
       # Make sure the visibility of the assertion and its inverse is in sync
@@ -644,9 +674,9 @@ sub assert_mentions {
       next;
     }
     foreach my $docid (keys %docids) {
-      my %mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'mention', undef, $docid);
-      my %nominal_mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'nominal_mention', undef, $docid);
-      my %canonical_mentions = map {$_->{PROVENANCE}->tostring() => $_} $kb->get_assertions($subject, 'canonical_mention', undef, $docid);
+      my %mentions = map {$_->{PROVENANCE_STRING} => $_} $kb->get_assertions($subject, 'mention', undef, $docid);
+      my %nominal_mentions = map {$_->{PROVENANCE_STRING} => $_} $kb->get_assertions($subject, 'nominal_mention', undef, $docid);
+      my %canonical_mentions = map {$_->{PROVENANCE_STRING} => $_} $kb->get_assertions($subject, 'canonical_mention', undef, $docid);
       
       if($canonical_mentions_allowed && !keys %canonical_mentions && ( (scalar keys %mentions) + (scalar keys %nominal_mentions) > 1)) {
       	$kb->{LOGGER}->record_problem('MULTIPLE_MENTIONS_NO_CANONICAL', $subject, $docid, 'NO_SOURCE');
@@ -659,7 +689,7 @@ sub assert_mentions {
 		my $realis = "";
 		$realis = ".".$mention->{REALIS} if $mention->{REALIS};
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, "canonical_mention$realis", $mention->{OBJECT},
-						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
+						   $mention->{PROVENANCE_STRING}, $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
       elsif ($canonical_mentions_allowed && !keys %canonical_mentions && keys %nominal_mentions) {
@@ -669,7 +699,7 @@ sub assert_mentions {
 		my $realis = "";
 		$realis = ".".$mention->{REALIS} if $mention->{REALIS};
 		my $assertion = $kb->add_assertion($mention->{SUBJECT}, "canonical_mention$realis", $mention->{OBJECT},
-						   $mention->{PROVENANCE}, $mention->{CONFIDENCE}, $mention->{SOURCE});
+						   $mention->{PROVENANCE_STRING}, $mention->{CONFIDENCE}, $mention->{SOURCE});
 		$assertion->{INFERRED} = 'true';
       }
       elsif ($canonical_mentions_allowed && keys %canonical_mentions > 1) {
@@ -685,7 +715,7 @@ sub assert_mentions {
 	  # Canonical mention without a corresponding mention
 	  $kb->{LOGGER}->record_problem('UNASSERTED_MENTION', $canonical_mention->{PRINT_STRING}, $docid, $canonical_mention->{SOURCE});
 	  my $assertion = $kb->add_assertion($canonical_mention->{SUBJECT}, "mention$realis", $canonical_mention->{OBJECT},
-					     $canonical_mention->{PROVENANCE},
+					     $canonical_mention->{PROVENANCE_STRING},
 					     $canonical_mention->{CONFIDENCE},
 					     $canonical_mention->{SOURCE});
 	  $assertion->{INFERRED} = 'true';
@@ -726,55 +756,56 @@ sub check_provenance_lists {
   foreach my $docid(keys %{$kb->{MENTIONS2}}) {
     foreach my $span(keys %{$kb->{MENTIONS2}{$docid}}) {
       if (scalar keys (%{$kb->{MENTIONS2}{$docid}{$span}}) > 1) {
-        $kb->{LOGGER}->record_problem('MULTIPLE_STRINGS_FOR_PROV', $kb->{MENTIONS0}{$docid}{$span}[0]{PROVENANCE}->tooriginalstring(),
+        $kb->{LOGGER}->record_problem('MULTIPLE_STRINGS_FOR_PROV', $kb->{MENTIONS0}{$docid}{$span}[0]{PROVENANCE_STRING},
           join(", ", map {"$_->{OBJECT} at line $_->{SOURCE}{LINENUM}"}
             sort {$a->{SOURCE}{LINENUM} <=> $b->{SOURCE}{LINENUM}} @{$kb->{MENTIONS0}{$docid}{$span}}), 'NO_SOURCE');
       }
     }
   }
   foreach my $assertion(@{$kb->{ASSERTIONS0}}) {
+    my $assertion_prov = &get_provenance($assertion);
     $kb->{LOGGER}->record_problem('MISSING_FILLER_STRING_PROV',
-          $assertion->{PROVENANCE}->tooriginalstring(),
+          $assertion_prov->tooriginalstring(),
           $assertion->{SOURCE})
       if ($assertion->{OBJECT_ENTITY} &&
             $kb->get_entity_type($assertion->{OBJECT_ENTITY}) eq "string" &&
-            ! $assertion->{PROVENANCE}{FILLER_STRING});
+            ! $assertion_prov->{FILLER_STRING});
     $kb->{LOGGER}->record_problem('UNEXPECTED_PROVENANCE',
-          $assertion->{PROVENANCE}->tooriginalstring(),
+          $assertion_prov->tooriginalstring(),
           $assertion->{SOURCE})
-      if ($assertion->{VERB} =~ /mention/ && (!$assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} ||
-                                        $assertion->{PROVENANCE}{FILLER_STRING} ||
-                                        $assertion->{PROVENANCE}{BASE_FILLER} ||
-                                        $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}));
+      if ($assertion->{VERB} =~ /mention/ && (!$assertion_prov->{PREDICATE_JUSTIFICATION} ||
+                                        $assertion_prov->{FILLER_STRING} ||
+                                        $assertion_prov->{BASE_FILLER} ||
+                                        $assertion_prov->{ADDITIONAL_JUSTIFICATION}));
     my @fields = qw(FILLER_STRING);
     foreach my $field(@fields) {
-      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', $field, $assertion->{PROVENANCE}{$field}->tooriginalstring(), $assertion->{OBJECT}, $assertion->{PROVENANCE}{WHERE})
-        if(exists $assertion->{PROVENANCE}{$field} &&
-          defined $assertion->{PROVENANCE}{$field} &&
-          !$kb->mention_exists($assertion->{OBJECT}, $assertion->{PROVENANCE}{$field}));
+      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', $field, $assertion_prov->{$field}->tooriginalstring(), $assertion->{OBJECT}, $assertion_prov->{WHERE})
+        if(exists $assertion_prov->{$field} &&
+          defined $assertion_prov->{$field} &&
+          !$kb->mention_exists($assertion->{OBJECT}, $assertion_prov->{$field}));
     }
     # Verify if the provenance in sentiment assertion is a mention of the target (i.e. object for like and subject for dislike assertion)
     if($assertion->{VERB} eq "likes" || $assertion->{VERB} eq "dislikes") {
-      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{OBJECT}, $assertion->{PROVENANCE}{WHERE})
-        if(exists $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
-          defined $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
-          !$kb->mention_exists($assertion->{OBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}));
+      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion_prov->{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{OBJECT}, $assertion_prov->{WHERE})
+        if(exists $assertion_prov->{PREDICATE_JUSTIFICATION} &&
+          defined $assertion_prov->{PREDICATE_JUSTIFICATION} &&
+          !$kb->mention_exists($assertion->{OBJECT}, $assertion_prov->{PREDICATE_JUSTIFICATION}));
     }
     elsif($assertion->{VERB} eq "is_liked_by" || $assertion->{VERB} eq "is_disliked_by") {
-      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion->{PROVENANCE}{WHERE})
-        if(exists $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
-          defined $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION} &&
-          !$kb->mention_exists($assertion->{SUBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}));
+      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion_prov->{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion_prov->{WHERE})
+        if(exists $assertion_prov->{PREDICATE_JUSTIFICATION} &&
+          defined $assertion_prov->{PREDICATE_JUSTIFICATION} &&
+          !$kb->mention_exists($assertion->{SUBJECT}, $assertion_prov->{PREDICATE_JUSTIFICATION}));
     }
     if($assertion->{VERB} eq "normalized_mention"){
-      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'Provenance', $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion->{PROVENANCE}{WHERE})
-        unless $kb->mention_exists($assertion->{SUBJECT}, $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION});
+      $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'Provenance', $assertion_prov->{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion_prov->{WHERE})
+        unless $kb->mention_exists($assertion->{SUBJECT}, $assertion_prov->{PREDICATE_JUSTIFICATION});
     }
     # check if the BASE_FILLER is NILL (NILL is not an allowed value for BASE_FILLER provenance for event assertions)
     if($assertion->{SUBJECT} =~ /^:Event.+$/ or $assertion->{OBJECT} =~ /^:Event.+$/) {
       next if $assertion->{VERB} eq "type" or $assertion->{VERB} =~ /mention/;
-      $kb->{LOGGER}->record_problem('UNEXPECTED_BASE_FILLER', 'NIL', $assertion->{PROVENANCE}{WHERE})
-        if (not defined $assertion->{PROVENANCE}{BASE_FILLER} ) or ($assertion->{PROVENANCE}{BASE_FILLER}->tooriginalstring() eq 'NIL');
+      $kb->{LOGGER}->record_problem('UNEXPECTED_BASE_FILLER', 'NIL', $assertion_prov->{WHERE})
+        if (not defined $assertion_prov->{BASE_FILLER} ) or ($assertion_prov->{BASE_FILLER}->tooriginalstring() eq 'NIL');
     }
   }
 }
@@ -900,10 +931,10 @@ sub check_relation_endpoints {
   foreach my $assertion ($kb->get_assertions()) {
     next unless ref $assertion->{PREDICATE};
     next if $do_not_check_endpoints{$assertion->{PREDICATE}{NAME}};
-    my $provenance = $assertion->{PROVENANCE};
+    my $provenance = &get_provenance($assertion);
     if (defined $assertion->{SUBJECT_ENTITY}) {
       my @subject_mentions;
-	my $docid = $assertion->{PROVENANCE}->get_docid();
+	my $docid = $provenance->get_docid();
 	unless(@subject_mentions) {
 	  @subject_mentions = $kb->get_assertions($assertion->{SUBJECT_ENTITY}, 'mention', undef, $docid);
 	  @subject_mentions = $kb->get_assertions($assertion->{SUBJECT_ENTITY}, 'nominal_mention', undef, $docid) 
@@ -918,7 +949,7 @@ sub check_relation_endpoints {
     }
     if (defined $assertion->{OBJECT_ENTITY}) {
       my @object_mentions;
-	my $docid = $assertion->{PROVENANCE}->get_docid();
+	my $docid = $provenance->get_docid();
 	unless(@object_mentions) {
 	  @object_mentions = $kb->get_assertions($assertion->{OBJECT_ENTITY}, 'mention', undef, $docid);
 	  @object_mentions = $kb->get_assertions($assertion->{OBJECT_ENTITY}, 'nominal_mention', undef, $docid)
@@ -952,6 +983,7 @@ sub dump_assertions {
   my ($kb) = @_;
   my $outfile = *STDERR{IO};
   foreach my $assertion ($kb->get_assertions()) {
+    my $provenance = &get_provenance($assertion);
     if (defined $assertion->{PREDICATE}) {
       print $outfile "p:$assertion->{PREDICATE}{NAME}";
     }
@@ -959,8 +991,8 @@ sub dump_assertions {
       print $outfile "v:$assertion->{VERB}";
     }
     print $outfile "($assertion->{SUBJECT}, $assertion->{OBJECT})";
-    if (ref $assertion->{PROVENANCE}) {
-      print $outfile " $assertion->{PROVENANCE}->tostring()";
+    if (ref $provenance) {
+      print $outfile " $provenance->tostring()";
     }
     print $outfile "\n";
   }
@@ -1080,7 +1112,7 @@ sub load_tac {
       $kb->{LOGGER}->record_problem('OFF_TASK_SLOT', $predicate, $task, $source);
       next;
     }
-    my $provenance;
+    #my $provenance;
 ### DO NOT INCLUDE
 #    if (lc $predicate eq 'type') {
 ### DO INCLUDE
@@ -1090,16 +1122,16 @@ sub load_tac {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
 	next;
       }
-      $provenance = ProvenanceList->new($logger, $source);
+      #$provenance = ProvenanceList->new($logger, $source);
     }
     else {
       unless (@entries == 4) {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 4, scalar @entries, $source);
 	next;
       }
-      $provenance = ProvenanceList->new($logger, $source, $provenance_string, $subject, $object, $predicate)
+      #$provenance = ProvenanceList->new($logger, $source, $provenance_string, $subject, $object, $predicate)
     }
-    $kb->add_assertion($subject, $predicate, $object, $provenance, $confidence, $source, $comment);
+    $kb->add_assertion($subject, $predicate, $object, $provenance_string, $confidence, $source, $comment);
   }
   close $infile;
   $kb->check_integrity($predicate_constraints);
@@ -1123,10 +1155,12 @@ sub assertion_comparator {
   my $bname = lc $b->{PREDICATE}{NAME};
   my $apriority = &get_assertion_priority($aname);
   my $bpriority = &get_assertion_priority($bname);
+  my $aprovenance = &KB::get_provenance($a);
+  my $bprovenance = &KB::get_provenance($b);
   return $bpriority <=> $apriority ||
 	 $aname cmp $bname ||
-         $a->{PROVENANCE}->get_docid() cmp $b->{PROVENANCE}->get_docid() ||
-	 $a->{PROVENANCE}->get_start() <=> $b->{PROVENANCE}->get_start();
+         $aprovenance->get_docid() cmp $bprovenance->get_docid() ||
+	 $aprovenance->get_start() <=> $bprovenance->get_start();
 }  
 
 sub is_valid_ea_export_assertion {
@@ -1155,12 +1189,13 @@ sub export_sen {
   my %provenance_to_mention;
   my %sentiments;
   foreach my $assertion ($kb->get_assertions()) {
+    my $assertion_prov = &KB::get_provenance($assertion);
     next unless $verbs_of_interest{$assertion->{VERB}};
     if($assertion->{VERB} =~ /mention/) {
-      push(@{$mentions{$assertion->{PROVENANCE}->get_docid()}{$assertion->{SUBJECT}}}, $assertion);
+      push(@{$mentions{$assertion_prov->get_docid()}{$assertion->{SUBJECT}}}, $assertion);
     }
     else{
-      push(@{$sentiments{$assertion->{PROVENANCE}->get_docid()}{$assertion->{OBJECT}}{$assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring()}}, $assertion);
+      push(@{$sentiments{$assertion_prov->get_docid()}{$assertion->{OBJECT}}{$assertion_prov->{PREDICATE_JUSTIFICATION}->tostring()}}, $assertion);
     }
   }
   foreach my $docid(sort keys %mentions) {
@@ -1182,13 +1217,14 @@ sub export_sen {
         $mentionid_num++;
         my $mentionid = "$entity_nodeid.$mentionid_num";
         $mention->{MENTIONID} = $mentionid;
-        my $provenance_string = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring();
+        my $mention_prov = &KB::get_provenance($mention);
+        my $provenance_string = $mention_prov->{PREDICATE_JUSTIFICATION}->tostring();
         $provenance_to_mention{$provenance_string}{$entity_nodeid} = $mention;
         my $noun_type = &get_noun_type($mention->{VERB});
         $kb->{LOGGER}->NIST_die("NOUN_TYPE undefined.") unless $noun_type;
         my $source = $docid;
-        my $start = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
-        my $length = $mention->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$start+1;
+        my $start = $mention_prov->{PREDICATE_JUSTIFICATION}->get_start();
+        my $length = $mention_prov->{PREDICATE_JUSTIFICATION}->get_end()-$start+1;
         my $mention_text = &main::remove_quotes($mention->{OBJECT});
         print $output "      <entity_mention id=\"$mentionid\" noun_type=\"$noun_type\" source=\"$source\" offset=\"$start\" length=\"$length\">\n";
         print $output "        <mention_text>$mention_text<\/mention_text>\n";
@@ -1212,19 +1248,22 @@ sub export_sen {
       foreach my $target_provenance_string(sort keys %{$sentiments{$docid}{$target_nodeid}}) {
         my $target_mentionid = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{MENTIONID};
         my $target_mention_text = &main::remove_quotes($provenance_to_mention{$target_provenance_string}{$target_nodeid}->{OBJECT});
-        my $target_offset = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
-        my $target_length = $provenance_to_mention{$target_provenance_string}{$target_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$target_offset+1;
+        my $target_provenance = &KB::get_provenance($provenance_to_mention{$target_provenance_string}{$target_nodeid});
+        my $target_offset = $target_provenance->{PREDICATE_JUSTIFICATION}->get_start();
+        my $target_length = $target_provenance->{PREDICATE_JUSTIFICATION}->get_end()-$target_offset+1;
         print $output "      <entity ere_id=\"$target_mentionid\" offset=\"$target_offset\" length=\"$target_length\">\n";
         print $output "        <text>$target_mention_text<\/text>\n";
         print $output "        <sentiments>\n";
         foreach my $sentiment(@{$sentiments{$docid}{$target_nodeid}{$target_provenance_string}}) {
           my $source_nodeid = $sentiment->{SUBJECT};
           my ($source_canonical_mention_assertion) = $kb->get_assertions($source_nodeid, 'canonical_mention', undef, $docid);
-          my $source_provenance_string = $source_canonical_mention_assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->tostring();
+          my $source_canonical_mention_assertion_provenance = &KB::get_provenance($source_canonical_mention_assertion);
+          my $source_provenance_string = $source_canonical_mention_assertion_provenance->{PREDICATE_JUSTIFICATION}->tostring();
           my $source_mentionid = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{MENTIONID};
           my $source_mention_text = &main::remove_quotes($provenance_to_mention{$source_provenance_string}{$source_nodeid}->{OBJECT});
-          my $source_offset = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
-          my $source_length = $provenance_to_mention{$source_provenance_string}{$source_nodeid}->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end()-$source_offset+1;
+          my $source_provenance = &KB::get_provenance($provenance_to_mention{$source_provenance_string}{$source_nodeid});
+          my $source_offset = $source_provenance->{PREDICATE_JUSTIFICATION}->get_start();
+          my $source_length = $source_provenance->{PREDICATE_JUSTIFICATION}->get_end()-$source_offset+1;
           my $polarity = "pos";
           $polarity = "neg" if $sentiment->{VERB} eq "dislikes";
           print $output "          <sentiment polarity=\"$polarity\" sarcasm=\"no\">\n";
@@ -1253,10 +1292,11 @@ sub export_nug {
     next if $assertion->{OMIT_FROM_OUTPUT};
     next if $assertion->{SUBJECT} !~ /^:Event/;
     next unless exists $allowed_assertions{$assertion->{VERB}};
-    my $docid = $assertion->{PROVENANCE}->get_docid();
+    my $provenance = &KB::get_provenance($assertion);
+    my $docid = $provenance->get_docid();
     my $subject = $assertion->{SUBJECT};
-    my $start = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_start();
-    my $end = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->get_end();
+    my $start = $provenance->{PREDICATE_JUSTIFICATION}->get_start();
+    my $end = $provenance->{PREDICATE_JUSTIFICATION}->get_end();
     my $span = "$start,$end";
     my $mention_string = &main::remove_quotes($assertion->{OBJECT});
     $mentionids{$docid} = 1 unless exists $mentionids{$docid};
@@ -1314,26 +1354,29 @@ sub export_eal {
       my $subject_string = $assertion->{SUBJECT};
       my $predicate_string = $assertion->{PREDICATE}{NAME};
       my $object_string = $assertion->{OBJECT};
-      my $document_id = $assertion->{PROVENANCE}->get_docid();
-      my $type = $kb->{ASSERTIONS2}{$subject_string}{type}[0]{OBJECT};
+      my $provenance = &KB::get_provenance($assertion);
+      my $document_id = $provenance->get_docid();
+      my ($subject_type_assertion) = $kb->get_assertions($subject_string, "type");
+      my $type = $subject_type_assertion->{OBJECT};
       $type = join(".", map {ucfirst lc $_} split(/\./, $type));
       my $object_string_canonical_mention = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{OBJECT};
       $object_string_canonical_mention = $kb->{ASSERTIONS3}{$subject_string}{$predicate_string}{$object_string}[0]{OBJECT}
         unless $object_string_canonical_mention;
       if($object_string =~ /^:String.+?/) {
-        my ($normalized_mention) = grep {$_->{PROVENANCE}{DOCID} eq $document_id}
+        my ($normalized_mention) = grep {&KB::get_provenance($_)->{DOCID} eq $document_id}
                                      $kb->get_assertions($object_string, 'normalized_mention', undef, undef);
         $object_string_canonical_mention = $normalized_mention->{OBJECT} if $normalized_mention;
       }
       $object_string_canonical_mention = &main::remove_quotes($object_string_canonical_mention);
-      my $object_string_provenance = $kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring();
+      my $object_string_provenance = &KB::get_provenance($kb->{DOCIDS}{$object_string}{canonical_mention}{$document_id}[0]);
+      my $object_string_provenance_string = $object_string_provenance->{PREDICATE_JUSTIFICATION}->toshortstring();
       my $confidence = $assertion->{CONFIDENCE};
       my ($predicate_justification, $base_filler, $additional_justification) = ("NIL", "NIL", "NIL");
-      $predicate_justification = $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION}->toshortstring()
-        if $assertion->{PROVENANCE}{PREDICATE_JUSTIFICATION};
-      $base_filler = $assertion->{PROVENANCE}{BASE_FILLER}->toshortstring() if $assertion->{PROVENANCE}{BASE_FILLER};
-      $additional_justification = $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION}->toshortstring()
-        if $assertion->{PROVENANCE}{ADDITIONAL_JUSTIFICATION};
+      $predicate_justification = $provenance->{PREDICATE_JUSTIFICATION}->toshortstring()
+        if $provenance->{PREDICATE_JUSTIFICATION};
+      $base_filler = $provenance->{BASE_FILLER}->toshortstring() if $provenance->{BASE_FILLER};
+      $additional_justification = $provenance->{ADDITIONAL_JUSTIFICATION}->toshortstring()
+        if $provenance->{ADDITIONAL_JUSTIFICATION};
       my $realis = ucfirst lc $assertion->{REALIS};
       $predicate_string = ucfirst lc $predicate_string;
       my $id = $arguments{$document_id} ? scalar @{$arguments{$document_id}} + 1 : 1;
@@ -1345,7 +1388,7 @@ sub export_eal {
           $type,
           $predicate_string,
           $object_string_canonical_mention,
-          $object_string_provenance,
+          $object_string_provenance_string,
           $predicate_justification,
           $base_filler,
           $additional_justification,
@@ -1399,6 +1442,7 @@ sub export_tac {
     next unless $output_labels->{$assertion->{PREDICATE}{LABEL}};
     # Only output assertions that have fully resolved predicates
     next unless ref $assertion->{PREDICATE};
+    my $assertion_prov = &KB::get_provenance($assertion);
     my $predicate_string = $assertion->{PREDICATE}{NAME};
     my $domain_string = "";
     if ($predicate_string ne 'type' &&
@@ -1415,7 +1459,7 @@ sub export_tac {
     my $predicate_name = $assertion->{PREDICATE}{NAME};
     $predicate_name .= ".".$assertion->{REALIS} if $assertion->{REALIS};
     print $program_output "$assertion->{SUBJECT}\t$domain_string$predicate_name\t$assertion->{OBJECT}";
-    print $program_output "\t", $assertion->{PROVENANCE}->tooriginalstring();
+    print $program_output "\t", $assertion_prov->tooriginalstring();
     print $program_output "\t$assertion->{CONFIDENCE}" if $predicate_string ne 'type';
     print $program_output $assertion->{COMMENT};
     print $program_output "\n";
@@ -1466,6 +1510,7 @@ sub export_edl {
     # Only output assertions that have fully resolved predicates
     next unless ref $assertion->{PREDICATE};
     next if $assertion->{SUBJECT} =~ /^:Event/;
+    my $provenance = &KB::get_provenance($assertion);
     my $predicate_string = $assertion->{PREDICATE}{NAME};
     my $domain_string = "";
     next unless $predicate_string eq 'mention' || $predicate_string eq 'nominal_mention';
@@ -1473,13 +1518,13 @@ sub export_edl {
     my $mention_id = $next_mentionid++;
     $mention_id = $assertion->{SUBJECT}."_".$mention_id;
     my $mention_string = &main::remove_quotes($assertion->{OBJECT});
-    my $provenance = $assertion->{PROVENANCE}->tooriginalstring();
+    my $provenance_string = $provenance->tooriginalstring();
     my $kbid = $entity2link{$assertion->{SUBJECT}};
     my $entity_type = $entity2type{$assertion->{SUBJECT}};
     my $mention_type = $predicate_string eq 'mention' ? "NAM": "NOM";
     my $confidence = $assertion->{CONFIDENCE};
     print $program_output join("\t", $runid, $mention_id, $mention_string,
-			             $provenance, $kbid, $entity_type,
+			             $provenance_string, $kbid, $entity_type,
 			             $mention_type, $confidence), "\n";
   }
 }

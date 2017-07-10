@@ -9,6 +9,6 @@ WARNING: Node :Entity_0001 has no mentions
 ERROR: Relation conflict.attack_place(:Entity_0001, :Event_0001) uses node :Entity_0001, but that node has no mentions in provenance NYT_ENG_20131113.0264:261-431;NYT_ENG_20131113.0264:402-407;NIL (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 9)
 ERROR: Relation place(:Event_0001, :Entity_0001) uses node :Entity_0001, but that node has no mentions in provenance NYT_ENG_20131113.0264:261-431;NYT_ENG_20131113.0264:402-407;NIL (CS-TestSuite/KB-TestSuite/MULTITYPED_ENTITY/MULTITYPED_ENTITY.tac line 21)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-9 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+9 errors encountered at (main:CS-ValidateKB-MASTER.pl:1710)

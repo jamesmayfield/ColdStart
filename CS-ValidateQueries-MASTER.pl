@@ -200,7 +200,8 @@ sub check_for_duplication {
 }
 
 sub generate_expanded_queries {
-  my ($queries, $query_base, $index_file, $languages) = @_;
+  my ($queries, $query_base, $index_file, $languages, $retain_sf) = @_;
+  $retain_sf = "false" unless defined $retain_sf;
   my $new_queries = QuerySet->new($queries->{LOGGER});
 
   foreach my $query ($queries->get_all_queries()) {
@@ -219,7 +220,17 @@ sub generate_expanded_queries {
     		}  
     	}
     	next if $skip;
-    } 
+    }
+    # Move on to the next query if an event related slot appears in its hop-0
+    if($retain_sf eq "true"){
+      my $slot0 = $query->get("SLOT0");
+      # capture identifier for event slots
+      my ($eal_identifier) = $slot0 =~ /^.*?:(.*?)\_/;
+      # capture the slot name for potential match with sentiment slots
+      my ($sen_identifier) = $slot0 =~ /^.*?:(.*?)$/;
+      next if (defined $eal_identifier && exists $PredicateSet::legal_event_types{$eal_identifier}) ||
+                exists $PredicateSet::legal_sentiment_slots{$sen_identifier};
+    }
     print $index_file $query->get("FULL_QUERY_ID"), "\t", $query->get("ORIGINAL_QUERY_ID"), "\n" if defined $index_file;
   }
   $new_queries;
@@ -246,6 +257,7 @@ $switches->put('subtypes', 'none');
 $switches->addVarSwitch('languages', "Select the languages to be considered for output.");
 $switches->put('languages', 'ENGLISH:CHINESE:SPANISH');
 $switches->addConstantSwitch('expand', 'true', "Expand single queries with multiple entry points into multiple queries with single entry points");
+$switches->addConstantSwitch('retain_sf', 'true', "Retain queries with hop-0 SF slots; remove hop-1 non-SF slots");
 $switches->addVarSwitch('dups', "Check whether different queries with the same slots share one or more entry points (choices are $dups_repair_string)");
 $switches->put('dups', 'none');
 $switches->addImmediateSwitch('version', sub { print "$0 version $version\n"; exit 0; }, "Print version number and exit");
@@ -288,9 +300,9 @@ my $queries = QuerySet->new($logger, $queryfile);
 $queries = &fix_queries($queries, $fix_types, $fix_subtypes)
   if $fix_types ne 'none' || $fix_subtypes ne 'none';
 $queries = &check_for_duplication($queries, $fix_dups) if $fix_dups ne 'none';
-$queries = &generate_expanded_queries($queries, $query_base, $index_file, $languages) if $switches->get('expand');
+$queries = &generate_expanded_queries($queries, $query_base, $index_file, $languages, $switches->get('retain_sf')) if $switches->get('expand');
 
-print $program_output $queries->tostring("", undef, ['SLOT', 'NODEID'], $languages);
+print $program_output $queries->tostring("", undef, ['SLOT', 'NODEID'], $languages, $switches->get('retain_sf'));
 
 close $program_output;
 close $index_file if defined $index_file;

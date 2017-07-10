@@ -5,6 +5,6 @@ ERROR: Relation children(:Entity005, :Entity004) uses node :Entity005, but that 
 ERROR: Relation parents(:Entity004, :Entity005) uses node :Entity004, but that node has no mentions in provenance NYT_ENG_20130603.0033:889-881 (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
 ERROR: Relation parents(:Entity004, :Entity005) uses node :Entity005, but that node has no mentions in provenance NYT_ENG_20130603.0033:889-881 (CS-TestSuite/KB-TestSuite/ILLEGAL_OFFSET_PAIR/ILLEGAL_OFFSET_PAIR.tac line 15)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-5 errors encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+10 errors encountered at (main:CS-ValidateKB-MASTER.pl:1710)

@@ -5,6 +5,7 @@ use strict;
 use Carp;
 use utf8;
 use JSON;
+use Encode;
 
 binmode(STDOUT, ":utf8");
 
@@ -218,6 +219,8 @@ sub record_problem {
   $self->{PROBLEM_COUNTS}{$format->{TYPE}}++;
   my $type = $format->{TYPE};
   my $message = "$type: " . sprintf($format->{FORMAT}, @args);
+  # Use Encode to support Unicode.
+  $message = Encode::encode_utf8($message);
   my $where = (ref $source ? "$source->{FILENAME} line $source->{LINENUM}" : $source);
   $self->NIST_die("$message\n$where") if $type eq 'FATAL_ERROR' || $type eq 'INTERNAL_ERROR';
   $self->{PROBLEMS}{$problem}{$message}{$where}++;
@@ -389,7 +392,8 @@ sub populate_from_text {
   my @docids = map {$_->get_docid() if $_}
     grep {defined $_}
       ($filler_string,$predicate_justification,$base_filler,$additional_justification);
-  unless (scalar keys ({map{$_=>1 if $_} @docids}) == 1) {
+  my %docids = map{$_=>1 if $_} @docids;
+  unless (scalar keys %docids == 1) {
     $logger->record_problem('MULTIPLE_DOCIDS_IN_PROV', $self->tooriginalstring(), $where);
   }
   $self->{DOCID} = $docids[0];
@@ -1398,12 +1402,14 @@ sub get_child_ids {
 
 # Convert the QuerySet to text form, suitable for print as a TAC evaluation query file
 sub tostring {
-  my ($self, $indent, $queryids, $omit, $languages) = @_;
+  my ($self, $indent, $queryids, $omit, $languages, $retain_sf) = @_;
+  $retain_sf = "false" unless defined $retain_sf;
   $indent = "" unless defined $indent;
   my $string = "$indent<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n$indent<query_set>\n";
   foreach my $query (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID}}
 		     values %{$self->{QUERIES}}) {
     next if $query->{GENERATED};
+    my @local_omit = @{$omit};
     if($languages) {
     	my @query_languages = @{$query->{LANGUAGES}};
     	my %selected_languages = map {$_=>1} split(":", $languages);
@@ -1417,7 +1423,31 @@ sub tostring {
     	next if $skip;
     } 
     next unless !defined $queryids || $queryids->{$query->{QUERY_ID}};
-    $string .= $query->tostring("$indent  ", $omit);
+    # Exclude: (1) queries with hop-0 event slot, or
+    #          (2) hop-1 event slots
+    if($retain_sf eq "true"){
+      my $slot0 = $query->get("SLOT0");
+      # capture identifier for event slots
+      my ($eal_identifier) = $slot0 =~ /^.*?:(.*?)\_/;
+      # capture the slot name for potential match with sentiment slots
+      my ($sen_identifier) = $slot0 =~ /^.*?:(.*?)$/;
+      # Move on to the next query if it has an event in hop-0 slot
+      next if (defined $eal_identifier && exists $PredicateSet::legal_event_types{$eal_identifier}) ||
+                exists $PredicateSet::legal_sentiment_slots{$sen_identifier};
+      if($query->get("SLOT1")) {
+      	# If the query has a hop-1 slot
+        my $slot1 = $query->get("SLOT1");
+        # capture identifier for event slots
+        my ($eal_identifier) = $slot1 =~ /^.*?:(.*?)\_/;
+        # capture the slot name for potential match with sentiment slots
+        my ($sen_identifier) = $slot1 =~ /^.*?:(.*?)$/;
+        # Omit the SLOT1 if event related slot appears in hop-1
+        push(@local_omit, "SLOT1")
+          if (defined $eal_identifier && exists $PredicateSet::legal_event_types{$eal_identifier}) ||
+                exists $PredicateSet::legal_sentiment_slots{$sen_identifier};
+      }
+    }
+    $string .= $query->tostring("$indent  ", \@local_omit);
   }
   $string .= "$indent</query_set>\n";
   $string;
@@ -1765,6 +1795,7 @@ our %legal_event_types = &build_hash(qw(conflict.attack
   movement.transport-person personnel.elect personnel.end-position personnel.start-position
   transaction.transaction transaction.transfer-money transaction.transfer-ownership));
 our %legal_string_types = &build_hash(qw(string));
+our %legal_sentiment_slots = &build_hash(qw(likes dislikes is_liked_by is_disliked_by));
 
 # Is one type specification compatible with another?  The second
 # argument must be a hash representing a set of types. The first
@@ -2638,7 +2669,8 @@ sub get_candidate_ecs {
     my @node_submissions = grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
     my $numerator = scalar @node_submissions;
     my $denomerator = $self->get_num_justifying_docs($candidate_ec);
-    my $num_queries = scalar keys {map {$_->{QUERY_ID}=>1} @node_submissions};
+    my %queryids = map {$_->{QUERY_ID}=>1} @node_submissions;
+    my $num_queries = scalar keys %queryids;
     $denomerator = $k*$num_queries if $k ne "M" && $k*$num_queries < $denomerator;
     $candidate_ecs->{$candidate_ec} = {SCORE => $denomerator ? $numerator/$denomerator : 0};
   }
@@ -2658,9 +2690,10 @@ sub get_num_justifying_docs {
   my ($self, $ec) = @_;
   my ($full_query_id) = split(":", $ec);
   my ($base, $query_id) = &Query::parse_queryid($full_query_id);
-  keys {map {$_->{DOCID}=>1}
+  my %docids = map {$_->{DOCID}=>1}
   	grep {$_->{VALUE_EC} eq $ec}
-      @{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id}}};
+      @{$self->{SUBMISSIONS_AND_ASSESSMENTS}{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id}};
+  keys %docids;
 }
 
 sub get_flattened_entries {
@@ -4364,7 +4397,8 @@ sub mark_multiple_justifications {
   my ($self, $justifications_allowed_str) = @_;
   my ($justifications_allowed_perdoc, $justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
 
-  my @levels = keys {map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}};
+	my %levels = map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+  my @levels = keys %levels;
   my %fqnodeid_to_level = map {$_->{FQNODEID} => $_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
 
   foreach my $level(sort {$a<=>$b} @levels) {
@@ -4419,8 +4453,10 @@ sub manage_single_valued_slots {
   my ($self) = @_;
   my $justifications_allowed_str = $self->{JUSTIFICATIONS_ALLOWED};
   my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
-  my %fqnodeids;
-  foreach my $fqnodeid(sort {length($a)<=>length($b)} keys {map {$_->{FQNODEID}=>1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}}) {
+  my %fqnodeids = map {$_->{FQNODEID}=>1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+  my @fqnodeids = sort {length($a)<=>length($b)} keys %fqnodeids;
+  %fqnodeids = {};
+  foreach my $fqnodeid(@fqnodeids) {
     my ($parent_fqnodeid, $nodeid) = $fqnodeid =~ /^(.*):(.*?)$/;
     $fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}{$fqnodeid} = 1;
     unless ($fqnodeids{$parent_fqnodeid}{QUANTITY}) {
@@ -5243,7 +5279,8 @@ sub _create_v3_uuid {
             ;
     }
     elsif ( defined $name ) {
-        $MD5_CALCULATOR->add($name);
+    	# Use Encode to support Unicode.
+        $MD5_CALCULATOR->add(Encode::encode_utf8($name));
     }
     else {
         Logger->new()->NIST_die('::create_uuid(): Name for v3 UUID is not defined!');

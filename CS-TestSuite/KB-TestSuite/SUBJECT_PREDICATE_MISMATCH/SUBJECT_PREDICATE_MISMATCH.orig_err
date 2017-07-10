@@ -1,6 +1,6 @@
 WARNING: No inverse relation asserted for children(:Entity005, :Entity004) (CS-TestSuite/KB-TestSuite/SUBJECT_PREDICATE_MISMATCH/SUBJECT_PREDICATE_MISMATCH.tac line 15)
 ERROR: Type of subject (per) does not match type of predicate (org) (CS-TestSuite/KB-TestSuite/SUBJECT_PREDICATE_MISMATCH/SUBJECT_PREDICATE_MISMATCH.tac line 9)
 ================================================================
- at CS-ValidateKB-MASTER.pl line 1664.
+ at CS-ValidateKB-MASTER.pl line 1710.
 ================================================================
-1 error encountered at (main:CS-ValidateKB-MASTER.pl:1664)
+1 error encountered at (main:CS-ValidateKB-MASTER.pl:1710)
