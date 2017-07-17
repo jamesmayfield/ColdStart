@@ -197,7 +197,9 @@ if (!defined $program_output && !defined $filename) {
 if (defined $filename) {
   $logger->NIST_die("File $filename does not exist") unless -e $filename;
   # FIXME: parameterize discipline
-  my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $filename);
+  my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries,
+                    {JUSTIFICATIONS_ALLOWED=>$justifications_allowed},
+                    $filename);
 
   # Problems were identified while the KB was loaded; now report them
   my ($num_errors, $num_warnings) = $logger->report_all_problems();

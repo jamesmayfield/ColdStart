@@ -119,7 +119,9 @@ open($program_output, ">:utf8", $outputfilename) or $logger->NIST_die("Could not
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $round1file, $round2file);
+my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries,
+                    {JUSTIFICATIONS_ALLOWED=>$justifications_allowed},
+                    $round1file, $round2file);
 my @runids = keys %{$sf_output->{RUNIDS}};
 $logger->record_problem('MISMATCHED_RUNID', join(",", @runids), 'NO_SOURCE') if (@runids > 1);
 

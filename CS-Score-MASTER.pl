@@ -1486,7 +1486,9 @@ my %index = $queries->get_index();
 
 my %queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $queries);
 
-my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, $justifications_allowed, @runfilenames);
+my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries,
+                    {JUSTIFICATIONS_ALLOWED=>$justifications_allowed},
+                    @runfilenames);
 
 $logger->report_all_problems();
 

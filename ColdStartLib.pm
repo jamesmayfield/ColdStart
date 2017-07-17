@@ -4528,12 +4528,13 @@ sub manage_single_valued_slots {
 
 # Create a new EvaluationQueryOutput object
 sub new {
-  my ($class, $logger, $discipline, $queries, $justifications_allowed, @rawfilenames) = @_;
+  my ($class, $logger, $discipline, $queries, $options, @rawfilenames) = @_;
   $logger->NIST_die("$class->new called with no filenames") unless @rawfilenames;
   # Poor man's find
 ### DO NOT INCLUDE
   # FIXME: Need to escape blanks in the directory name
 ### DO INCLUDE
+  my $justifications_allowed = $options->{JUSTIFICATIONS_ALLOWED};
   my @filenames = map {-d $_ ? <$_/*.tab.txt> : $_} @rawfilenames;
   my $self = {QUERIES => $queries,
 	      DISCIPLINE => $discipline,
