@@ -1409,7 +1409,7 @@ sub tostring {
   foreach my $query (sort {$a->{QUERY_ID} cmp $b->{QUERY_ID}}
 		     values %{$self->{QUERIES}}) {
     next if $query->{GENERATED};
-    my @local_omit = @{$omit};
+    my @local_omit = @{$omit || []};
     if($languages) {
     	my @query_languages = @{$query->{LANGUAGES}};
     	my %selected_languages = map {$_=>1} split(":", $languages);
