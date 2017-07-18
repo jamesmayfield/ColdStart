@@ -4455,7 +4455,7 @@ sub manage_single_valued_slots {
   my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
   my %fqnodeids = map {$_->{FQNODEID}=>1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
   my @fqnodeids = sort {length($a)<=>length($b)} keys %fqnodeids;
-  %fqnodeids = {};
+  %fqnodeids = ();
   foreach my $fqnodeid(@fqnodeids) {
     my ($parent_fqnodeid, $nodeid) = $fqnodeid =~ /^(.*):(.*?)$/;
     $fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}{$fqnodeid} = 1;
