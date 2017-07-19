@@ -5206,7 +5206,7 @@ sub print {
   print "\n";
 }
 
-
+### END INCLUDE Stats
 
 ### BEGIN INCLUDE Bootstrap
 
@@ -5461,8 +5461,6 @@ sub printsum {
   print "\n";
 }
   
-
-### END INCLUDE Stats
 ### DO NOT INCLUDE
 #####################################################################################
 # Main Program (for testing)

@@ -41,6 +41,7 @@ my $error_output = *STDERR{IO};
 ### DO INCLUDE QuerySet               ColdStartLib.pm
 ### DO INCLUDE EvaluationQueryOutput  ColdStartLib.pm
 ### DO INCLUDE Switches               ColdStartLib.pm
+### DO INCLUDE NodeTree               ColdStartLib.pm
 
 ### DO NOT INCLUDE
 # Hush up perl worrywart module

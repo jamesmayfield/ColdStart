@@ -75,11 +75,12 @@ my $error_output = *STDERR{IO};
 # Library inclusions
 ##################################################################################### 
 
-### DO INCLUDE Logger       ColdStartLib.pm
-### DO INCLUDE Patterns     ColdStartLib.pm
-### DO INCLUDE Provenance   ColdStartLib.pm
-### DO INCLUDE Predicates   ColdStartLib.pm
-### DO INCLUDE Switches     ColdStartLib.pm
+### DO INCLUDE Logger           ColdStartLib.pm
+### DO INCLUDE Patterns         ColdStartLib.pm
+### DO INCLUDE Provenance       ColdStartLib.pm
+### DO INCLUDE ProvenanceList   ColdStartLib.pm
+### DO INCLUDE Predicates       ColdStartLib.pm
+### DO INCLUDE Switches         ColdStartLib.pm
 
 ##################################################################################### 
 # Predicates
