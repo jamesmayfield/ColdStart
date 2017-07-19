@@ -62,6 +62,7 @@ $switches->addVarSwitch('error_file', "Specify a file to which error output shou
 $switches->put('error_file', "STDERR");
 $switches->addConstantSwitch('allow_comments', 'true', "Enable comments introduced by a pound sign in the middle of an input line");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
+$switches->addVarSwitch('depth', "The best d nodes to be included in the output");
 $switches->addConstantSwitch('groundtruth', 'true', "Treat input file as ground truth (so don't, e.g., enforce single-valued slots)");
 $switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
 			"Legal values are of the form A:B where A represents justifications per document and B represents total justifications. " .
@@ -116,6 +117,8 @@ if (defined $docids_file) {
   Provenance::set_docids($docids);
 }
 
+my $depth = $switches->get("depth");
+
 # How should multiple justifications be handled?
 my $justifications_allowed = $switches->get("justifications");
 $logger->NIST_die("Argument to -justifications switch must be of the form A:B where A and B are " .
@@ -130,8 +133,8 @@ my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
 my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries,
-                    {JUSTIFICATIONS_ALLOWED=>$justifications_allowed},
-                    $filename);
+                    {JUSTIFICATIONS_ALLOWED => $justifications_allowed,
+                     DEPTH => $depth,}, $filename);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
