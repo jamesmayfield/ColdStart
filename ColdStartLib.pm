@@ -20,8 +20,8 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.6";   # (1) Node mapping function changed to traverse the nodetree in breadth 
-                            #     first order rather than depth first..
+my $version = "2017.1.7";   # (1) Switch -depth introduced in CS-ValidateSF-MASTER (to be used only at NIST).
+                            #     The library modified accordingly.
 
 ### BEGIN INCLUDE Switches
 
