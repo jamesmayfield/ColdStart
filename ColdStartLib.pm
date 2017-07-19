@@ -4536,97 +4536,11 @@ sub manage_depth {
 }
 
 # Pooling Scheme: A
-# Selecte up to d nodes at round 1 and up to d children per selected node; discard all others
+# Select up to d nodes at round 1 and up to d children per selected node; discard all others
 sub manage_pooling_scheme_A {
   my ($self) = @_;
   my $justifications_allowed_str = $self->{JUSTIFICATIONS_ALLOWED};
-  my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
-  my $depth = $self->{DEPTH};
-  my %fqnodeids = map {$_->{FQNODEID}=>1} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
-  my @fqnodeids = sort {length($a)<=>length($b)} keys %fqnodeids;
-  %fqnodeids = ();
-  foreach my $fqnodeid(@fqnodeids) {
-    my ($parent_fqnodeid, $nodeid) = $fqnodeid =~ /^(.*):(.*?)$/;
-    $fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}{$fqnodeid} = 1;
-  }
-
-  foreach my $parent_fqnodeid(sort {length($a)<=>length($b)} keys %fqnodeids) {
-    my %child_node_confidences;
-    my $level;
-    # Compute node confidences
-    foreach my $child_fqnodeid(keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
-      my ($confidence, $first_occurence, @confidences);
-      foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
-        foreach my $entry(grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
-          $level = $entry->{QUERY}->{LEVEL} unless $level;
-          push(@confidences, $entry->{CONFIDENCE});
-          $first_occurence = $entry->{LINENUM} unless $first_occurence;
-          $first_occurence = $entry->{LINENUM} if $first_occurence > $entry->{LINENUM};
-        }
-      }
-      my ($i, $num, $den) = (1, 0, 0);
-      foreach my $conf(sort {$b<=>$a} @confidences) {
-        $num += ($conf/$i);
-        $den += (1/$i);
-        last if ($num_justifications_allowed ne "M" && $i==$num_justifications_allowed);
-        $i++;
-      }
-      if($num_justifications_allowed ne "M") {
-        # Denomerator needs to be the same irrespective of how many justifications were there
-        $den = 0;
-        for ($i=1; $i<=$num_justifications_allowed; $i++){
-          $den += (1/$i);
-        }
-      }
-      $confidence = $num / $den;
-      $confidence *= $child_node_confidences{$parent_fqnodeid}{CONFIDENCE}
-        if exists $child_node_confidences{$parent_fqnodeid}{CONFIDENCE};
-      $child_node_confidences{$child_fqnodeid} = {CONFIDENCE => $confidence, LINENUM => $first_occurence};
-    }
-
-    # Select top d child nodes with respect to confidence confidence
-    my (@ordered_nodeids) =
-      sort {$child_node_confidences{$b}{CONFIDENCE} <=> $child_node_confidences{$a}{CONFIDENCE} ||
-             $child_node_confidences{$a}{LINENUM} <=> $child_node_confidences{$b}{LINENUM}}
-        keys %child_node_confidences;
-    my @selected_nodes;
-    my $i = 1;
-    foreach my $nodeid(@ordered_nodeids) {
-      last if $i > $depth;
-      push(@selected_nodes, $nodeid);
-      $i++;
-    }
-    # Discard justifications from child nodes other than selected node
-    foreach my $selected_nodeid(@selected_nodes) {
-      foreach my $child_fqnodeid(grep {$_ ne $selected_nodeid} keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
-        foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
-          foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
-            $entry->{DISCARD} = 1;
-            $self->{LOGGER}->record_problem('DISCARDED_ENTRY', "\n" . $entry->{LINE},
-              {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
-          }
-        }
-      }
-    }
-    # Discard dependents
-    my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
-                            grep {not exists $_->{DISCARD}}
-                              grep {$_->{QUERY}->{LEVEL} == $level}
-                                @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
-    foreach my $entry(grep {!$_->{DISCARD}} grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
-      unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
-        $entry->{DISCARD} = 1;
-        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
-            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
-      }
-    }
-  }
-}
-
-sub manage_pooling_scheme_B {
-  my ($self) = @_;
-  my $justifications_allowed_str = $self->{JUSTIFICATIONS_ALLOWED};
-  my ($justifications_allowed_perdoc, $num_justifications_allowed) = $justifications_allowed_str =~ /^(.*?):(.*?)$/;
+  my ($num_justifications_allowed) = $justifications_allowed_str =~ /^.*?:(.*?)$/;
   my $depth = $self->{DEPTH};
   my %levels = map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
   my @levels = keys %levels;
@@ -4635,29 +4549,27 @@ sub manage_pooling_scheme_B {
   my @fqnodeids = sort {length($a)<=>length($b)} keys %fqnodeids;
   %fqnodeids = ();
   foreach my $fqnodeid(@fqnodeids) {
-      my ($root_query_id) = split(":", $fqnodeid);
-      my $level = $fqnodeid_to_level{$fqnodeid};
-      $fqnodeids{$root_query_id}{$level}{$fqnodeid} =
-        {
-            CONFIDENCES => map {$_->{CONFIDENCE}} grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}},
-            CONFIDENCE => undef,
-            ENTRIES => grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}
-        };
-      my ($first_occurence) = sort {$b <=> $a}
-                                map {$_->{CONFIDENCE}}
-                                  grep {$_->{FQNODEID} eq $fqnodeid}
-                                    grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+    my ($root_query_id) = split(":", $fqnodeid);
+    my $level = $fqnodeid_to_level{$fqnodeid};
+    $fqnodeids{$root_query_id}{$level}{$fqnodeid} =
+      {
+        CONFIDENCES => [map {$_->{CONFIDENCE}} grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}],
+        CONFIDENCE => undef,
+        ENTRIES => [grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}],
+        LINENUMS => [map {$_->{LINENUM}} grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}],
+      };
+    my ($first_occurence) = sort {$a <=> $b} @{$fqnodeids{$root_query_id}{$level}{$fqnodeid}{LINENUMS}};
     $fqnodeids{$root_query_id}{$level}{$fqnodeid}{LINENUM} = $first_occurence;
-      # Set PARENT_FQNODEID
-      if($level == 1) {
-          my ($parent_fqnodeid) = $fqnodeid =~ /^(.*?):.*?$/;
-        $fqnodeids{$root_query_id}{$level}{$fqnodeid}{PARENT_FQNODEID} = $parent_fqnodeid;
-      }
+    # Set PARENT_FQNODEID
+    if($level == 1) {
+      my ($parent_fqnodeid) = $fqnodeid =~ /^(.*):.*?$/;
+      $fqnodeids{$root_query_id}{$level}{$fqnodeid}{PARENT_FQNODEID} = $parent_fqnodeid;
+    }
   }
   # Compute confidences
   foreach my $root_query_id(keys %fqnodeids) {
-    foreach my $level(keys %{$fqnodeids{$root_query_id}}) {
-        foreach my $fqnodeid(keys %{$fqnodeids{$root_query_id}{$level}}) {
+    foreach my $level(sort {$a<=>$b} keys %{$fqnodeids{$root_query_id}}) {
+      foreach my $fqnodeid(keys %{$fqnodeids{$root_query_id}{$level}}) {
         my @confidences = @{$fqnodeids{$root_query_id}{$level}{$fqnodeid}{CONFIDENCES}};
         my ($i, $num, $den) = (1, 0, 0);
         foreach my $conf(sort {$b<=>$a} @confidences) {
@@ -4677,10 +4589,129 @@ sub manage_pooling_scheme_B {
         if($level == 1){
             # The confidence of hop-1 node is a product of its confidence and its parent node's confidence
             my $parent_fqnodeid = $fqnodeids{$root_query_id}{$level}{$fqnodeid}{PARENT_FQNODEID};
-            $confidence *= $fqnodeids{$root_query_id}{$level}{$parent_fqnodeid}{CONFIDENCE};
+            my $parent_confidence = $fqnodeids{$root_query_id}{$level-1}{$parent_fqnodeid}{CONFIDENCE};
+            $confidence *= $parent_confidence;
         }
         $fqnodeids{$root_query_id}{$level}{$fqnodeid}{CONFIDENCE} = $confidence;
+      }
+    }
+  }
+
+  # Include top d nodes per query at hop-0
+   my $i = 1;
+   my $level = 0;
+   foreach my $root_query_id(keys %fqnodeids) {
+     foreach my $fqnodeid(sort {$fqnodeids{$root_query_id}{$level}{$b}{CONFIDENCE}<=>$fqnodeids{$root_query_id}{$level}{$a}{CONFIDENCE} ||
+                                 $fqnodeids{$root_query_id}{$level}{$b}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$a}{LINENUM}}
+                            keys %{$fqnodeids{$root_query_id}{$level}}) {
+       last if $i > $depth;
+       $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED} = 1;
+       $i++;
+     }
+   }
+
+  # Include top d hop-1 nodes per INCLUDED parent node per query
+  $i = 1;
+  $level = 1;
+  foreach my $root_query_id(keys %fqnodeids) {
+    foreach my $fqnodeid(sort {$fqnodeids{$root_query_id}{$level}{$b}{CONFIDENCE}<=>$fqnodeids{$root_query_id}{$level}{$a}{CONFIDENCE} ||
+                                $fqnodeids{$root_query_id}{$level}{$b}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$a}{LINENUM}}
+                           keys %{$fqnodeids{$root_query_id}{$level}}) {
+      last if $i > $depth * $depth;
+      my $parent_fqnodeid = $fqnodeids{$root_query_id}{$level}{$fqnodeid}{PARENT_FQNODEID};
+      next unless $fqnodeids{$root_query_id}{$level-1}{$parent_fqnodeid}{INCLUDED};
+      $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED} = 1;
+      $i++;
+    }
+  }
+
+  # Discard nodes that have not been included
+  foreach my $root_query_id(keys %fqnodeids) {
+    foreach my $level(sort {$a<=>$b} keys %{$fqnodeids{$root_query_id}}) {
+      foreach my $fqnodeid(keys %{$fqnodeids{$root_query_id}{$level}}) {
+          if(not exists $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED}) {
+              # Discard this node
+              foreach my $entry(grep {not exists $_->{DISCARD}} @{$fqnodeids{$root_query_id}{$level}{$fqnodeid}{ENTRIES}}) {
+                  $entry->{DISCARD} = 1;
+              }
+          }
+      }
+    }
+  }
+
+  # Discard dependents
+  foreach my $level(qw(0 1)) {
+      my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
+                            grep {not exists $_->{DISCARD}}
+                              grep {$_->{QUERY}->{LEVEL} == $level}
+                                @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+    foreach my $entry(grep {!$_->{DISCARD}} grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
+      unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
+        $entry->{DISCARD} = 1;
+        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
+            {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
+      }
+    }
+  }
+}
+
+sub manage_pooling_scheme_B {
+  my ($self) = @_;
+  my $justifications_allowed_str = $self->{JUSTIFICATIONS_ALLOWED};
+  my ($num_justifications_allowed) = $justifications_allowed_str =~ /^.*?:(.*?)$/;
+  my $depth = $self->{DEPTH};
+  my %levels = map {$_=>1} map {$_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+  my @levels = keys %levels;
+  my %fqnodeid_to_level = map {$_->{FQNODEID} => $_->{QUERY}{LEVEL}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+  my %fqnodeids = map {$_->{FQNODEID}=>1} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}};
+  my @fqnodeids = sort {length($a)<=>length($b)} keys %fqnodeids;
+  %fqnodeids = ();
+  foreach my $fqnodeid(@fqnodeids) {
+    my ($root_query_id) = split(":", $fqnodeid);
+    my $level = $fqnodeid_to_level{$fqnodeid};
+    $fqnodeids{$root_query_id}{$level}{$fqnodeid} =
+      {
+         CONFIDENCES => [map {$_->{CONFIDENCE}} grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}],
+         CONFIDENCE => undef,
+         ENTRIES => [grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}],
+         LINENUMS => [map {$_->{LINENUM}} grep {$_->{FQNODEID} eq $fqnodeid} grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}],
+      };
+    my ($first_occurence) = sort {$a <=> $b} @{$fqnodeids{$root_query_id}{$level}{$fqnodeid}{LINENUMS}};
+    $fqnodeids{$root_query_id}{$level}{$fqnodeid}{LINENUM} = $first_occurence;
+    # Set PARENT_FQNODEID
+    if($level == 1) {
+      my ($parent_fqnodeid) = $fqnodeid =~ /^(.*):.*?$/;
+      $fqnodeids{$root_query_id}{$level}{$fqnodeid}{PARENT_FQNODEID} = $parent_fqnodeid;
+    }
+  }
+  # Compute confidences
+  foreach my $root_query_id(keys %fqnodeids) {
+    foreach my $level(sort {$a<=>$b} keys %{$fqnodeids{$root_query_id}}) {
+      foreach my $fqnodeid(keys %{$fqnodeids{$root_query_id}{$level}}) {
+        my @confidences = @{$fqnodeids{$root_query_id}{$level}{$fqnodeid}{CONFIDENCES}};
+        my ($i, $num, $den) = (1, 0, 0);
+        foreach my $conf(sort {$b<=>$a} @confidences) {
+          $num += ($conf/$i);
+          $den += (1/$i);
+          last if ($num_justifications_allowed ne "M" && $i==$num_justifications_allowed);
+          $i++;
         }
+        if($num_justifications_allowed ne "M") {
+          # Denomerator needs to be the same irrespective of how many justifications were there
+          $den = 0;
+          for ($i=1; $i<=$num_justifications_allowed; $i++){
+            $den += (1/$i);
+          }
+        }
+        my $confidence = $num / $den;
+        if($level == 1){
+            # The confidence of hop-1 node is a product of its confidence and its parent node's confidence
+            my $parent_fqnodeid = $fqnodeids{$root_query_id}{$level}{$fqnodeid}{PARENT_FQNODEID};
+            my $parent_confidence = $fqnodeids{$root_query_id}{$level-1}{$parent_fqnodeid}{CONFIDENCE};
+            $confidence *= $parent_confidence;
+        }
+        $fqnodeids{$root_query_id}{$level}{$fqnodeid}{CONFIDENCE} = $confidence;
+      }
     }
   }
 
@@ -4708,8 +4739,8 @@ sub manage_pooling_scheme_B {
       last if $i > $depth * $depth;
       $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED} = 1;
       my $parent_fqnodeid = $fqnodeids{$root_query_id}{$level}{$fqnodeid}{PARENT_FQNODEID};
-      $fqnodeids{$root_query_id}{$level}{$parent_fqnodeid}{INCLUDED} = 1
-        unless $fqnodeids{$root_query_id}{$level}{$parent_fqnodeid}{INCLUDED};
+      $fqnodeids{$root_query_id}{$level-1}{$parent_fqnodeid}{INCLUDED} = 1
+        unless $fqnodeids{$root_query_id}{$level-1}{$parent_fqnodeid}{INCLUDED};
       $i++;
     }
   }
