@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2017.1.5";
+my $version = "2017.1.6";
 
 # Filehandles for program and error output
 my @output_postfix = qw(DEBUG AP SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
@@ -1486,7 +1486,9 @@ my %index = $queries->get_index();
 
 my %queries_to_score = &get_queries_to_score($logger, $switches->get("queries"), $queries);
 
-my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries, $justifications_allowed, @runfilenames);
+my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $discipline, $queries,
+                    {JUSTIFICATIONS_ALLOWED=>$justifications_allowed},
+                    @runfilenames);
 
 $logger->report_all_problems();
 
@@ -1583,6 +1585,7 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2017.1.6 - EvaluationQueryOutput->new() takes a hash named options as one of the args
 # 2017.1.5 - Node mapping function changed to traverse the nodetree in breadth 
 #            first order rather than depth first.
 # 2017.1.4 - Node confidence computation function changed to have the denomerator

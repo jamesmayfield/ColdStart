@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.1";
+my $version = "2017.1.2";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -62,6 +62,7 @@ $switches->addVarSwitch('error_file', "Specify a file to which error output shou
 $switches->put('error_file', "STDERR");
 $switches->addConstantSwitch('allow_comments', 'true', "Enable comments introduced by a pound sign in the middle of an input line");
 $switches->addVarSwitch('docs', "Tab-separated file containing docids and document lengths, measured in unnormalized Unicode characters");
+$switches->addVarSwitch('depth', "Colon-speated scheme name and depth; to be used only at NIST.");
 $switches->addConstantSwitch('groundtruth', 'true', "Treat input file as ground truth (so don't, e.g., enforce single-valued slots)");
 $switches->addVarSwitch('justifications', "Are multiple justifications allowed? " .
 			"Legal values are of the form A:B where A represents justifications per document and B represents total justifications. " .
@@ -116,6 +117,15 @@ if (defined $docids_file) {
   Provenance::set_docids($docids);
 }
 
+my $depth = $switches->get("depth");
+$logger->NIST_die("-depth should be of the form \"[AB]:d\".\n".
+  "A/B is used to select\n".
+  "A: top d nodes \n".
+  "B: top d nodes from hop-0 and top dxd nodes from hop-1 (including parents to insure that there are no orphans)\n".
+  "with respect to confidence value, in the validated output.\n"
+  )
+  if ($depth && $depth !~ /^[AB]:\d/);
+
 # How should multiple justifications be handled?
 my $justifications_allowed = $switches->get("justifications");
 $logger->NIST_die("Argument to -justifications switch must be of the form A:B where A and B are " .
@@ -129,7 +139,9 @@ $logger->NIST_die("File $filename does not exist") unless -e $filename;
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, $justifications_allowed, $filename);
+my $sf_output = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries,
+                    {JUSTIFICATIONS_ALLOWED => $justifications_allowed,
+                     DEPTH => $depth,}, $filename);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
@@ -162,5 +174,5 @@ exit 0;
 #            same irrespective of how many justifications were provided.
 #            Also support added to have the confidence vary depending on allowed
 #            justifications passed through parameter -justifications
-
+# 2017.1.2 - Switch -depth introduced (to be used only at NIST)
 1;
