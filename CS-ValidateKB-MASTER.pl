@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "2017.1.1";
+my $version = "2017.1.2";
 
 my $statsfile;
 
@@ -1772,4 +1772,6 @@ exit 0;
 # 2017.1.0 - First release of 2017
 # 2017.1.1 - Warning: MULTIPLE_FILLS_ENTITY is now being ignored by default since 2017 specification allows multiple fills
 #          - We are also passing multiple fills for single-valued slots onto the validated KB; Only the best node is picked later on for scoring purposes
+# 2017.1.2 - Adding logger object to assertions
+#          - Reduced memory requirements
 1;

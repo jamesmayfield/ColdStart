@@ -11,11 +11,12 @@ This document describes:
 
 The content in this README is focused at the participants of various TAC tracks therefore only related scripts are covered below:
 
-1. CS-GenerateQueries-MASTER.pl (v2017.1.0)
+1. CS-GenerateQueries-MASTER.pl (v2017.1.1)
 2. CS-ResolveQueries-MASTER.pl (v2017.1.0)
-3. CS-ValidateKB-MASTER.pl (v2017.1.1)
-4. CS-ValidateSF-MASTER.pl (v2017.1.1)
-5. CS-Score-MASTER.pl (v2017.1.5)
+3. CS-ValidateKB-MASTER.pl (v2017.1.2)
+4. CS-ValidateSF-MASTER.pl (v2017.1.2)
+5. CS-Score-MASTER.pl (v2017.1.6)
+6. CS-PackageOutput-MASTER.pl (2017.1.1)
 
 ## 2.1 Scripts usage
 
@@ -85,25 +86,24 @@ Legal switches are:
                          (Default = STDERR).
   -help                Show help
   -ignore <value>      Colon-separated list of warnings to ignore. Legal values
-                         are: BAD_QUERY, COLON_OMITTED, DISCARDED_ENTRY,
-                         DUPLICATE_ASSERTION, DUPLICATE_LINE, DUPLICATE_QUERY,
-                         DUPLICATE_QUERY_FIELD, DUPLICATE_QUERY_ID, EMPTY_FIELD,
-                         EMPTY_FILE, FAILED_LANG_INFERENCE,
-                         ILLEGAL_LINK_SPECIFICATION, IMPROPER_CONFIDENCE_VALUE,
-                         MISMATCHED_HOP_SUBTYPES, MISMATCHED_HOP_TYPES,
-                         MISMATCHED_RUNID, MISMATCHED_TAGS, MISSING_CANONICAL,
-                         MISSING_DECIMAL_POINT, MISSING_INVERSE,
-                         MISSING_MENTION, MULTIPLE_CORRECT_GROUND_TRUTH,
-                         MULTIPLE_FILLS_ENTITY, MULTIPLE_FILLS_SLOT,
-                         MULTIPLE_LINKS, MULTIPLE_RUNIDS, NO_MENTIONS,
-                         NO_QUERIES_LOADED, OFF_TASK_SLOT,
+                         are: BAD_QUERY, COLON_OMITTED, DISCARDED_DEPENDENT,
+                         DISCARDED_ENTRY, DUPLICATE_ASSERTION, DUPLICATE_LINE,
+                         DUPLICATE_QUERY, DUPLICATE_QUERY_FIELD,
+                         DUPLICATE_QUERY_ID, EMPTY_FIELD, EMPTY_FILE,
+                         FAILED_LANG_INFERENCE, ILLEGAL_LINK_SPECIFICATION,
+                         IMPROPER_CONFIDENCE_VALUE, MISMATCHED_HOP_SUBTYPES,
+                         MISMATCHED_HOP_TYPES, MISMATCHED_TAGS,
+                         MISSING_CANONICAL, MISSING_DECIMAL_POINT,
+                         MISSING_INVERSE, MISSING_MENTION,
+                         MULTIPLE_CORRECT_GROUND_TRUTH, MULTIPLE_FILLS_ENTITY,
+                         MULTIPLE_FILLS_SLOT, MULTIPLE_LINKS, MULTIPLE_RUNIDS,
+                         NO_MENTIONS, NO_QUERIES_LOADED, OFF_TASK_SLOT,
                          POSSIBLE_DUPLICATE_QUERY, PREDICATE_ALIAS,
                          SEMICOLON_AS_SEPARATOR, TOO_MANY_CHARS,
                          TOO_MANY_PROVENANCE_TRIPLES, UNASSERTED_MENTION,
-                         UNEXPECTED_JUSTIFICATIONS, UNKNOWN_QUERY_FIELD,
-                         UNKNOWN_QUERY_ID_WARNING, UNLOADED_QUERY,
-                         UNQUOTED_STRING, WRONG_SLOT_NAME (Default =
-                         MULTIPLE_FILLS_ENTITY).
+                         UNKNOWN_QUERY_FIELD, UNKNOWN_QUERY_ID_WARNING,
+                         UNLOADED_QUERY, UNQUOTED_STRING, WRONG_SLOT_NAME
+                         (Default = MULTIPLE_FILLS_ENTITY).
   -labels <value>      Colon-separated list of triple labels for output. Useful
                          in conjunction with -predicates switch. (Default =
                          TAC).
@@ -147,6 +147,8 @@ Usage: CS-ValidateSF-MASTER.pl {-switch {-switch ...}} queryfile filename
 Legal switches are:
   -allow_comments          Enable comments introduced by a pound sign in the
                              middle of an input line
+  -depth <value>           Colon-speated scheme name and depth; to be used only
+                             at NIST.
   -docs <value>            Tab-separated file containing docids and document
                              lengths, measured in unnormalized Unicode
                              characters
@@ -169,6 +171,7 @@ parameters are:
   queryfile  File containing queries used to generate the file being validated
                (Required).
   filename   File containing query output. (Required).
+
 ~~~
 
 ### 2.1.5 Usage of CS-Score-MASTER.pl
@@ -255,6 +258,37 @@ policy options are a colon-separated list drawn from the following:
   INCORRECT_PARENT: Number of responses that had incrorrect (grand-)parent. Legal choice for -wrong and -ignore.
   INEXACT:          Number of assessed inexact responses. Legal choice for -right, -wrong and -ignore.
   UNASSESSED:       Number of unassessed responses. Legal choice for -wrong and -ignore.
+~~~
+
+### 2.1.6 Usage of CS-PackageOutput-MASTER.pl
+~~~
+CS-PackageOutput-MASTER.pl:  Marshal round 1 and round 2 output for the Cold
+                             Start 2015 Slot Filling variant.
+
+Usage: CS-PackageOutput-MASTER.pl {-switch {-switch ...}} queryfile round1file round2file outputfile
+
+Legal switches are:
+  -docs <value>            Tab-separated file containing docids and document
+                             lengths, measured in unnormalized Unicode
+                             characters
+  -error_file <value>      Specify a file to which error output should be
+                             redirected (Default = STDERR).
+  -help                    Show help
+  -justifications <value>  Are multiple justifications allowed? Legal values are
+                             of the form A:B where A represents justifications
+                             per document and B represents total justifications.
+                             Use 'M' to allow any number of justifications, for
+                             e.g., 'M:10' to allow multiple justifications per
+                             document but overall not more than 10 (best or top)
+                             justifications. (Default = M:M).
+  -version                 Print version number and exit
+parameters are:
+  queryfile   File containing queries used to generate the file being validated.
+                Only the original query file needs to be specified here
+                (Required).
+  round1file  File containing round 1 output (Required).
+  round2file  File containing round 2 output (Required).
+  outputfile  File into which to place combined output (Required).
 ~~~
 
 # 3 Generating input files for component-based evaluation
@@ -345,6 +379,16 @@ The value of the `-output` switch does not need to be a singular value, rather i
 ~~~
 perl CS-ValidateKB-MASTER.pl -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -error_file CSrun.errlog -output tac:edl:sen:eag:eng CSrun.tac
 ~~~
+
+## 3.7 Validating a Slot Filling submission
+
+In order to validate a (standalone or KB->SF) slot-filling submission `CSrun.SF`, you may run the following command:
+
+~~~
+perl CS-ValidateSF-MASTER.pl -error_file CSrun.SF.errlog -docs tac_kbp_2017_evaluation_source_corpus_character_counts.tsv -output_file CSrun.valid.ldc.tab.txt tac_kbp_2017_cold_start_slot_filling_evaluation_queries.xml CSrun.SF
+~~~
+
+The output of this step `CSrun.valid.ldc.tab.txt` will be used for component-based slot-filling evaluation. Please note that CS-ValidateSF-MASTER.pl will apply the constraints on how many justifications were to allowed.
 
 # 4. Evaluating Slot Filling component
 

@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.0";
+my $version = "2017.1.1";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -251,4 +251,5 @@ else {
 # 1.9 - Code modified to work with new library
 # 2.0 - ParentQuery pointer added to newly created round#2 query
 # 2017.1.0 - First release of 2017
+# 2017.1.1 - EvaluationQueryOutput->new() takes a hash named options as one of the args
 1;
