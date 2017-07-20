@@ -2,10 +2,15 @@
 
 use warnings;
 use strict;
+
+### BEGIN INCLUDE Header
+
 use Carp;
 use utf8;
 use JSON;
 use Encode;
+
+### END INCLUDE Header
 
 binmode(STDOUT, ":utf8");
 

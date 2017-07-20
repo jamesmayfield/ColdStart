@@ -71,16 +71,20 @@ my %output_labels = ();
 # Filehandles for program and error output
 my $error_output = *STDERR{IO};
 
+### DO NOT INCLUDE
 ##################################################################################### 
 # Library inclusions
 ##################################################################################### 
-
+### DO INCLUDE
+### DO INCLUDE Header           ColdStartLib.pm
 ### DO INCLUDE Logger           ColdStartLib.pm
 ### DO INCLUDE Patterns         ColdStartLib.pm
 ### DO INCLUDE Provenance       ColdStartLib.pm
 ### DO INCLUDE ProvenanceList   ColdStartLib.pm
 ### DO INCLUDE Predicates       ColdStartLib.pm
 ### DO INCLUDE Switches         ColdStartLib.pm
+### DO INCLUDE Utils            ColdStartLib.pm
+
 
 ##################################################################################### 
 # Predicates
