@@ -1,4 +1,4 @@
-Last modified: 29th June 2017
+Last modified: 22nd July 2017
 
 # 1 Introduction
 
@@ -13,7 +13,7 @@ The content in this README is focused at the participants of various TAC tracks 
 
 1. CS-GenerateQueries-MASTER.pl (v2017.1.1)
 2. CS-ResolveQueries-MASTER.pl (v2017.1.0)
-3. CS-ValidateKB-MASTER.pl (v2017.1.2)
+3. CS-ValidateKB-MASTER.pl (v2017.1.4)
 4. CS-ValidateSF-MASTER.pl (v2017.1.2)
 5. CS-Score-MASTER.pl (v2017.1.6)
 6. CS-PackageOutput-MASTER.pl (2017.1.1)
