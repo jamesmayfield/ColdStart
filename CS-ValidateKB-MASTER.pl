@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "2017.1.2";
+my $version = "2017.1.3";
 
 my $statsfile;
 
@@ -425,6 +425,9 @@ sub add_assertion {
     $kb->{MENTIONS1}{$provenance->get_docid()}{$provenance->{PREDICATE_JUSTIFICATION}->toshortstring()}{$subject} = $assertion;
     push(@{$kb->{MENTIONS0}{$provenance->get_docid()}{$provenance->{PREDICATE_JUSTIFICATION}->toshortstring()}}, $assertion);
   }
+  if(defined $predicate && $predicate->{NAME} eq 'pronominal_mention') {
+    $kb->{PRONOMINAL_MENTIONS}{$provenance->get_docid()}{$provenance->{PREDICATE_JUSTIFICATION}->toshortstring()}{$subject} = $assertion;
+  }
   push(@{$kb->{DOCIDS}{$subject}{$verb}{$provenance->get_docid()}}, $assertion)
     if defined $predicate && ($predicate->{NAME} eq 'mention' || $predicate->{NAME} eq 'canonical_mention' || $predicate->{NAME} eq 'nominal_mention' || $predicate->{NAME} eq 'pronominal_mention');
   if ($predicate->{NAME} eq 'link') {
@@ -508,9 +511,16 @@ sub get_provenance {
 }
 
 sub mention_exists {
-	my ($kb, $entity, $provenance) = @_;
-	return unless $kb->{MENTIONS1}{$provenance->get_docid()}{$provenance->toshortstring()}{$entity};
-	$kb->{MENTIONS1}{$provenance->get_docid()}{$provenance->toshortstring()}{$entity};
+  my ($kb, $entity, $provenance, $pronominal_mention_flag) = @_;
+  my $assertion;
+  if($kb->{MENTIONS1}{$provenance->get_docid()}{$provenance->toshortstring()}{$entity}) {
+    $assertion = $kb->{MENTIONS1}{$provenance->get_docid()}{$provenance->toshortstring()}{$entity};
+  }
+  elsif($pronominal_mention_flag) {
+    $assertion = $kb->{PRONOMINAL_MENTIONS}{$provenance->get_docid()}{$provenance->toshortstring()}{$entity}
+      if($kb->{PRONOMINAL_MENTIONS}{$provenance->get_docid()}{$provenance->toshortstring()}{$entity});
+  }
+  $assertion;
 }
 
 ##################################################################################### 
@@ -789,13 +799,13 @@ sub check_provenance_lists {
       $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion_prov->{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{OBJECT}, $assertion_prov->{WHERE})
         if(exists $assertion_prov->{PREDICATE_JUSTIFICATION} &&
           defined $assertion_prov->{PREDICATE_JUSTIFICATION} &&
-          !$kb->mention_exists($assertion->{OBJECT}, $assertion_prov->{PREDICATE_JUSTIFICATION}));
+          !$kb->mention_exists($assertion->{OBJECT}, $assertion_prov->{PREDICATE_JUSTIFICATION}, "PRONOMINAL_MENTIONS"));
     }
     elsif($assertion->{VERB} eq "is_liked_by" || $assertion->{VERB} eq "is_disliked_by") {
       $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'PREDICATE_JUSTIFICATION', $assertion_prov->{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion_prov->{WHERE})
         if(exists $assertion_prov->{PREDICATE_JUSTIFICATION} &&
           defined $assertion_prov->{PREDICATE_JUSTIFICATION} &&
-          !$kb->mention_exists($assertion->{SUBJECT}, $assertion_prov->{PREDICATE_JUSTIFICATION}));
+          !$kb->mention_exists($assertion->{SUBJECT}, $assertion_prov->{PREDICATE_JUSTIFICATION}, "PRONOMINAL_MENTIONS"));
     }
     if($assertion->{VERB} eq "normalized_mention"){
       $kb->{LOGGER}->record_problem('MISSING_MENTION_E', 'Provenance', $assertion_prov->{PREDICATE_JUSTIFICATION}->tooriginalstring(), $assertion->{SUBJECT}, $assertion_prov->{WHERE})
@@ -1774,4 +1784,5 @@ exit 0;
 #          - We are also passing multiple fills for single-valued slots onto the validated KB; Only the best node is picked later on for scoring purposes
 # 2017.1.2 - Adding logger object to assertions
 #          - Reduced memory requirements
+# 2017.1.3 - BUGFIX: An error was incorrectly thrown when an existing pronominal mention appeared as a provenance of sentiment relation
 1;
