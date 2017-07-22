@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "2017.1.3";
+my $version = "2017.1.4";
 
 my $statsfile;
 
@@ -1459,6 +1459,7 @@ sub export_tac {
 	$predicate_string ne 'mention' &&
 	$predicate_string ne 'canonical_mention' &&
 	$predicate_string ne 'nominal_mention' &&
+    $predicate_string ne 'pronominal_mention' &&
 	$predicate_string ne 'normalized_mention' &&
 	$predicate_string ne 'link') {
       $domain_string = $kb->get_entity_type($assertion->{SUBJECT_ENTITY});
@@ -1785,4 +1786,5 @@ exit 0;
 # 2017.1.2 - Adding logger object to assertions
 #          - Reduced memory requirements
 # 2017.1.3 - BUGFIX: An error was incorrectly thrown when an existing pronominal mention appeared as a provenance of sentiment relation
+# 2017.1.4 - Removing domain name from pronominal_mention
 1;
