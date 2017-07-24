@@ -5205,6 +5205,104 @@ sub print {
   print "\n";
 }
 
+package Statistic;
+
+sub new {
+  my ($class, $name, $description, @bins) = @_;
+  my $self = {NAME => $name,
+        COUNT => 0,
+        SUM => 0,
+        MIN => 0,
+        MAX => 0,
+        DESCRIPTION => $description,
+       };
+  $self->{HISTOGRAM} = Histogram->new($description, @bins) if @bins;
+  bless($self, $class);
+  $self;
+}
+
+sub add {
+  my ($self, $value) = @_;
+  unless ($self->{COUNT}) {
+    $self->{MIN} = $value;
+    $self->{MAX} = $value;
+    $self->{SUM} = 0;
+  }
+  $self->{COUNT}++;
+  $self->{SUM} += $value;
+  $self->{MIN} = $value if $value < $self->{MIN};
+  $self->{MAX} = $value if $value > $self->{MAX};
+  $self->{HISTOGRAM}->add($value) if $self->{HISTOGRAM};
+}
+
+sub get_min {
+  my ($self) = @_;
+  $self->{MIN};
+}
+
+sub get_max {
+  my ($self) = @_;
+  $self->{MAX};
+}
+
+sub get_sum {
+  my ($self) = @_;
+  $self->{SUM};
+}
+
+sub get_count {
+  my ($self) = @_;
+  $self->{COUNT};
+}
+
+sub get_mean {
+  my ($self) = @_;
+  int(0.5 + $self->{SUM} / $self->{COUNT});
+}
+
+sub get_fractional_mean {
+  my ($self) = @_;
+  $self->{SUM} / $self->{COUNT};
+}
+
+sub get_histogram {
+  my ($self) = @_;
+  $self->{HISTOGRAM};
+}
+
+my %headers_printed;
+
+sub printstat {
+  my ($self, $headerid) = @_;
+  print "\tMin\tMean\tMax\tName\n" unless $headers_printed{$headerid}++;
+  print
+    "\t", $self->get_min(),
+    "\t", sprintf("%4.2f", $self->get_fractional_mean()),
+    "\t", $self->get_max(),
+    "\t$headerid",
+    "\n";
+}
+
+sub printcount {
+  my ($self, $headerid, $rev) = @_;
+  my $label = $self->{NAME};
+  $label = $headerid if $headerid;
+  print "$label\t" if $rev;
+  print $self->get_count();
+  print "\t$label" unless $rev;
+  print "\n";
+}
+
+sub printsum {
+  my ($self, $headerid, $rev) = @_;
+  my $label = $self->{NAME};
+  $label = $headerid if $headerid;
+  print "$label\t" if $rev;
+  print $self->get_sum();
+  print "\t$label" unless $rev;
+  print "\n";
+}
+
 ### END INCLUDE Stats
 
 ### BEGIN INCLUDE Bootstrap
@@ -5360,105 +5458,6 @@ sub mean {
 }
 
 ### END INCLUDE Bootstrap
-
-
-package Statistic;
-
-sub new {
-  my ($class, $name, $description, @bins) = @_;
-  my $self = {NAME => $name,
-	      COUNT => 0,
-	      SUM => 0,
-	      MIN => 0,
-	      MAX => 0,
-	      DESCRIPTION => $description,
-	     };
-  $self->{HISTOGRAM} = Histogram->new($description, @bins) if @bins;
-  bless($self, $class);
-  $self;
-}
-
-sub add {
-  my ($self, $value) = @_;
-  unless ($self->{COUNT}) {
-    $self->{MIN} = $value;
-    $self->{MAX} = $value;
-    $self->{SUM} = 0;
-  }
-  $self->{COUNT}++;
-  $self->{SUM} += $value;
-  $self->{MIN} = $value if $value < $self->{MIN};
-  $self->{MAX} = $value if $value > $self->{MAX};
-  $self->{HISTOGRAM}->add($value) if $self->{HISTOGRAM};
-}
-
-sub get_min {
-  my ($self) = @_;
-  $self->{MIN};
-}
-
-sub get_max {
-  my ($self) = @_;
-  $self->{MAX};
-}
-
-sub get_sum {
-  my ($self) = @_;
-  $self->{SUM};
-}
-
-sub get_count {
-  my ($self) = @_;
-  $self->{COUNT};
-}
-
-sub get_mean {
-  my ($self) = @_;
-  int(0.5 + $self->{SUM} / $self->{COUNT});
-}
-
-sub get_fractional_mean {
-  my ($self) = @_;
-  $self->{SUM} / $self->{COUNT};
-}
-
-sub get_histogram {
-  my ($self) = @_;
-  $self->{HISTOGRAM};
-}
-
-my %headers_printed;
-
-sub printstat {
-  my ($self, $headerid) = @_;
-  print "\tMin\tMean\tMax\tName\n" unless $headers_printed{$headerid}++;
-  print
-    "\t", $self->get_min(),
-    "\t", sprintf("%4.2f", $self->get_fractional_mean()),
-    "\t", $self->get_max(),
-    "\t$headerid",
-    "\n";
-}
-
-sub printcount {
-  my ($self, $headerid, $rev) = @_;
-  my $label = $self->{NAME};
-  $label = $headerid if $headerid;
-  print "$label\t" if $rev;
-  print $self->get_count();
-  print "\t$label" unless $rev;
-  print "\n";
-}
-
-sub printsum {
-  my ($self, $headerid, $rev) = @_;
-  my $label = $self->{NAME};
-  $label = $headerid if $headerid;
-  print "$label\t" if $rev;
-  print $self->get_sum();
-  print "\t$label" unless $rev;
-  print "\n";
-}
   
 ### DO NOT INCLUDE
 #####################################################################################
