@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.2";
+my $version = "2017.1.3";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -32,6 +32,7 @@ my $error_output = *STDERR{IO};
 # Library inclusions
 ##################################################################################### 
 ### DO INCLUDE
+### DO INCLUDE Header                 ColdStartLib.pm
 ### DO INCLUDE Utils                  ColdStartLib.pm
 ### DO INCLUDE Patterns               ColdStartLib.pm
 ### DO INCLUDE Logger                 ColdStartLib.pm
@@ -41,6 +42,7 @@ my $error_output = *STDERR{IO};
 ### DO INCLUDE QuerySet               ColdStartLib.pm
 ### DO INCLUDE EvaluationQueryOutput  ColdStartLib.pm
 ### DO INCLUDE Switches               ColdStartLib.pm
+### DO INCLUDE NodeTree               ColdStartLib.pm
 
 ### DO NOT INCLUDE
 # Hush up perl worrywart module
@@ -175,4 +177,5 @@ exit 0;
 #            Also support added to have the confidence vary depending on allowed
 #            justifications passed through parameter -justifications
 # 2017.1.2 - Switch -depth introduced (to be used only at NIST)
+# 2017.1.3 - INCLUDEs etc updated to allow Include.pl to successfully create standalone executables
 1;

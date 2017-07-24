@@ -8,13 +8,14 @@ JUSTIFICATIONS=1:3
 QB=CSSF17
 DIR=CS-TestSuite
 DOCS=-docs $(DIR)/AUX-Files/doclength.txt
+MASTER=-MASTER
 #########################################################################################
 
 score-sf:
 	if [ -f $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog ]; \
       then rm $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog; \
     fi
-	perl CS-Score-MASTER.pl \
+	perl CS-Score$(MASTER).pl \
 	  -expand $(QB) \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog \
 	  -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score \
@@ -23,7 +24,7 @@ score-sf:
 	  $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt
 
 expand-sfkb:
-	perl CS-ExpandKB-MASTER.pl \
+	perl CS-ExpandKB$(MASTER).pl \
 	  -output_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac \
 	  -kbname $(SF) \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.cpt
@@ -33,7 +34,7 @@ validate-all: validate-all-kbs validate-all-sfs
 diff-all: diff-all-kbs diff-all-sfs
 
 validate-kb-basic:
-	perl CS-ValidateKB-MASTER.pl \
+	perl CS-ValidateKB$(MASTER).pl \
 	  $(DOCS) \
 	  -output $(OUTPUT) \
 	  -output_file $(DIR)/KB-TestSuite/$(KB)/$(KB).valid \
@@ -56,7 +57,7 @@ validate-kb-full:
 	if [ -f $(DIR)/KB-TestSuite/$(KB)/$(KB).nug.valid ]; \
 	  then rm $(DIR)/KB-TestSuite/$(KB)/$(KB).nug.valid; \
 	fi
-	perl CS-ValidateKB-MASTER.pl \
+	perl CS-ValidateKB$(MASTER).pl \
 	  $(DOCS) \
 	  -output $(OUTPUT) \
 	  -error_file $(DIR)/KB-TestSuite/$(KB)/$(KB).errlog \
@@ -68,7 +69,7 @@ setup-sf:
 	if [ -f $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac.valid ]; \
 	  then rm $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac.valid; \
 	fi
-	perl CS-ValidateKB-MASTER.pl \
+	perl CS-ValidateKB$(MASTER).pl \
 	  $(DOCS) \
 	  -output tac \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.errlog \
@@ -76,24 +77,24 @@ setup-sf:
 	if [ -f $(DIR)/SF-TestSuite/$(SF)/sf-query.xml ]; \
 	  then rm $(DIR)/SF-TestSuite/$(SF)/sf-query.xml; \
 	fi
-	perl CS-ValidateQueries-MASTER.pl \
+	perl CS-ValidateQueries$(MASTER).pl \
 	  -expand \
 	  -query_base $(QB) \
 	  $(DIR)/SF-TestSuite/$(SF)/ldc-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml
-	perl CS-GenerateQueries-MASTER.pl \
+	perl CS-GenerateQueries$(MASTER).pl \
 	  $(DOCS) \
 	  -valid \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/sf-query-r1.xml
-	perl CS-ResolveQueries-MASTER.pl \
+	perl CS-ResolveQueries$(MASTER).pl \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/SFSystem1KB.tac.valid \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq
 	if [ -f $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog ]; \
           then rm $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog; \
         fi
-	perl CS-ValidateSF-MASTER.pl \
+	perl CS-ValidateSF$(MASTER).pl \
           -error_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq.valid.errlog \
           $(DOCS) \
           -justifications $(JUSTIFICATIONS) \
@@ -102,7 +103,7 @@ setup-sf:
           $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq
 	awk 'length($$1)<25{print}' $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r1
 	awk 'length($$1)>25{print}' $(DIR)/SF-TestSuite/$(SF)/$(SF).valid.ldc.tab.txt > $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r2
-	perl CS-GenerateQueries-MASTER.pl \
+	perl CS-GenerateQueries$(MASTER).pl \
 	  $(DOCS) \
 	  -valid \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
@@ -114,7 +115,7 @@ setup-sf:
 	if [ -f $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-packaged_output.errlog ]; \
 	  then rm $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-packaged_output.errlog; \
 	fi
-	perl CS-PackageOutput-MASTER.pl \
+	perl CS-PackageOutput$(MASTER).pl \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-packaged_output.errlog \
 	  $(DIR)/SF-TestSuite/$(SF)/sf-query.xml \
 	  $(DIR)/SF-TestSuite/$(SF)/GeneratorKB/$(SF).rq-r1 \
@@ -126,7 +127,7 @@ validate-sf:
 	if [ -f $(DIR)/SF-TestSuite/$(SF)/$(SF).errlog ]; \
 	  then rm $(DIR)/SF-TestSuite/$(SF)/$(SF).errlog; \
 	fi
-	perl CS-ValidateSF-MASTER.pl \
+	perl CS-ValidateSF$(MASTER).pl \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF).errlog \
 	  $(DOCS) \
 	  -justifications $(JUSTIFICATIONS) \
