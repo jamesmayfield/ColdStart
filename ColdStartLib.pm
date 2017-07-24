@@ -25,13 +25,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.7";   # (1) Switch -depth introduced in CS-ValidateSF-MASTER (to be used only at NIST).
-                            #     The library modified accordingly.
-                            # (2) EvaluationQueryOutput->new() takes a hash named options as one of the args
-                            # (3) $omit is handled correctly in case its not defined
-                            # (4) typo fixed in resetting hash %fqnodeids
-                            # (5) Support added to handle various pooling schemes
-                            # (6) Removed anonymous hashes to support older version of Perl
+my $version = "2017.1.8";   # (1) - INCLUDEs etc updated to allow Include.pl to successfully create standalone executables
 
 ### BEGIN INCLUDE Switches
 
