@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.3";
+my $version = "2017.1.4";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -178,4 +178,7 @@ exit 0;
 #            justifications passed through parameter -justifications
 # 2017.1.2 - Switch -depth introduced (to be used only at NIST)
 # 2017.1.3 - INCLUDEs etc updated to allow Include.pl to successfully create standalone executables
+# 2017.1.4 - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
+#          - Support added in SF validator to compare filler string with the text in source
+#            document at the filler provenance
 1;

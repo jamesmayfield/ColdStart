@@ -25,7 +25,9 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.8";   # (1) - INCLUDEs etc updated to allow Include.pl to successfully create standalone executables
+my $version = "2017.1.9";   # (1) - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
+                            # (2) - Support added in SF validator to compare filler string with
+                            #       the text in source document at the filler provenance
 
 ### BEGIN INCLUDE Switches
 
@@ -76,14 +78,15 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   COLON_OMITTED                 WARNING  Initial colon omitted from name of node %s
   DUPLICATE_ASSERTION           WARNING  The same assertion is made more than once (%s)
   ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
-  IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s 
   ILLEGAL_NODE_NAME             ERROR    Illegal node name: %s. (Accepted: :Entity..., :Event..., :String...; A dash '-' is not acceptable as part of the name)
-  INCOMPATIBLE_NODE_NAME        ERROR    Node name %s is not compatible with type %s
   ILLEGAL_NODE_TYPE             ERROR    Illegal node type: %s
   ILLEGAL_LINK_SPECIFICATION    WARNING  Illegal link specification: %s
   ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
   ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
   ILLEGAL_REALIS                ERROR    Illegal realis: %s
+  INACCURACTE_MENTION_STRING    WARNING  Mention (or filler) string '%s' not found at %s
+  INCOMPATIBLE_NODE_NAME        ERROR    Node name %s is not compatible with type %s
+  IMPROPER_CONFIDENCE_VALUE     WARNING  Confidence value in scientific format: %s
   MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
   MISSING_CANONICAL_E           ERROR    Canonical mention of node %s in document %s required for inferring inverse
   MISSING_MENTION               WARNING  Node %s has no mention in document %s
@@ -103,7 +106,6 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   STRING_USED_FOR_ENTITY        ERROR    Expecting a node, but got string %s
   SUBJECT_PREDICATE_MISMATCH    ERROR    Type of subject (%s) does not match type of predicate (%s)
   UNASSERTED_MENTION            WARNING  Failed to assert that %s in document %s is also a mention
-  INACCURACTE_MENTION_STRING    ERROR    Mention string '%s' not found at %s
   UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses node %s, but that node has no mentions in provenance %s
   UNEXPECTED_REALIS             ERROR    Unexpected value of realis (expected %s, got %s)
   UNQUOTED_STRING               WARNING  String %s not surrounded by double quotes
@@ -688,6 +690,15 @@ sub new {
   }
   bless($self, $class);
   $self;
+}
+
+# Get the complete path of the file containing the document used in the provenance
+sub get_docfile {
+  my ($self) = @_;
+  return unless $self->{DOCID};
+  my $docids = $Provenance::docids;
+  return $docids->{$self->{DOCID}}{FILE} if ($docids && $docids->{$self->{DOCID}});
+  return;
 }
 
 sub get_docid {
@@ -4006,6 +4017,31 @@ print STDERR "   columns = (<<", join(">> <<", @{$columns}), ">>)\n";
         if $entry->{QUERY}->get("LEVEL") == 1;
       $entry->{FQNODEID} = $prefix.$entry->{NODEID};
       $self->{NODE_QUANTITY}{$entry->{FQNODEID}} = $entry->{QUERY}->get("QUANTITY");
+    }
+
+    # Verify the filler string against text in the document at the given provenance span
+    my $filename = $entry->{VALUE_PROVENANCE}->get_docfile();
+    if($filename) {
+      my $entire_file;
+      {
+        local $/ = undef;
+        open(my $infile, "<:utf8", $filename) or $logger->NIST_die("Source document expected at $filename: $!");
+        $entire_file = <$infile>;
+        close $infile;
+      }
+      my $value = $entry->{VALUE};
+      my $start = $entry->{VALUE_PROVENANCE}->get_start();
+      my $end = $entry->{VALUE_PROVENANCE}->get_end();
+      my $value_from_file = substr($entire_file, $start, $end-$start+1);
+      my $normalized_value = $value;
+      $normalized_value =~ s/\s+/ /g;
+      my $normalized_value_from_file = $value_from_file;
+      $normalized_value_from_file =~ s/\s+/ /g;
+      $logger->record_problem('INACCURACTE_MENTION_STRING',
+                                         $value,
+                                         $entry->{VALUE_PROVENANCE}->tostring(),
+                                         $where)
+          if $normalized_value ne $normalized_value_from_file;
     }
 
     push(@{$self->{ENTRIES_BY_TYPE}{$schema->{TYPE}}}, $entry);
