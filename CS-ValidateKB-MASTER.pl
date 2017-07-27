@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "2017.1.5";
+my $version = "2017.1.6";
 
 my $statsfile;
 
@@ -618,11 +618,15 @@ sub check_mention_string {
         my $start = $mention_provenance->{PREDICATE_JUSTIFICATION}->get_start();
         my $end = $mention_provenance->{PREDICATE_JUSTIFICATION}->get_end();
         $mention_string_from_file = substr($entire_file, $start, $end-$start+1);
+        my $normalized_mention_string_from_file = $mention_string_from_file;
+        my $normalized_mention_string = $mention_string;
+        $normalized_mention_string =~ s/\s+/ /g;
+        $normalized_mention_string_from_file =~ s/\s+/ /g;
         $kb->{LOGGER}->record_problem('INACCURACTE_MENTION_STRING',
                                          $mention_string,
                                          $mention_provenance->{PREDICATE_JUSTIFICATION}->tostring(),
                                          $mention->{SOURCE})
-          if $mention_string ne $mention_string_from_file;
+          if $normalized_mention_string ne $normalized_mention_string_from_file;
       }
     }
   }
@@ -1793,4 +1797,5 @@ exit 0;
 # 2017.1.3 - BUGFIX: An error was incorrectly thrown when an existing pronominal mention appeared as a provenance of sentiment relation
 # 2017.1.4 - Removing domain name from pronominal_mention
 # 2017.1.5 - INCLUDEs etc updated to allow Include.pl to successfully create standalone executables
+# 2017.1.6 - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
 1;
