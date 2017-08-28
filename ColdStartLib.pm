@@ -25,9 +25,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.9";   # (1) - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
-                            # (2) - Support added in SF validator to compare filler string with
-                            #       the text in source document at the filler provenance
+my $version = "2017.1.10";   # (1) - Code for pooling schemes updated to match requirements
 
 ### BEGIN INCLUDE Switches
 
@@ -129,7 +127,9 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 ########## Submission File/Assessment File Errors
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
   DISCARDED_DEPENDENT           WARNING  Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: %s
+  DISCARDED_DEPENDENT_DEPTH     WARNING  Following line has been discarded because all of its parents were discarded due to depth constraints: %s
   DISCARDED_ENTRY               WARNING  Following line has been discarded due to constraints on multiple justifications: %s
+  DISCARDED_ENTRY_DEPTH         WARNING  Following line has been discarded due to depth constraints: %s
   DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies but one will be removed: %s
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
@@ -486,7 +486,7 @@ package Provenance;
 
 # Bounds from "Task Description for English Slot Filling at TAC-KBP 2014"
 my $max_chars_per_triple = 200;
-my $max_total_chars = 600;
+my $max_total_chars = 800;
 my $max_triples = 3;
 
 {
@@ -4680,7 +4680,7 @@ sub manage_pooling_scheme_A {
   }
 
   # Discard dependents
-  foreach my $level(qw(0 1)) {
+  foreach my $level(sort {$a<=>$b} qw(0 1)) {
       my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
                             grep {not exists $_->{DISCARD}}
                               grep {$_->{QUERY}->{LEVEL} == $level}
@@ -4756,11 +4756,11 @@ sub manage_pooling_scheme_B {
   }
 
   # Select top d nodes per query at hop-0
-   my $i = 1;
    my $level = 0;
    foreach my $root_query_id(keys %fqnodeids) {
+     my $i = 1;
      foreach my $fqnodeid(sort {$fqnodeids{$root_query_id}{$level}{$b}{CONFIDENCE}<=>$fqnodeids{$root_query_id}{$level}{$a}{CONFIDENCE} ||
-                                 $fqnodeids{$root_query_id}{$level}{$b}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$a}{LINENUM}}
+                                 $fqnodeids{$root_query_id}{$level}{$a}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$b}{LINENUM}}
                             keys %{$fqnodeids{$root_query_id}{$level}}) {
        last if $i > $depth;
        $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED} = 1;
@@ -4770,11 +4770,11 @@ sub manage_pooling_scheme_B {
 
   # Select top dxd nodes per query at hop-1
   # Also, select low confident parents of high performing children
-  $i = 1;
   $level = 1;
   foreach my $root_query_id(keys %fqnodeids) {
+    my $i = 1;
     foreach my $fqnodeid(sort {$fqnodeids{$root_query_id}{$level}{$b}{CONFIDENCE}<=>$fqnodeids{$root_query_id}{$level}{$a}{CONFIDENCE} ||
-                                $fqnodeids{$root_query_id}{$level}{$b}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$a}{LINENUM}}
+                                $fqnodeids{$root_query_id}{$level}{$a}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$b}{LINENUM}}
                            keys %{$fqnodeids{$root_query_id}{$level}}) {
       last if $i > $depth * $depth;
       $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED} = 1;
@@ -4793,6 +4793,8 @@ sub manage_pooling_scheme_B {
               # Discard this node
               foreach my $entry(grep {not exists $_->{DISCARD}} @{$fqnodeids{$root_query_id}{$level}{$fqnodeid}{ENTRIES}}) {
                   $entry->{DISCARD} = 1;
+                  $self->{LOGGER}->record_problem('DISCARDED_ENTRY_DEPTH', "\n" . $entry->{LINE} . "\n",
+                     {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
               }
           }
       }
@@ -4800,7 +4802,7 @@ sub manage_pooling_scheme_B {
   }
 
   # Discard dependents
-  foreach my $level(qw(0 1)) {
+  foreach my $level(sort {$a<=>$b} qw(0 1)) {
       my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
                             grep {not exists $_->{DISCARD}}
                               grep {$_->{QUERY}->{LEVEL} == $level}
@@ -4808,7 +4810,7 @@ sub manage_pooling_scheme_B {
     foreach my $entry(grep {!$_->{DISCARD}} grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
       unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
         $entry->{DISCARD} = 1;
-        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
+        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT_DEPTH', "\n" . $entry->{LINE} . "\n",
             {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
       }
     }
