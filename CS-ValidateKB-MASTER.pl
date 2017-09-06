@@ -1285,7 +1285,9 @@ sub export_sen {
           my $source_length = $source_provenance->{PREDICATE_JUSTIFICATION}->get_end()-$source_offset+1;
           my $polarity = "pos";
           $polarity = "neg" if $sentiment->{VERB} eq "dislikes";
-          print $output "          <sentiment polarity=\"$polarity\" sarcasm=\"no\">\n";
+          my $confidence = $sentiment->{CONFIDENCE};
+          $confidence = 1.0 unless $confidence;
+          print $output "          <sentiment polarity=\"$polarity\" sarcasm=\"no\" confidence=\"$confidence\">\n";
           print $output "            <source ere_id=\"$source_mentionid\" offset=\"$source_offset\" length=\"$source_length\">$source_mention_text<\/source>\n";
           print $output "          <\/sentiment>\n";
         }
