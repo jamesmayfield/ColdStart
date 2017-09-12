@@ -1417,8 +1417,10 @@ sub export_eal {
           $confidence);
       my %output_line = map {$fields[$_]=>$output[$_]} (0..$#fields);
       push(@{$arguments{$document_id}}, \%output_line);
-      push(@{$linking{$document_id}{$node_id}}, "$subject_string");
-      $corpuslinking{$node_id}{"$document_id-$run_id$node_id.$document_id"} = 1;
+      if($realis ne "Generic"){
+        push(@{$linking{$document_id}{$node_id}}, "$subject_string");
+        $corpuslinking{$node_id}{"$document_id-$run_id$node_id.$document_id"} = 1;
+      }
     }
   }
 
