@@ -1418,7 +1418,7 @@ sub export_eal {
       my %output_line = map {$fields[$_]=>$output[$_]} (0..$#fields);
       push(@{$arguments{$document_id}}, \%output_line);
       push(@{$linking{$document_id}{$node_id}}, "$subject_string");
-      push(@{$corpuslinking{$node_id}}, "$document_id-$run_id$node_id.$document_id");
+      $corpuslinking{$node_id}{"$document_id-$run_id$node_id.$document_id"} = 1;
     }
   }
 
@@ -1443,7 +1443,7 @@ sub export_eal {
   # Generate the corpus linking file
   foreach my $node_id(sort keys %corpuslinking) {
     open(CORPUS_LINKING, ">>$event_argument_dir/corpusLinking/corpusLinking");
-    print CORPUS_LINKING "$run_id$node_id\t", join(" ", sort @{$corpuslinking{$node_id}}), "\n";
+    print CORPUS_LINKING "$run_id$node_id\t", join(" ", sort keys %{$corpuslinking{$node_id}}), "\n";
     close(CORPUS_LINKING);
   }
 }
