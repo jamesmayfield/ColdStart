@@ -5,7 +5,7 @@
       <entity ere_id=":Entity_0001.500001" offset="402" length="6">
         <text>Boston</text>
         <sentiments>
-          <sentiment polarity="neg" sarcasm="no">
+          <sentiment polarity="neg" sarcasm="no" confidence="1.0">
             <source ere_id=":Entity_0010.500001" offset="684" length="17">Tamerlan Tsarnaev</source>
           </sentiment>
         </sentiments>
