@@ -2361,12 +2361,10 @@ sub score_subtree {
   $num_unassessed = @{$categorized_submissions{'UNASSESSED'} || []};
   $num_wrong = @{$categorized_submissions{'WRONG'} || []};
 
-  my @post_policy_labels = qw(RIGHT WRONG IGNORE);
-  foreach my $post_policy_label( @post_policy_labels ) {
+  my @labels = qw(CORRECT IGNORE INCORRECT INCORRECT_PARENT INEXACT REDUNDANT RIGHT SUBMITTED UNASSESSED WRONG);
+  foreach my $post_policy_label( @labels ) {
     foreach my $categorized_submission(@{$categorized_submissions{$post_policy_label} || []}) {
-      $self->NIST_die("Multiple post-policy assessment for: $categorized_submission->{LINE}\n")
-        if exists $categorized_submission->{POSTPOLICY_ASSESSMENT};
-      $categorized_submission->{POSTPOLICY_ASSESSMENT} = $post_policy_label;
+      $categorized_submission->{CATEGORIZED_AS}{$post_policy_label} = 1;
     }
   }
 
@@ -2684,7 +2682,7 @@ sub map_all_nodes {
 sub get_candidate_ecs {
   my ($self, $node, $nodeid) = @_;
   my ($k) = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
-  my @submissions = grep {$_->{POSTPOLICY_ASSESSMENT} eq 'RIGHT'} $self->get_flattened_entries($node);
+  my @submissions = grep {$_->{CATEGORIZED_AS}{'RIGHT'} || $_->{CATEGORIZED_AS}{'REDUNDANT'}} $self->get_flattened_entries($node);
   my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
                          grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
