@@ -1,0 +1,16 @@
+QID/EC                  RunID                           Hop   GT Submitted Correct Incorrect Inexact PIncorrect Unassessed  Dup Right Wrong Ignored Prec   Recall F1    
+CS17_3456               SCORER_TS_MERGE_AND_SPLIT_CMPLX 0      1         3       3         0       0          0          0    2     1     0       2 1.0000 1.0000 1.0000
+CS17_3456:1             SCORER_TS_MERGE_AND_SPLIT_CMPLX 1      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+CS17_4567               SCORER_TS_MERGE_AND_SPLIT_CMPLX 0      2         9       9         0       0          0          0    7     2     0       7 1.0000 1.0000 1.0000
+CS17_4567:1             SCORER_TS_MERGE_AND_SPLIT_CMPLX 1      2        12      12         0       0          0          0   10     2     0      10 1.0000 1.0000 1.0000
+CS17_4567:2             SCORER_TS_MERGE_AND_SPLIT_CMPLX 1      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+CS17_5678               SCORER_TS_MERGE_AND_SPLIT_CMPLX 0      1         3       2         1       0          0          0    1     1     1       1 0.5000 1.0000 0.6667
+CS17_6789               SCORER_TS_MERGE_AND_SPLIT_CMPLX 0      1         3       0         2       1          0          0    0     1     2       0 0.3333 1.0000 0.5000
+ALL-Micro               SCORER_TS_MERGE_AND_SPLIT_CMPLX 0      5        18      14         3       1          0          0   10     5     3      10 0.6250 1.0000 0.7692
+ALL-Micro               SCORER_TS_MERGE_AND_SPLIT_CMPLX 1      6        24      24         0       0          0          0   18     6     0      18 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_MERGE_AND_SPLIT_CMPLX ALL   11        42      38         3       1          0          0   28    11     3      28 0.7857 1.0000 0.8800
+ALL-Macro               SCORER_TS_MERGE_AND_SPLIT_CMPLX 0                                                                                           0.7083 1.0000 0.7917
+ALL-Macro               SCORER_TS_MERGE_AND_SPLIT_CMPLX 1                                                                                           1.0000 1.0000 1.0000
+ALL-Macro               SCORER_TS_MERGE_AND_SPLIT_CMPLX ALL                                                                                         0.8333 1.0000 0.8810
+
+*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.

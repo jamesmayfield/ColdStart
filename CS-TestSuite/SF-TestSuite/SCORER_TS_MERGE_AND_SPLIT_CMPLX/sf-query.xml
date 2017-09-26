@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CSSF17_ENG_3851d3b3a1">
+    <name>Homer</name>
+    <docid>SIMPSONS_011</docid>
+    <beg>55</beg>
+    <end>59</end>
+    <enttype>per</enttype>
+    <slot0>per:cities_of_residence</slot0>
+    <slot1>gpe:residents_of_city</slot1>
+  </query>
+  <query id="CSSF17_ENG_65087022a9">
+    <name>Homer</name>
+    <docid>SIMPSONS_011</docid>
+    <beg>55</beg>
+    <end>59</end>
+    <enttype>per</enttype>
+    <slot0>per:dislikes</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21">
+    <name>Homer</name>
+    <docid>SIMPSONS_011</docid>
+    <beg>55</beg>
+    <end>59</end>
+    <enttype>per</enttype>
+    <slot0>per:children</slot0>
+    <slot1>per:schools_attended</slot1>
+  </query>
+  <query id="CSSF17_ENG_cc8f9efc40">
+    <name>Homer</name>
+    <docid>SIMPSONS_011</docid>
+    <beg>55</beg>
+    <end>59</end>
+    <enttype>per</enttype>
+    <slot0>per:conflict.attack_attacker</slot0>
+  </query>
+</query_set>

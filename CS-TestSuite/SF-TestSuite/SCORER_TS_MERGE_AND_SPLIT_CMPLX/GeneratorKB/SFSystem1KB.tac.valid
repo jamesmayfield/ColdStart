@@ -1,0 +1,394 @@
+SCORER_TS_MERGE_AND_SPLIT_CMPLX
+
+:Entity101	type	PER	
+:Entity101	canonical_mention	"Homer"	SIMPSONS_011:55-59	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_100:220-226	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_108:237-243	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_112:152-158	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_113:207-213	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_114:171-177	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_119:104-110	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_125:247-253	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_127:133-139	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_128:220-226	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_130:114-120	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_132:127-133	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_139:197-203	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_146:113-119	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_150:243-249	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_156:123-129	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_159:160-166	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_164:240-246	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_171:243-249	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_173:159-165	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_174:163-169	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_178:122-128	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_183:134-140	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_193:230-236	1.0
+:Entity101	canonical_mention	"Homer"	SIMPSONS_196:114-120	1.0
+:Entity101	mention	"Homer"	SIMPSONS_011:55-59	1.0
+:Entity101	mention	"Homer"	SIMPSONS_100:220-226	1.0
+:Entity101	mention	"Homer"	SIMPSONS_108:237-243	1.0
+:Entity101	mention	"Homer"	SIMPSONS_112:152-158	1.0
+:Entity101	mention	"Homer"	SIMPSONS_113:207-213	1.0
+:Entity101	mention	"Homer"	SIMPSONS_114:171-177	1.0
+:Entity101	mention	"Homer"	SIMPSONS_119:104-110	1.0
+:Entity101	mention	"Homer"	SIMPSONS_125:247-253	1.0
+:Entity101	mention	"Homer"	SIMPSONS_127:133-139	1.0
+:Entity101	mention	"Homer"	SIMPSONS_128:220-226	1.0
+:Entity101	mention	"Homer"	SIMPSONS_130:114-120	1.0
+:Entity101	mention	"Homer"	SIMPSONS_132:127-133	1.0
+:Entity101	mention	"Homer"	SIMPSONS_139:197-203	1.0
+:Entity101	mention	"Homer"	SIMPSONS_146:113-119	1.0
+:Entity101	mention	"Homer"	SIMPSONS_150:243-249	1.0
+:Entity101	mention	"Homer"	SIMPSONS_156:123-129	1.0
+:Entity101	mention	"Homer"	SIMPSONS_159:160-166	1.0
+:Entity101	mention	"Homer"	SIMPSONS_164:240-246	1.0
+:Entity101	mention	"Homer"	SIMPSONS_171:243-249	1.0
+:Entity101	mention	"Homer"	SIMPSONS_173:159-165	1.0
+:Entity101	mention	"Homer"	SIMPSONS_174:163-169	1.0
+:Entity101	mention	"Homer"	SIMPSONS_178:122-128	1.0
+:Entity101	mention	"Homer"	SIMPSONS_183:134-140	1.0
+:Entity101	mention	"Homer"	SIMPSONS_193:230-236	1.0
+:Entity101	mention	"Homer"	SIMPSONS_196:114-120	1.0
+:Entity101	per:children	:Entity104	SIMPSONS_100:164-289	0.0483
+:Entity101	per:children	:Entity102	SIMPSONS_108:142-299	0.5504
+:Entity101	per:children	:Entity103	SIMPSONS_113:107-210	0.1237
+:Entity101	per:children	:Entity104	SIMPSONS_119:194-332	0.6893
+:Entity101	per:children	:Entity102	SIMPSONS_125:131-256	0.7901
+:Entity101	per:children	:Entity104	SIMPSONS_127:181-304	0.0521
+:Entity101	per:children	:Entity102	SIMPSONS_128:161-268	0.1789
+:Entity101	per:children	:Entity104	SIMPSONS_130:237-347	0.1089
+:Entity101	per:children	:Entity103	SIMPSONS_132:196-313	0.4396
+:Entity101	per:children	:Entity102	SIMPSONS_159:161-264	0.1724
+:Entity101	per:children	:Entity103	SIMPSONS_171:142-248	0.1753
+:Entity101	per:children	:Entity104	SIMPSONS_178:230-358	0.5174
+:Entity101	per:children	:Entity102	SIMPSONS_183:112-214	0.4556
+:Entity101	per:children	:Entity103	SIMPSONS_193:219-339	0.7764
+:Entity101	per:children	:Entity103	SIMPSONS_196:157-263	0.7998
+:Entity101	per:cities_of_residence	:Entity201	SIMPSONS_100:118-224	0.0387
+:Entity101	per:cities_of_residence	:Entity201	SIMPSONS_112:179-307	0.0974
+:Entity101	per:cities_of_residence	:Entity201	SIMPSONS_128:136-267	0.6538
+:Entity101	per:cities_of_residence	:Entity201	SIMPSONS_146:191-313	0.1987
+:Entity101	per:cities_of_residence	:Entity201	SIMPSONS_150:147-292	0.2928
+:Entity101	per:conflict.attack_attacker.actual	:Event101	SIMPSONS_113:135-257;SIMPSONS_113:135-257;SIMPSONS_113:135-257	0.4068
+:Entity101	per:conflict.attack_attacker.actual	:Event101	SIMPSONS_127:160-268;SIMPSONS_127:160-268;SIMPSONS_127:160-268	0.4955
+:Entity101	per:conflict.attack_attacker.actual	:Event101	SIMPSONS_139:104-246;SIMPSONS_139:104-246;SIMPSONS_139:104-246	0.1731
+:Entity101	per:conflict.attack_attacker.actual	:Event101	SIMPSONS_173:153-304;SIMPSONS_173:153-304;SIMPSONS_173:153-304	0.2050
+:Entity101	per:conflict.attack_attacker.actual	:Event101	SIMPSONS_174:164-307;SIMPSONS_174:164-307;SIMPSONS_174:164-307	0.8719
+:Entity101	per:dislikes	:Entity201	SIMPSONS_114:166-173	0.2289
+:Entity101	per:dislikes	:Entity201	SIMPSONS_139:155-162	0.7999
+:Entity101	per:dislikes	:Entity201	SIMPSONS_156:127-134	0.5030
+:Entity101	per:dislikes	:Entity201	SIMPSONS_164:174-181	0.8664
+:Entity101	per:dislikes	:Entity201	SIMPSONS_173:154-161	0.6896
+:Entity102	type	PER	
+:Entity102	canonical_mention	"Bart"	SIMPSONS_103:220-225	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_108:212-217	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_114:217-222	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_117:166-171	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_121:202-207	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_125:104-109	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_127:176-181	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_128:123-128	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_138:224-229	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_146:197-202	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_149:191-196	1.0
+:Entity102	canonical_mention	"Lisa"	SIMPSONS_154:114-119	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_159:216-221	1.0
+:Entity102	canonical_mention	"Bart"	SIMPSONS_183:196-201	1.0
+:Entity102	canonical_mention	"Lisa"	SIMPSONS_196:177-182	1.0
+:Entity102	mention	"Bart"	SIMPSONS_103:220-225	1.0
+:Entity102	mention	"Bart"	SIMPSONS_108:212-217	1.0
+:Entity102	mention	"Bart"	SIMPSONS_114:217-222	1.0
+:Entity102	mention	"Bart"	SIMPSONS_117:166-171	1.0
+:Entity102	mention	"Bart"	SIMPSONS_121:202-207	1.0
+:Entity102	mention	"Bart"	SIMPSONS_125:104-109	1.0
+:Entity102	mention	"Bart"	SIMPSONS_127:176-181	1.0
+:Entity102	mention	"Bart"	SIMPSONS_128:123-128	1.0
+:Entity102	mention	"Bart"	SIMPSONS_138:224-229	1.0
+:Entity102	mention	"Bart"	SIMPSONS_146:197-202	1.0
+:Entity102	mention	"Bart"	SIMPSONS_149:191-196	1.0
+:Entity102	mention	"Lisa"	SIMPSONS_154:114-119	1.0
+:Entity102	mention	"Bart"	SIMPSONS_159:216-221	1.0
+:Entity102	mention	"Bart"	SIMPSONS_183:196-201	1.0
+:Entity102	mention	"Lisa"	SIMPSONS_196:177-182	1.0
+:Entity102	per:parents	:Entity101	SIMPSONS_108:142-299	0.5504
+:Entity102	per:parents	:Entity101	SIMPSONS_125:131-256	0.7901
+:Entity102	per:parents	:Entity101	SIMPSONS_128:161-268	0.1789
+:Entity102	per:parents	:Entity101	SIMPSONS_159:161-264	0.1724
+:Entity102	per:parents	:Entity101	SIMPSONS_183:112-214	0.4556
+:Entity102	per:schools_attended	:Entity111	SIMPSONS_103:138-279	0.9589
+:Entity102	per:schools_attended	:Entity110	SIMPSONS_108:236-374	0.9102
+:Entity102	per:schools_attended	:Entity111	SIMPSONS_114:234-392	0.0422
+:Entity102	per:schools_attended	:Entity110	SIMPSONS_117:103-250	0.2466
+:Entity102	per:schools_attended	:Entity110	SIMPSONS_121:116-274	0.6672
+:Entity102	per:schools_attended	:Entity111	SIMPSONS_127:174-279	0.5516
+:Entity102	per:schools_attended	:Entity111	SIMPSONS_138:125-231	0.9567
+:Entity102	per:schools_attended	:Entity110	SIMPSONS_146:177-333	0.6554
+:Entity102	per:schools_attended	:Entity110	SIMPSONS_149:175-301	0.1317
+:Entity102	per:schools_attended	:Entity111	SIMPSONS_154:225-381	0.0627
+:Entity103	type	PER	
+:Entity103	canonical_mention	"Bart Simpson"	SIMPSONS_105:175-188	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_111:191-204	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_113:201-214	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_121:124-137	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_128:240-253	1.0
+:Entity103	canonical_mention	"Bart Simpson"	SIMPSONS_132:115-128	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_133:159-172	1.0
+:Entity103	canonical_mention	"Bart Simpson"	SIMPSONS_166:176-189	1.0
+:Entity103	canonical_mention	"Bart Simpson"	SIMPSONS_168:242-255	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_171:218-231	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_179:122-135	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_180:227-240	1.0
+:Entity103	canonical_mention	"Bart Simpson"	SIMPSONS_193:155-168	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_195:139-152	1.0
+:Entity103	canonical_mention	"Lisa Simpson"	SIMPSONS_196:166-179	1.0
+:Entity103	mention	"Bart Simpson"	SIMPSONS_105:175-188	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_111:191-204	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_113:201-214	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_121:124-137	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_128:240-253	1.0
+:Entity103	mention	"Bart Simpson"	SIMPSONS_132:115-128	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_133:159-172	1.0
+:Entity103	mention	"Bart Simpson"	SIMPSONS_166:176-189	1.0
+:Entity103	mention	"Bart Simpson"	SIMPSONS_168:242-255	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_171:218-231	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_179:122-135	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_180:227-240	1.0
+:Entity103	mention	"Bart Simpson"	SIMPSONS_193:155-168	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_195:139-152	1.0
+:Entity103	mention	"Lisa Simpson"	SIMPSONS_196:166-179	1.0
+:Entity103	per:parents	:Entity101	SIMPSONS_113:107-210	0.1237
+:Entity103	per:parents	:Entity101	SIMPSONS_132:196-313	0.4396
+:Entity103	per:parents	:Entity101	SIMPSONS_171:142-248	0.1753
+:Entity103	per:parents	:Entity101	SIMPSONS_193:219-339	0.7764
+:Entity103	per:parents	:Entity101	SIMPSONS_196:157-263	0.7998
+:Entity103	per:schools_attended	:Entity110	SIMPSONS_113:240-358	0.1042
+:Entity103	per:schools_attended	:Entity110	SIMPSONS_121:205-362	0.9302
+:Entity103	per:schools_attended	:Entity111	SIMPSONS_128:219-327	0.8759
+:Entity103	per:schools_attended	:Entity111	SIMPSONS_133:184-286	0.8458
+:Entity103	per:schools_attended	:Entity110	SIMPSONS_166:215-371	0.2007
+:Entity103	per:schools_attended	:Entity110	SIMPSONS_168:194-304	0.8475
+:Entity103	per:schools_attended	:Entity111	SIMPSONS_168:206-334	0.3305
+:Entity103	per:schools_attended	:Entity111	SIMPSONS_179:215-340	0.4086
+:Entity103	per:schools_attended	:Entity110	SIMPSONS_180:240-346	0.0246
+:Entity103	per:schools_attended	:Entity111	SIMPSONS_195:222-334	0.4398
+:Entity104	type	PER	
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_100:167-180	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_101:149-162	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_105:189-202	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_113:238-251	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_116:153-166	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_119:158-171	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_120:224-237	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_126:164-177	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_127:129-142	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_128:167-180	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_130:195-208	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_147:171-184	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_154:167-180	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_175:197-210	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_178:109-122	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_191:159-172	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_193:225-238	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_196:217-230	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_198:184-197	1.0
+:Entity104	canonical_mention	"Lisa Simpson"	SIMPSONS_199:238-251	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_100:167-180	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_101:149-162	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_105:189-202	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_113:238-251	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_116:153-166	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_119:158-171	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_120:224-237	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_126:164-177	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_127:129-142	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_128:167-180	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_130:195-208	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_147:171-184	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_154:167-180	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_175:197-210	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_178:109-122	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_191:159-172	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_193:225-238	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_196:217-230	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_198:184-197	1.0
+:Entity104	mention	"Lisa Simpson"	SIMPSONS_199:238-251	1.0
+:Entity104	per:cities_of_residence	:Entity201	SIMPSONS_154:188-337	0.6200
+:Entity104	per:cities_of_residence	:Entity201	SIMPSONS_175:239-351	0.0354
+:Entity104	per:cities_of_residence	:Entity201	SIMPSONS_191:143-268	0.1279
+:Entity104	per:cities_of_residence	:Entity201	SIMPSONS_198:207-313	0.7636
+:Entity104	per:cities_of_residence	:Entity201	SIMPSONS_199:175-286	0.3405
+:Entity104	per:parents	:Entity101	SIMPSONS_100:164-289	0.0483
+:Entity104	per:parents	:Entity101	SIMPSONS_119:194-332	0.6893
+:Entity104	per:parents	:Entity101	SIMPSONS_127:181-304	0.0521
+:Entity104	per:parents	:Entity101	SIMPSONS_130:237-347	0.1089
+:Entity104	per:parents	:Entity101	SIMPSONS_178:230-358	0.5174
+:Entity104	per:schools_attended	:Entity111	SIMPSONS_101:128-285	0.5961
+:Entity104	per:schools_attended	:Entity110	SIMPSONS_113:178-288	0.5936
+:Entity104	per:schools_attended	:Entity111	SIMPSONS_116:164-303	0.4353
+:Entity104	per:schools_attended	:Entity110	SIMPSONS_120:128-229	0.2263
+:Entity104	per:schools_attended	:Entity111	SIMPSONS_126:172-276	0.6808
+:Entity104	per:schools_attended	:Entity110	SIMPSONS_128:237-343	0.6321
+:Entity104	per:schools_attended	:Entity110	SIMPSONS_130:173-309	0.4364
+:Entity104	per:schools_attended	:Entity111	SIMPSONS_147:248-355	0.0597
+:Entity104	per:schools_attended	:Entity110	SIMPSONS_193:185-334	0.6611
+:Entity104	per:schools_attended	:Entity111	SIMPSONS_196:239-395	0.7583
+:Entity110	type	ORG	
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_108:128-158	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_113:105-135	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_117:225-255	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_120:205-235	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_121:189-219	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_128:118-148	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_130:158-188	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_146:241-271	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_148:187-217	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_149:102-132	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_166:147-177	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_168:126-156	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_180:223-253	1.0
+:Entity110	canonical_mention	"Springfield Elementary School"	SIMPSONS_193:214-244	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_108:128-158	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_113:105-135	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_117:225-255	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_120:205-235	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_121:189-219	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_128:118-148	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_130:158-188	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_146:241-271	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_148:187-217	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_149:102-132	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_166:147-177	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_168:126-156	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_180:223-253	1.0
+:Entity110	mention	"Springfield Elementary School"	SIMPSONS_193:214-244	1.0
+:Entity110	org:students	:Entity102	SIMPSONS_108:236-374	0.9102
+:Entity110	org:students	:Entity104	SIMPSONS_113:178-288	0.5936
+:Entity110	org:students	:Entity103	SIMPSONS_113:240-358	0.1042
+:Entity110	org:students	:Entity102	SIMPSONS_117:103-250	0.2466
+:Entity110	org:students	:Entity104	SIMPSONS_120:128-229	0.2263
+:Entity110	org:students	:Entity102	SIMPSONS_121:116-274	0.6672
+:Entity110	org:students	:Entity103	SIMPSONS_121:205-362	0.9302
+:Entity110	org:students	:Entity104	SIMPSONS_128:237-343	0.6321
+:Entity110	org:students	:Entity104	SIMPSONS_130:173-309	0.4364
+:Entity110	org:students	:Entity102	SIMPSONS_146:177-333	0.6554
+:Entity110	org:students	:Entity102	SIMPSONS_149:175-301	0.1317
+:Entity110	org:students	:Entity103	SIMPSONS_166:215-371	0.2007
+:Entity110	org:students	:Entity103	SIMPSONS_168:194-304	0.8475
+:Entity110	org:students	:Entity103	SIMPSONS_180:240-346	0.0246
+:Entity110	org:students	:Entity104	SIMPSONS_193:185-334	0.6611
+:Entity111	type	ORG	
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_101:210-234	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_103:186-210	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_114:220-244	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_116:162-186	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_126:120-144	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_127:178-202	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_128:187-211	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_133:161-185	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_138:206-230	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_145:161-185	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_147:185-209	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_154:114-138	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_168:184-208	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_179:174-198	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_195:248-272	1.0
+:Entity111	canonical_mention	"Springfield High School"	SIMPSONS_196:219-243	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_101:210-234	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_103:186-210	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_114:220-244	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_116:162-186	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_126:120-144	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_127:178-202	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_128:187-211	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_133:161-185	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_138:206-230	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_145:161-185	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_147:185-209	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_154:114-138	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_168:184-208	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_179:174-198	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_195:248-272	1.0
+:Entity111	mention	"Springfield High School"	SIMPSONS_196:219-243	1.0
+:Entity111	org:students	:Entity104	SIMPSONS_101:128-285	0.5961
+:Entity111	org:students	:Entity102	SIMPSONS_103:138-279	0.9589
+:Entity111	org:students	:Entity102	SIMPSONS_114:234-392	0.0422
+:Entity111	org:students	:Entity104	SIMPSONS_116:164-303	0.4353
+:Entity111	org:students	:Entity104	SIMPSONS_126:172-276	0.6808
+:Entity111	org:students	:Entity102	SIMPSONS_127:174-279	0.5516
+:Entity111	org:students	:Entity103	SIMPSONS_128:219-327	0.8759
+:Entity111	org:students	:Entity103	SIMPSONS_133:184-286	0.8458
+:Entity111	org:students	:Entity102	SIMPSONS_138:125-231	0.9567
+:Entity111	org:students	:Entity104	SIMPSONS_147:248-355	0.0597
+:Entity111	org:students	:Entity102	SIMPSONS_154:225-381	0.0627
+:Entity111	org:students	:Entity103	SIMPSONS_168:206-334	0.3305
+:Entity111	org:students	:Entity103	SIMPSONS_179:215-340	0.4086
+:Entity111	org:students	:Entity103	SIMPSONS_195:222-334	0.4398
+:Entity111	org:students	:Entity104	SIMPSONS_196:239-395	0.7583
+:Entity201	type	GPE	
+:Entity201	canonical_mention	"Boston"	SIMPSONS_100:110-117	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_103:222-229	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_112:105-112	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_114:166-173	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_128:192-199	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_139:155-162	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_146:107-114	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_150:135-142	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_154:207-214	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_156:127-134	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_164:174-181	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_173:154-161	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_175:230-237	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_191:243-250	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_198:210-217	1.0
+:Entity201	canonical_mention	"Boston"	SIMPSONS_199:165-172	1.0
+:Entity201	mention	"Boston"	SIMPSONS_100:110-117	1.0
+:Entity201	mention	"Boston"	SIMPSONS_103:222-229	1.0
+:Entity201	mention	"Boston"	SIMPSONS_112:105-112	1.0
+:Entity201	mention	"Boston"	SIMPSONS_114:166-173	1.0
+:Entity201	mention	"Boston"	SIMPSONS_128:192-199	1.0
+:Entity201	mention	"Boston"	SIMPSONS_139:155-162	1.0
+:Entity201	mention	"Boston"	SIMPSONS_146:107-114	1.0
+:Entity201	mention	"Boston"	SIMPSONS_150:135-142	1.0
+:Entity201	mention	"Boston"	SIMPSONS_154:207-214	1.0
+:Entity201	mention	"Boston"	SIMPSONS_156:127-134	1.0
+:Entity201	mention	"Boston"	SIMPSONS_164:174-181	1.0
+:Entity201	mention	"Boston"	SIMPSONS_173:154-161	1.0
+:Entity201	mention	"Boston"	SIMPSONS_175:230-237	1.0
+:Entity201	mention	"Boston"	SIMPSONS_191:243-250	1.0
+:Entity201	mention	"Boston"	SIMPSONS_198:210-217	1.0
+:Entity201	mention	"Boston"	SIMPSONS_199:165-172	1.0
+:Entity201	gpe:is_disliked_by	:Entity101	SIMPSONS_114:166-173	0.2289
+:Entity201	gpe:is_disliked_by	:Entity101	SIMPSONS_139:155-162	0.7999
+:Entity201	gpe:is_disliked_by	:Entity101	SIMPSONS_156:127-134	0.5030
+:Entity201	gpe:is_disliked_by	:Entity101	SIMPSONS_164:174-181	0.8664
+:Entity201	gpe:is_disliked_by	:Entity101	SIMPSONS_173:154-161	0.6896
+:Entity201	gpe:residents_of_city	:Entity101	SIMPSONS_100:118-224	0.0387
+:Entity201	gpe:residents_of_city	:Entity101	SIMPSONS_112:179-307	0.0974
+:Entity201	gpe:residents_of_city	:Entity101	SIMPSONS_128:136-267	0.6538
+:Entity201	gpe:residents_of_city	:Entity101	SIMPSONS_146:191-313	0.1987
+:Entity201	gpe:residents_of_city	:Entity101	SIMPSONS_150:147-292	0.2928
+:Entity201	gpe:residents_of_city	:Entity104	SIMPSONS_154:188-337	0.6200
+:Entity201	gpe:residents_of_city	:Entity104	SIMPSONS_175:239-351	0.0354
+:Entity201	gpe:residents_of_city	:Entity104	SIMPSONS_191:143-268	0.1279
+:Entity201	gpe:residents_of_city	:Entity104	SIMPSONS_198:207-313	0.7636
+:Entity201	gpe:residents_of_city	:Entity104	SIMPSONS_199:175-286	0.3405
+:Event101	type	CONFLICT.ATTACK	
+:Event101	canonical_mention.actual	"bombing"	SIMPSONS_113:243-251	1.0
+:Event101	canonical_mention.actual	"bombing"	SIMPSONS_127:160-168	1.0
+:Event101	canonical_mention.actual	"bombing"	SIMPSONS_139:240-248	1.0
+:Event101	canonical_mention.actual	"bombing"	SIMPSONS_169:224-232	1.0
+:Event101	canonical_mention.actual	"bombing"	SIMPSONS_173:126-134	1.0
+:Event101	canonical_mention.actual	"bombing"	SIMPSONS_174:228-236	1.0
+:Event101	mention.actual	"bombing"	SIMPSONS_113:243-251	1.0
+:Event101	mention.actual	"bombing"	SIMPSONS_127:160-168	1.0
+:Event101	mention.actual	"bombing"	SIMPSONS_139:240-248	1.0
+:Event101	mention.actual	"bombing"	SIMPSONS_169:224-232	1.0
+:Event101	mention.actual	"bombing"	SIMPSONS_173:126-134	1.0
+:Event101	mention.actual	"bombing"	SIMPSONS_174:228-236	1.0
+:Event101	conflict.attack:attacker.actual	:Entity101	SIMPSONS_113:135-257;SIMPSONS_113:135-257;SIMPSONS_113:135-257	0.4068
+:Event101	conflict.attack:attacker.actual	:Entity101	SIMPSONS_127:160-268;SIMPSONS_127:160-268;SIMPSONS_127:160-268	0.4955
+:Event101	conflict.attack:attacker.actual	:Entity101	SIMPSONS_139:104-246;SIMPSONS_139:104-246;SIMPSONS_139:104-246	0.1731
+:Event101	conflict.attack:attacker.actual	:Entity101	SIMPSONS_173:153-304;SIMPSONS_173:153-304;SIMPSONS_173:153-304	0.2050
+:Event101	conflict.attack:attacker.actual	:Entity101	SIMPSONS_174:164-307;SIMPSONS_174:164-307;SIMPSONS_174:164-307	0.8719
