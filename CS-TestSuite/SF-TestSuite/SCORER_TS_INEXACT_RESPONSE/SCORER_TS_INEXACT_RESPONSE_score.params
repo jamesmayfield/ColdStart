@@ -1,9 +1,9 @@
-#At: Tue Sep 26 15:10:05 2017
+#At: Wed Sep 27 11:21:34 2017
 
 #Invoked as:
-/Users/Shared/Local/code/ColdStart$ perl /Users/Shared/Local/code/ColdStart/CS-Score-MASTER.pl -right CORRECT:INEXACT -wrong INCORRECT:INCORRECT_PARENT -expand CSSF17 -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/SCORER_TS_INEXACT_RESPONSE_score CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/SCORER_TS_INEXACT_RESPONSE.valid.ldc.tab.txt
+/home/skr1/local-cold-start-collaborative$ perl CS-Score-MASTER.pl -expand CSSF17 -error_file CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/SCORER_TS_INEXACT_RESPONSE_score.errlog -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/SCORER_TS_INEXACT_RESPONSE_score CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_INEXACT_RESPONSE/SCORER_TS_INEXACT_RESPONSE.valid.ldc.tab.txt
 
 #Policy Selected:
   IGNORE => UNASSESSED:DUPLICATE
-  RIGHT => CORRECT:INEXACT
-  WRONG => INCORRECT:INCORRECT_PARENT
+  RIGHT => CORRECT
+  WRONG => INCORRECT:INCORRECT_PARENT:INEXACT
