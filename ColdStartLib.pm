@@ -2327,26 +2327,37 @@ sub score_subtree {
   
   
   # Ignore the correct entry if the mention was a nominal but a named mention exists somewhere
-  # This rule came in 2016
+  # This rule came in 2016, modifying further in 2017 as per specifications
   # Begin
   
-  my @right;
+  my @altered;
   my $altered = 0;
-  foreach my $submission( @{$categorized_submissions{'RIGHT'} || []} ) {
-  	next if not exists $submission->{ASSESSMENT}{VALUE_MENTION_TYPE}
-  		or not exists $submission->{ASSESSMENT}{EC_MENTION_TYPE};
-  	$altered = 1;
-  	my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
-  	my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
-  	$ec_mention_type = "NAM" if $ec_mention_type ne "NOM";
-  	if($value_mention_type eq "NOM" && $ec_mention_type eq "NAM") {
-  		push(@{$categorized_submissions{'IGNORE'}}, $submission);
-  	}
-  	else{
-  		push(@right, $submission);
-  	}
+  my @labels_of_interest = qw(RIGHT REDUNDANT);
+  my @ignore;
+
+  foreach my $label(@labels_of_interest) {
+    foreach my $submission(@{$categorized_submissions{$label} || []}) {
+      next if not exists $submission->{ASSESSMENT}{VALUE_MENTION_TYPE}
+        or not exists $submission->{ASSESSMENT}{EC_MENTION_TYPE};
+      $altered = 1;
+      my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
+      my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
+      $self->{LOGGER}->NIST_die("EC_MENTION_TYPE==NOM but VALUE_MENTION_TYPE==NAM in submission: $submission->{LINE}\n")
+        if($ec_mention_type eq "NOM" && $value_mention_type eq "NAM");
+      if($value_mention_type eq "NOM" && $ec_mention_type eq "NAM") {
+        push(@ignore, $submission);
+      }
+      else {
+        push(@altered, $submission);
+      }
+    }
+    @{$categorized_submissions{$label}} = @altered if $altered;
   }
-  @{$categorized_submissions{'RIGHT'}} = @right if $altered;
+
+  foreach my $submission(@ignore) {
+    my @found = grep {$_->{LINENUM} eq $submission->{LINENUM}} @{$categorized_submissions{'IGNORE'}};
+    push(@{$categorized_submissions{'IGNORE'}}, $submission) unless @found;
+  }
   
   # End
 
@@ -2682,7 +2693,11 @@ sub map_all_nodes {
 sub get_candidate_ecs {
   my ($self, $node, $nodeid) = @_;
   my ($k) = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
-  my @submissions = grep {$_->{CATEGORIZED_AS}{'RIGHT'} || $_->{CATEGORIZED_AS}{'REDUNDANT'}} $self->get_flattened_entries($node);
+  # Find the submissions that are CORRECT or INEXACT
+  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT' || $_->{ASSESSMENT}{ASSESSMENT} eq 'INEXACT'} $self->get_flattened_entries($node);
+  # Remove all the WRONG ones; this is needed to remove INEXACT if those were WRONG as per the policy
+  @submissions = grep {!$_->{CATEGORIZED_AS}{'WRONG'}} @submissions;
+  @submissions = grep {!$_->{CATEGORIZED_AS}{'IGNORE'} || $_->{CATEGORIZED_AS}{'REDUNDANT'}} @submissions;
   my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
                          grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
