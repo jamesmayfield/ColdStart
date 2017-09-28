@@ -2631,7 +2631,7 @@ sub prepare_rankings {
   my ($self, $subtree) = @_;
   $subtree = $self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}} unless $subtree;
   foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
-  	$self->insert_node_into_rankings($subtree, $child_nodeid);
+    $self->insert_node_into_rankings($subtree, $child_nodeid);
     $self->prepare_rankings($subtree->{NODES}{$child_nodeid});
   }
 }
@@ -2703,6 +2703,7 @@ sub get_candidate_ecs {
                            @submissions};
   foreach my $candidate_ec(keys %{$candidate_ecs}) {
     my @node_submissions = grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
+    @node_submissions = $self->get_topk_submissions($k, @node_submissions);
     my $numerator = scalar @node_submissions;
     my $denomerator = $self->get_num_justifying_docs($candidate_ec);
     my %queryids = map {$_->{QUERY_ID}=>1} @node_submissions;
@@ -2720,6 +2721,20 @@ sub get_candidate_ecs {
             $candidate_ecs->{$ec}{LINENUM} > $entry->{LINENUM}));
   }
   $candidate_ecs;
+}
+
+sub get_topk_submissions {
+  my ($self, $k, @submissions) = @_;
+
+  my @retVal;
+  my $i=1;
+  foreach my $submission(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} ||
+                        $a->{LINENUM} <=> $b->{LINENUM}} @submissions) {
+    push(@retVal, $submission);
+    last if($i==$k);
+    $i++;
+  }
+  @retVal;
 }
 
 sub get_num_justifying_docs {
