@@ -2267,6 +2267,7 @@ sub get {
 # Calculate all scores for a portion of the ground truth tree
 sub score_subtree {
   my ($self, $query_id, $name, $subtree, $runid, $policy_options, $policy_selected) = @_;
+  my ($k) = $self->{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
   # This is a bit of a cheesy hack to get the level
   my @colons = $name =~ /(:)/g;
   my $level = @colons;
@@ -2330,30 +2331,47 @@ sub score_subtree {
   # This rule came in 2016, modifying further in 2017 as per specifications
   # Begin
   
+  # Determine if you need to ignore responses corresponding to a fqnodeid
+  my %ignore;
+  my %submissions_by_fqnodeid;
+  foreach my $submission(@{$categorized_submissions{'SUBMITTED'} || []}) {
+    push(@{$submissions_by_fqnodeid{$submission->{FQNODEID}}}, $submission);
+  }
+
+  foreach my $fqnodeid(keys %submissions_by_fqnodeid) {
+    $ignore{$fqnodeid} = 1;
+    my $i = 0;
+    foreach my $submission(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} ||
+                          $a->{LINENUM} <=> $b->{LINENUM}}
+                          @{$submissions_by_fqnodeid{$fqnodeid}}) {
+      $i++;
+      unless($submission->{CATEGORIZED_AS}{'WRONG'}){
+        my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
+        my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
+
+        $ignore{$fqnodeid} = 0 if ($value_mention_type eq "NAM" || $ec_mention_type eq "NOM");
+      }
+      last if $i==$k;
+    }
+  }
+
   my @altered;
-  my $altered = 0;
   my @labels_of_interest = qw(RIGHT REDUNDANT);
   my @ignore;
 
   foreach my $label(@labels_of_interest) {
     foreach my $submission(@{$categorized_submissions{$label} || []}) {
-      next if not exists $submission->{ASSESSMENT}{VALUE_MENTION_TYPE}
-        or not exists $submission->{ASSESSMENT}{EC_MENTION_TYPE};
-      $altered = 1;
-      my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
-      my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
-      $self->{LOGGER}->NIST_die("EC_MENTION_TYPE==NOM but VALUE_MENTION_TYPE==NAM in submission: $submission->{LINE}\n")
-        if($ec_mention_type eq "NOM" && $value_mention_type eq "NAM");
-      if($value_mention_type eq "NOM" && $ec_mention_type eq "NAM") {
+      if($ignore{$submission->{FQNODEID}}) {
         push(@ignore, $submission);
       }
       else {
         push(@altered, $submission);
       }
     }
-    @{$categorized_submissions{$label}} = @altered if $altered;
+    @{$categorized_submissions{$label}} = @altered;
   }
 
+  # Retain only one copy
   foreach my $submission(@ignore) {
     my @found = grep {$_->{LINENUM} eq $submission->{LINENUM}} @{$categorized_submissions{'IGNORE'}};
     push(@{$categorized_submissions{'IGNORE'}}, $submission) unless @found;
