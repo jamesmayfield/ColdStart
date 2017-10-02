@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CS17_3456">
+    <mentions>
+      <mention>
+        <name>Homer</name>
+        <docid>SIMPSONS_011</docid>
+        <beg>55</beg>
+        <end>59</end>
+      </mention>
+    </mentions>
+    <enttype>per</enttype>
+    <nodeid>per_001</nodeid>
+    <slot0>per:cities_of_residence</slot0>
+	<slot1>gpe:residents_of_city</slot1>
+  </query>
+  <query id="CS17_4567">
+    <mentions>
+      <mention>
+        <name>Homer</name>
+        <docid>SIMPSONS_011</docid>
+        <beg>55</beg>
+        <end>59</end>
+      </mention>
+    </mentions>
+    <enttype>per</enttype>
+    <nodeid>per_001</nodeid>
+    <slot0>per:children</slot0>
+    <slot1>per:schools_attended</slot1>
+  </query>
+  <query id="CS17_5678">
+    <mentions>
+      <mention>
+        <name>Homer</name>
+        <docid>SIMPSONS_011</docid>
+        <beg>55</beg>
+        <end>59</end>
+      </mention>
+    </mentions>
+    <enttype>per</enttype>
+    <nodeid>per_001</nodeid>
+    <slot0>per:conflict.attack_attacker</slot0>
+  </query>
+  <query id="CS17_6789">
+    <mentions>
+      <mention>
+        <name>Homer</name>
+        <docid>SIMPSONS_011</docid>
+        <beg>55</beg>
+        <end>59</end>
+      </mention>
+    </mentions>
+    <enttype>per</enttype>
+    <nodeid>per_001</nodeid>
+    <slot0>per:dislikes</slot0>
+  </query>
+</query_set>

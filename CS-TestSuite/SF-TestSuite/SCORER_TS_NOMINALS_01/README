@@ -1,0 +1,2 @@
+make score-sf SF=SCORER_TS_NOMINALS DOCS=
+

@@ -1,0 +1,9 @@
+QID/EC                  RunID                 Hop Prec   Recall F1    
+CS17_4567               SCORER_TS_NOMINALS_01 0   1.0000 0.5000 0.6667
+CS17_4567:1             SCORER_TS_NOMINALS_01 1   1.0000 1.0000 1.0000
+CS17_4567:2             SCORER_TS_NOMINALS_01 1   1.0000 1.0000 1.0000
+ALL-Macro               SCORER_TS_NOMINALS_01 0   1.0000 0.5000 0.6667
+ALL-Macro               SCORER_TS_NOMINALS_01 1   1.0000 1.0000 1.0000
+ALL-Macro               SCORER_TS_NOMINALS_01 ALL 1.0000 0.8333 0.8889
+
+*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.
