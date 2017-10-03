@@ -1333,6 +1333,9 @@ sub get {
 ### DO NOT INCLUDE
 # FIXME: Shahzad just uses undef here
 ### DO INCLUDE
+  unless($queryid){
+  	print "4j";
+  }
   $self->{LOGGER}->NIST_die("queryid undefined in QuerySet->get()") unless defined $queryid;
   $self->{QUERIES}{$queryid};
 }

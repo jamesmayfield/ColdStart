@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CSSF17_ENG_afddc4ed21_0d2feb6ef2ff">
+    <name>Bart</name>
+    <docid>SIMPSONS_158</docid>
+    <beg>246</beg>
+    <end>251</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_48f327d3b6eb">
+    <name>Bart Simpson</name>
+    <docid>SIMPSONS_190</docid>
+    <beg>211</beg>
+    <end>224</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_729d7f6f2d47">
+    <name>Bart</name>
+    <docid>SIMPSONS_101</docid>
+    <beg>232</beg>
+    <end>237</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+</query_set>
