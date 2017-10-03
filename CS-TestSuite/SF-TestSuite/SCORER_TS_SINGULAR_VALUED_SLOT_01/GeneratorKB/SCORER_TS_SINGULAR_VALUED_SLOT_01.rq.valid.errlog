@@ -1,0 +1,34 @@
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_105:156-303	01/01/1901	STRING	SIMPSONS_105:112-123	0.4188	:String102 (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 6)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_138:146-266	01/01/1901	STRING	SIMPSONS_138:135-146	0.1180	:String102 (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 7)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_138:146-266	01/01/1901	STRING	SIMPSONS_138:135-146	0.1180	:String102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 7)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_159:150-301	01/01/1901	STRING	SIMPSONS_159:159-170	0.3372	:String102 (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 8)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_170:128-282	01/01/1901	STRING	SIMPSONS_170:121-132	0.2151	:String102 (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 9)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_170:128-282	01/01/1901	STRING	SIMPSONS_170:121-132	0.2151	:String102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 9)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_174:151-288	01/01/1900	STRING	SIMPSONS_174:195-206	0.2174	:String101
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 4)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_178:192-342	01/01/1900	STRING	SIMPSONS_178:111-122	0.5285	:String101
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 5)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_d8f8f60598	per:date_of_birth	SCORER_TS_SINGULAR_VALUED_SLOT_01	SIMPSONS_185:246-380	01/01/1901	STRING	SIMPSONS_185:248-259	0.6822	:String102 (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq line 10)
+WARNING: Unable to infer language from DOCID SIMPSONS_011. Using default language ENGLISH. (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/sf-query.xml line In query CSSF17_ENG_d8f8f60598)
+WARNING: Unable to infer language from DOCID SIMPSONS_105. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_138. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_159. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_161. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_168. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_170. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_172. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_174. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_178. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_185. Using default language ENGLISH.
+20 warnings encountered

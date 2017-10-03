@@ -1,0 +1,6 @@
+QID/EC                RunID                             Hop Prec   Recall F1    
+CS17_4567             SCORER_TS_SINGULAR_VALUED_SLOT_02 0   0.0000 0.0000 0.0000
+ALL-Macro             SCORER_TS_SINGULAR_VALUED_SLOT_02 0   0.0000 0.0000 0.0000
+ALL-Macro             SCORER_TS_SINGULAR_VALUED_SLOT_02 ALL 0.0000 0.0000 0.0000
+
+*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.
