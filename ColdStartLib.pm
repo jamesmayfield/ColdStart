@@ -53,7 +53,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 # ----------                   ----     -------------
 
 ########## Provenance Errors
-  FAILED_LANG_INFERENCE         WARNING  Unable to infer language from DOCID %s. Using default language %s.
+  FAILED_LANG_INFERENCE         WARNING  Unable to infer language from DOCID %s. Using %s by default.
   ILLEGAL_DOCID                 FATAL_ERROR    DOCID %s is not a valid DOCID for this task
   ILLEGAL_OFFSET                ERROR    %s is not a valid offset
   ILLEGAL_OFFSET_IN_DOC         ERROR    %s is not a valid offset for DOCID %s
