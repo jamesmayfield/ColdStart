@@ -2329,6 +2329,13 @@ sub score_subtree {
   push(@{$categorized_submissions{$selected_duplicate_category}}, @new_redundants);
   }
   
+  # Identify WRONGS; these are not going to change; more might be added
+  my @labels = qw(WRONG);
+  foreach my $post_policy_label( @labels ) {
+    foreach my $categorized_submission(@{$categorized_submissions{$post_policy_label} || []}) {
+      $categorized_submission->{CATEGORIZED_AS}{$post_policy_label} = 1;
+    }
+  }
   
   # Ignore the correct entry if the mention was a nominal but a named mention exists somewhere
   # This rule came in 2016, modifying further in 2017 as per specifications
@@ -2393,7 +2400,7 @@ sub score_subtree {
   $num_unassessed = @{$categorized_submissions{'UNASSESSED'} || []};
   $num_wrong = @{$categorized_submissions{'WRONG'} || []};
 
-  my @labels = qw(CORRECT IGNORE INCORRECT INCORRECT_PARENT INEXACT REDUNDANT RIGHT SUBMITTED UNASSESSED WRONG);
+  @labels = qw(CORRECT IGNORE INCORRECT INCORRECT_PARENT INEXACT REDUNDANT RIGHT SUBMITTED UNASSESSED WRONG);
   foreach my $post_policy_label( @labels ) {
     foreach my $categorized_submission(@{$categorized_submissions{$post_policy_label} || []}) {
       $categorized_submission->{CATEGORIZED_AS}{$post_policy_label} = 1;
@@ -2640,7 +2647,7 @@ sub associate_ground_truth {
     push(@{$self->{RANKINGS}{ALL}{ECS}}, $ec);
   }
   foreach my $hop(sort keys %{$self->{RANKINGS}}) {
-    $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS}};
+    $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS} || []};
   }
   $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT0_QUANTITY} eq 'single');
   $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT1_QUANTITY} && $self->{SLOT1_QUANTITY} eq 'single');
@@ -2715,7 +2722,9 @@ sub get_candidate_ecs {
   my ($self, $node, $nodeid) = @_;
   my ($k) = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
   # Find the submissions that are CORRECT or INEXACT
-  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT' || $_->{ASSESSMENT}{ASSESSMENT} eq 'INEXACT'} $self->get_flattened_entries($node);
+  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT' || $_->{ASSESSMENT}{ASSESSMENT} eq 'INEXACT'}
+                      grep {$_->{ASSESSMENT}{ASSESSMENT}}
+                        $self->get_flattened_entries($node);
   # Remove all the WRONG ones; this is needed to remove INEXACT if those were WRONG as per the policy
   @submissions = grep {!$_->{CATEGORIZED_AS}{'WRONG'}} @submissions;
   @submissions = grep {!$_->{CATEGORIZED_AS}{'IGNORE'} || $_->{CATEGORIZED_AS}{'REDUNDANT'}} @submissions;
