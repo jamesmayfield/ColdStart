@@ -2646,6 +2646,8 @@ sub associate_ground_truth {
     push(@{$self->{RANKINGS}{$level}{ECS}}, $ec);
     push(@{$self->{RANKINGS}{ALL}{ECS}}, $ec);
   }
+  $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 0 if($self->{SLOT0_QUANTITY});
+  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 0 if($self->{SLOT1_QUANTITY});
   foreach my $hop(sort keys %{$self->{RANKINGS}}) {
     $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS} || []};
   }
