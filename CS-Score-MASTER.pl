@@ -530,7 +530,7 @@ sub print_details {
     print {$program_output{DEBUG}} "AP:               $ap\n";
     print {$program_output{DEBUG}} "NUM_GROUND_TRUTH: $num_ground_truth\n";
     print {$program_output{DEBUG}} "GROUND TRUTH:\n";
-    print {$program_output{DEBUG}} join("\n", map {"  $_"} sort @{$score->{DEBUG}{ECS}}), "\n";
+    print {$program_output{DEBUG}} join("\n", map {"  $_"} sort @{$score->{DEBUG}{ECS} || []}), "\n";
     print {$program_output{DEBUG}} "RANKING:\n........\nRANK NODEID CONFIDENCE MAPPED_EC V\n";
     my $rank = 1;
     foreach my $nodeid(sort {$score->{DEBUG}{NODES}{$b}{CONFIDENCE} <=> $score->{DEBUG}{NODES}{$a}{CONFIDENCE} ||
