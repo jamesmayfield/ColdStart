@@ -1,0 +1,31 @@
+SF: Slot-filling score variant considering all entrypoints as a separate query
+
+QID/EC                RunID                     Hop AP    
+CSSF17_ENG_afddc4ed21 SCORER_TS_NO_GROUND_TRUTH 0   0.0000
+CSSF17_ENG_afddc4ed21 SCORER_TS_NO_GROUND_TRUTH 1   0.0000
+CSSF17_ENG_afddc4ed21 SCORER_TS_NO_GROUND_TRUTH ALL 0.0000
+ALL-Macro             SCORER_TS_NO_GROUND_TRUTH 0   0.0000
+ALL-Macro             SCORER_TS_NO_GROUND_TRUTH 1   0.0000
+ALL-Macro             SCORER_TS_NO_GROUND_TRUTH ALL 0.0000
+
+LDC-MEAN: LDC level score variant considering averaging scores for all coressponding entrypoints
+
+QID/EC                RunID                     Hop AP    
+CS17_4567             SCORER_TS_NO_GROUND_TRUTH 0   0.0000
+CS17_4567             SCORER_TS_NO_GROUND_TRUTH 1   0.0000
+CS17_4567             SCORER_TS_NO_GROUND_TRUTH ALL 0.0000
+ALL-Macro             SCORER_TS_NO_GROUND_TRUTH 0   0.0000
+ALL-Macro             SCORER_TS_NO_GROUND_TRUTH 1   0.0000
+ALL-Macro             SCORER_TS_NO_GROUND_TRUTH ALL 0.0000
+
+SUMMARY: This section provides summary of AP scores
+
+QID/EC                RunID                     Hop AP    
+SF-ALL-Macro          SCORER_TS_NO_GROUND_TRUTH 0   0.0000
+SF-ALL-Macro          SCORER_TS_NO_GROUND_TRUTH 1   0.0000
+SF-ALL-Macro          SCORER_TS_NO_GROUND_TRUTH ALL 0.0000
+LDC-MEAN-ALL-Macro    SCORER_TS_NO_GROUND_TRUTH 0   0.0000
+LDC-MEAN-ALL-Macro    SCORER_TS_NO_GROUND_TRUTH 1   0.0000
+LDC-MEAN-ALL-Macro    SCORER_TS_NO_GROUND_TRUTH ALL 0.0000
+
+*ALL-Macro AP refer to mean of corresponding AP values.
