@@ -390,7 +390,6 @@ sub add_macro_average {
   my $aggregates = {};
   foreach my $score(sort compare_ec_names @scores ) {
   	&aggregate_score($aggregates, $score->{RUNID}, $score->{LEVEL}, $score);
-  	&aggregate_score($aggregates, $score->{RUNID}, 'ALL', $score);
   }
   foreach my $level (sort keys %{$aggregates->{$self->{RUNID}}}) {
   	# Print the macro-averaged scores
