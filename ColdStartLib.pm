@@ -2365,11 +2365,11 @@ sub score_subtree {
     }
   }
 
-  my @altered;
   my @labels_of_interest = qw(RIGHT REDUNDANT);
   my @ignore;
 
   foreach my $label(@labels_of_interest) {
+    my @altered;
     foreach my $submission(@{$categorized_submissions{$label} || []}) {
       if($ignore{$submission->{FQNODEID}}) {
         push(@ignore, $submission);
