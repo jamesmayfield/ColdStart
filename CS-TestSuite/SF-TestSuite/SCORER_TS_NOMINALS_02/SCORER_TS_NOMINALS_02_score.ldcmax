@@ -1,10 +1,10 @@
 QID/EC                  RunID                 Hop   GT Submitted Correct Incorrect Inexact PIncorrect Unassessed  Dup Right Wrong Ignored Prec   Recall F1    
-CS17_4567               SCORER_TS_NOMINALS_02 0      2         6       6         0       0          0          0    6     2     0       4 1.0000 1.0000 1.0000
-CS17_4567:1             SCORER_TS_NOMINALS_02 1      2         6       6         0       0          0          0    6     2     0       4 1.0000 1.0000 1.0000
-CS17_4567:2             SCORER_TS_NOMINALS_02 1      2         6       6         0       0          0          0    6     2     0       4 1.0000 1.0000 1.0000
-ALL-Micro               SCORER_TS_NOMINALS_02 0      2         6       6         0       0          0          0    6     2     0       4 1.0000 1.0000 1.0000
-ALL-Micro               SCORER_TS_NOMINALS_02 1      4        12      12         0       0          0          0   12     4     0       8 1.0000 1.0000 1.0000
-ALL-Micro               SCORER_TS_NOMINALS_02 ALL    6        18      18         0       0          0          0   18     6     0      12 1.0000 1.0000 1.0000
+CS17_4567               SCORER_TS_NOMINALS_02 0      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+CS17_4567:1             SCORER_TS_NOMINALS_02 1      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+CS17_4567:2             SCORER_TS_NOMINALS_02 1      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_NOMINALS_02 0      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_NOMINALS_02 1      4        12      12         0       0          0          0    8     4     0       8 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_NOMINALS_02 ALL    6        18      18         0       0          0          0   12     6     0      12 1.0000 1.0000 1.0000
 ALL-Macro               SCORER_TS_NOMINALS_02 0                                                                                           1.0000 1.0000 1.0000
 ALL-Macro               SCORER_TS_NOMINALS_02 1                                                                                           1.0000 1.0000 1.0000
 ALL-Macro               SCORER_TS_NOMINALS_02 ALL                                                                                         1.0000 1.0000 1.0000

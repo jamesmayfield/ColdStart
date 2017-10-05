@@ -6,7 +6,7 @@ CSSF17_ENG_afddc4ed21 SCORER_TS_NOMINALS_01 1   0.2500
 CSSF17_ENG_afddc4ed21 SCORER_TS_NOMINALS_01 ALL 0.3333
 ALL-Macro             SCORER_TS_NOMINALS_01 0   0.5000
 ALL-Macro             SCORER_TS_NOMINALS_01 1   0.2500
-ALL-Macro             SCORER_TS_NOMINALS_01 ALL 0.3542
+ALL-Macro             SCORER_TS_NOMINALS_01 ALL 0.3333
 
 LDC-MEAN: LDC level score variant considering averaging scores for all coressponding entrypoints
 
@@ -16,16 +16,16 @@ CS17_4567             SCORER_TS_NOMINALS_01 1   0.2500
 CS17_4567             SCORER_TS_NOMINALS_01 ALL 0.3333
 ALL-Macro             SCORER_TS_NOMINALS_01 0   0.5000
 ALL-Macro             SCORER_TS_NOMINALS_01 1   0.2500
-ALL-Macro             SCORER_TS_NOMINALS_01 ALL 0.3542
+ALL-Macro             SCORER_TS_NOMINALS_01 ALL 0.3333
 
 SUMMARY: This section provides summary of AP scores
 
 QID/EC                RunID                 Hop AP    
 SF-ALL-Macro          SCORER_TS_NOMINALS_01 0   0.5000
 SF-ALL-Macro          SCORER_TS_NOMINALS_01 1   0.2500
-SF-ALL-Macro          SCORER_TS_NOMINALS_01 ALL 0.3542
+SF-ALL-Macro          SCORER_TS_NOMINALS_01 ALL 0.3333
 LDC-MEAN-ALL-Macro    SCORER_TS_NOMINALS_01 0   0.5000
 LDC-MEAN-ALL-Macro    SCORER_TS_NOMINALS_01 1   0.2500
-LDC-MEAN-ALL-Macro    SCORER_TS_NOMINALS_01 ALL 0.3542
+LDC-MEAN-ALL-Macro    SCORER_TS_NOMINALS_01 ALL 0.3333
 
 *ALL-Macro AP refer to mean of corresponding AP values.

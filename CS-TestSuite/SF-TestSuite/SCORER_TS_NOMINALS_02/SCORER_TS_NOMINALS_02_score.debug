@@ -6,7 +6,7 @@ CSSF17_ENG_afddc4ed21
 	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_004	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_011:96-106	Lisa	SIMPSONS_011:109-114	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
 
 	PREPOLICY ASSESSMENT:	CORRECT
-	POSTPOLICY ASSESSMENT:	REDUNDANT,RIGHT
+	POSTPOLICY ASSESSMENT:	RIGHT
 ................................................................................
 	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102
 	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_NOMINALS_02	SIMPSONS_019:33-71	Bart	PER	SIMPSONS_019:131-136	0.9408	:Entity102
@@ -46,7 +46,7 @@ CSSF17_ENG_afddc4ed21
 	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_007	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_018:109-167	Bart	SIMPSONS_018:24-29	C	NAM	C	CSSF17_ENG_afddc4ed21:2	NAM
 
 	PREPOLICY ASSESSMENT:	CORRECT
-	POSTPOLICY ASSESSMENT:	REDUNDANT,RIGHT
+	POSTPOLICY ASSESSMENT:	RIGHT
 ................................................................................
 ================================================================================
 CSSF17_ENG_afddc4ed21:1
@@ -56,7 +56,7 @@ CSSF17_ENG_afddc4ed21:1
 	ASSESSMENT:	CSSF17_ENG_afddc4ed21_3f17b45ffc61_1_016	CSSF17_ENG_afddc4ed21_3f17b45ffc61:per:schools_attended	SIMPSONS_016:119-148	Springfield High School	SIMPSONS_016:29-53	C	NAM	C	CSSF17_ENG_afddc4ed21:1:2	NAM
 
 	PREPOLICY ASSESSMENT:	CORRECT
-	POSTPOLICY ASSESSMENT:	REDUNDANT,RIGHT
+	POSTPOLICY ASSESSMENT:	RIGHT
 ................................................................................
 	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity110
 	SUBMISSION:	CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_NOMINALS_02	SIMPSONS_015:90-115	Springfield Elementary School	ORG	SIMPSONS_015:45-75	0.8490	:Entity110
@@ -64,7 +64,7 @@ CSSF17_ENG_afddc4ed21:1
 	ASSESSMENT:	CSSF17_ENG_afddc4ed21_3f17b45ffc61_1_015	CSSF17_ENG_afddc4ed21_3f17b45ffc61:per:schools_attended	SIMPSONS_015:90-115	Springfield Elementary School	SIMPSONS_015:45-75	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
 
 	PREPOLICY ASSESSMENT:	CORRECT
-	POSTPOLICY ASSESSMENT:	REDUNDANT,RIGHT
+	POSTPOLICY ASSESSMENT:	RIGHT
 ................................................................................
 	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity103:Entity111
 	SUBMISSION:	CSSF17_ENG_afddc4ed21_3f17b45ffc61	per:schools_attended	SCORER_TS_NOMINALS_02	SIMPSONS_011:63-70	Springfield High School	ORG	SIMPSONS_011:62-86	0.8183	:Entity111
@@ -106,7 +106,7 @@ CSSF17_ENG_afddc4ed21:2
 	ASSESSMENT:	CSSF17_ENG_afddc4ed21_8c63760f6ed4_1_024	CSSF17_ENG_afddc4ed21_8c63760f6ed4:per:schools_attended	SIMPSONS_020:68-103	Springfield Elementary School	SIMPSONS_020:14-44	C	NAM	C	CSSF17_ENG_afddc4ed21:2:1	NAM
 
 	PREPOLICY ASSESSMENT:	CORRECT
-	POSTPOLICY ASSESSMENT:	REDUNDANT,RIGHT
+	POSTPOLICY ASSESSMENT:	RIGHT
 ................................................................................
 	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity111
 	SUBMISSION:	CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_NOMINALS_02	SIMPSONS_011:63-82	Springfield High School	ORG	SIMPSONS_011:62-86	0.8502	:Entity111
@@ -114,7 +114,7 @@ CSSF17_ENG_afddc4ed21:2
 	ASSESSMENT:	CSSF17_ENG_afddc4ed21_8c63760f6ed4_1_019	CSSF17_ENG_afddc4ed21_8c63760f6ed4:per:schools_attended	SIMPSONS_011:63-82	Springfield High School	SIMPSONS_011:62-86	C	NAM	C	CSSF17_ENG_afddc4ed21:2:2	NAM
 
 	PREPOLICY ASSESSMENT:	CORRECT
-	POSTPOLICY ASSESSMENT:	REDUNDANT,RIGHT
+	POSTPOLICY ASSESSMENT:	RIGHT
 ................................................................................
 	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity110
 	SUBMISSION:	CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_NOMINALS_02	SIMPSONS_019:67-103	Springfield Elementary School	ORG	SIMPSONS_019:47-77	0.7203	:Entity110

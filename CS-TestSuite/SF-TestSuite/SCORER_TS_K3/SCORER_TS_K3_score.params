@@ -1,4 +1,4 @@
-#At: Thu Sep 28 10:42:57 2017
+#At: Thu Oct  5 09:39:53 2017
 
 #Invoked as:
 /home/skr1/local-cold-start-collaborative$ perl CS-Score-MASTER.pl -expand CSSF17 -justifications 1:3 -error_file CS-TestSuite/SF-TestSuite/SCORER_TS_K3/SCORER_TS_K3_score.errlog -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_K3/SCORER_TS_K3_score CS-TestSuite/SF-TestSuite/SCORER_TS_K3/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_K3/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_K3/SCORER_TS_K3.valid.ldc.tab.txt
