@@ -1544,7 +1544,7 @@ sub export_edl {
     my $mention_string = &main::remove_quotes($assertion->{OBJECT});
     my $provenance_string = $provenance->tooriginalstring();
     my $kbid = $entity2link{$assertion->{SUBJECT}};
-    my $entity_type = $entity2type{$assertion->{SUBJECT}};
+    my $entity_type = uc $entity2type{$assertion->{SUBJECT}};
     my $mention_type = $predicate_string eq 'mention' ? "NAM": "NOM";
     my $confidence = $assertion->{CONFIDENCE};
     print $program_output join("\t", $runid, $mention_id, $mention_string,
