@@ -1318,7 +1318,9 @@ sub export_nug {
     my $subject = $assertion->{SUBJECT};
     my $start = $provenance->{PREDICATE_JUSTIFICATION}->get_start();
     my $end = $provenance->{PREDICATE_JUSTIFICATION}->get_end();
-    my $span = "$start,$end";
+    my $length = $start-$end+1;
+    my ($start_span, $end_span) = ($start, $start+$length);
+    my $span = "$start_span,$end_span";
     my $mention_string = &main::remove_quotes($assertion->{OBJECT});
     $mentionids{$docid} = 1 unless exists $mentionids{$docid};
     my $mentionid = "E$mentionids{$docid}";
