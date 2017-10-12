@@ -1489,13 +1489,6 @@ my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $disciplin
                     {JUSTIFICATIONS_ALLOWED=>$justifications_allowed},
                     @runfilenames);
 
-$logger->report_all_problems();
-
-# The NIST submission system wants an exit code of 255 if errors are encountered
-my $num_errors = $logger->get_num_errors();
-$logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encountered")
-  if $num_errors;
-
 package main;
 
 use Cwd;
@@ -1576,6 +1569,13 @@ foreach my $output_postfix(@output_postfix) {
   next if ($output_postfix =~ "CONFIDENCE" && not defined $switches->get('samples'));
   close $program_output{$output_postfix};
 }
+
+$logger->report_all_problems();
+
+# The NIST submission system wants an exit code of 255 if errors are encountered
+my $num_errors = $logger->get_num_errors();
+$logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encountered")
+  if $num_errors;
 
 # Close error output
 $logger->close_error_output();

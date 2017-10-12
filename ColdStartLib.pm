@@ -135,6 +135,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
   MISMATCHED_RUNID              FATAL_ERROR Multiple runids were used: %s
+  MISSING_ASSESSMENT_NODE       WARNING  Missing assessment node for entry: %s
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_DOCIDS_IN_RESPONSE   ERROR    Multiple DOCIDs used in response: %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
@@ -2099,6 +2100,7 @@ sub get_node_for_assessment {
   # down to this zero. First, find the parent assessment
   
   my $parent_assessment = $assessments->get_parent_assessment($assessment->{QUERY_ID});
+  return unless $parent_assessment;
   # Recursively identify the node corresponding to the parent assessment
   my $parent_node = $self->get_node_for_assessment($parent_assessment, $assessments);
   # and glom a :0 onto the end
@@ -2139,7 +2141,10 @@ sub add_assessments {
 ### DO INCLUDE
     # Lookup (or create) the correct node
     my $node = $self->get_node_for_assessment($assessment, $assessments);
-    
+    unless($node) {
+      $self->{LOGGER}->record_problem('MISSING_ASSESSMENT_NODE', "\n$assessment->{LINE}\n", {FILENAME => $assessment->{FILENAME}, LINENUM => $assessment->{LINENUM}});
+      next;
+    }
 ## DO NOT INCLUDE
 # Removing COMBO
 #
