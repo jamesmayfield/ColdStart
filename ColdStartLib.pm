@@ -135,7 +135,6 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
   ILLEGAL_VALUE_TYPE            ERROR    Illegal value type: %s
   MISMATCHED_RUNID              FATAL_ERROR Multiple runids were used: %s
-  MISSING_ASSESSMENT_NODE       WARNING  Missing assessment node for entry: %s
   MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_DOCIDS_IN_RESPONSE   ERROR    Multiple DOCIDs used in response: %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
@@ -143,6 +142,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
   SEMICOLON_IN_PROVENANCE_E     ERROR    A semicolon is used in the provenance %s
   SEMICOLON_AS_SEPARATOR        WARNING  A semicolon is used as a triple separator in the provenance %s. The semicolon will be replaced with a comma. 
+  UNEXPECTED_ASSESSMENT_ENTRY   ERROR    Child with no correct parent found in assessment file. %s %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -283,7 +283,7 @@ sub report_all_problems {
 	print $error_output "s" if $num_instances > 2;
 	print $error_output ")";
       }
-      print $error_output "\n";
+      print $error_output "\n\n";
     }
   }
   # Return the number of errors and the number of warnings encountered
@@ -2142,7 +2142,9 @@ sub add_assessments {
     # Lookup (or create) the correct node
     my $node = $self->get_node_for_assessment($assessment, $assessments);
     unless($node) {
-      $self->{LOGGER}->record_problem('MISSING_ASSESSMENT_NODE', "\n$assessment->{LINE}\n", {FILENAME => $assessment->{FILENAME}, LINENUM => $assessment->{LINENUM}});
+      my @parents = map {$_->{LINE}} grep {$_->{TARGET_QUERY_ID} eq $assessment->{QUERY_ID}} @{$assessments->{ENTRIES_BY_TYPE}{ASSESSMENT}};
+      my $parents = join("\n", @parents);
+      $self->{LOGGER}->record_problem('UNEXPECTED_ASSESSMENT_ENTRY', "\nUnexpected child: \n$assessment->{LINE}\n", "\nAll parents:\n$parents\n", {FILENAME => $assessment->{FILENAME}, LINENUM => $assessment->{LINENUM}});
       next;
     }
 ## DO NOT INCLUDE
