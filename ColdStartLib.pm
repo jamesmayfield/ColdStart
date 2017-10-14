@@ -2659,7 +2659,9 @@ sub associate_ground_truth {
     $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS} || []};
   }
   $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT0_QUANTITY} eq 'single');
-  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT1_QUANTITY} && $self->{SLOT1_QUANTITY} eq 'single');
+  # If hop-1 is a single-valued slot, the number of ground truth is one-per-parent
+  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 1 * $self->{RANKINGS}{0}{NUM_GROUND_TRUTH}
+                                             if($self->{SLOT1_QUANTITY} && $self->{SLOT1_QUANTITY} eq 'single');
   $self->{RANKINGS}{ALL}{NUM_GROUND_TRUTH} = $self->{RANKINGS}{0}{NUM_GROUND_TRUTH};
   $self->{RANKINGS}{ALL}{NUM_GROUND_TRUTH} += $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} if($self->{SLOT1_QUANTITY});
 }
