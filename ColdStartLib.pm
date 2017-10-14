@@ -2366,6 +2366,9 @@ sub score_subtree {
         my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
         my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
 
+        $self->{LOGGER}->NIST_die("Missing VALUE_MENTION_TYPE for submission entry: $submission->{LINE}\n") unless $value_mention_type;
+        $self->{LOGGER}->NIST_die("Missing EC_MENTION_TYPE for submission entry: $submission->{LINE}\n") unless $ec_mention_type;
+
         $ignore{$fqnodeid} = 0 if ($value_mention_type eq "NAM" || $ec_mention_type eq "NOM");
       }
       last if $i==$k;
