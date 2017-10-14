@@ -455,6 +455,8 @@ sub projectLDCMEAN {
 	      else{
 	      	$combined_scores->put('AP', $combined_scores->get('AP') + $scores->get('AP'));
 	      }
+	      $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'))
+	        if($scores->get('NUM_GROUND_TRUTH') > $combined_scores->get('NUM_GROUND_TRUTH'));
 	      $i++;
 	    }
 	    $combined_scores->put('AP', $combined_scores->get('AP')/$i);
