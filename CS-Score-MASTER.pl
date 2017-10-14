@@ -341,9 +341,11 @@ sub aggregate_score {
 }
 
 sub add_scores {
-	my ($self, @scores) = @_;
-	
-	push(@{$self->{SCORES}}, @scores);
+  my ($self, @scores) = @_;
+  foreach my $score(@scores) {
+    next if ($score->{LEVEL} ne "ALL" && $self->{QUERIES_TO_SCORE}{$score->{QUERY_ID_BASE}} < $score->{LEVEL});
+    push(@{$self->{SCORES}}, $score);
+  }
 }
 
 sub compare_ec_names {
@@ -1229,8 +1231,8 @@ sub print_details {
     my %summary;
     foreach my $label(grep {$_ ne "SUBMITTED" && $_ ne "ASSESSMENTS"} keys %{$self->{CATEGORIZED_SUBMISSIONS}{$ec}}) {
       foreach my $submission(@{$self->{CATEGORIZED_SUBMISSIONS}{$ec}{$label}}) {
-        my $assessment = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{ASSESSMENT} : "UNASSESSED";
-        my $assessment_line = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{LINE} : "-";
+        my $assessment = ($submission->{ASSESSMENT} && keys %{$submission->{ASSESSMENT}}) ? $submission->{ASSESSMENT}{ASSESSMENT} : "UNASSESSED";
+        my $assessment_line = ($submission->{ASSESSMENT} && keys %{$submission->{ASSESSMENT}}) ? $submission->{ASSESSMENT}{LINE} : "-";
         if($assessment ne $label) {
           my $postpolicy_assessment = $label;
           unless ($summary{$submission->{LINENUM}}) {
