@@ -1170,7 +1170,7 @@ sub get_projected_scores {
 sub prepare_lines {
   my ($self, $metric) = @_;
   @{$self->{SUMMARY}{$metric}} = ();
-  my @scores = @{$self->{SCORES}};
+  my @scores = @{$self->{SCORES} || []};
   if($metric eq "LDCMAX" || $metric eq "LDCMEAN") {
   	@scores = $self->get_projected_scores($metric);
   }

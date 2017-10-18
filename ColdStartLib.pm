@@ -1334,9 +1334,6 @@ sub get {
 ### DO NOT INCLUDE
 # FIXME: Shahzad just uses undef here
 ### DO INCLUDE
-  unless($queryid){
-  	print "4j";
-  }
   $self->{LOGGER}->NIST_die("queryid undefined in QuerySet->get()") unless defined $queryid;
   $self->{QUERIES}{$queryid};
 }
@@ -4592,8 +4589,9 @@ sub manage_single_valued_slots {
     foreach my $child_fqnodeid(keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
       my ($confidence, $first_occurence, @confidences);
       foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
-        foreach my $entry(grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
-          $level = $entry->{QUERY}->{LEVEL} unless $level;
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
+          $level = $entry->{QUERY}->{LEVEL} if not defined $level;
+          next if $entry->{DISCARD};
           push(@confidences, $entry->{CONFIDENCE});
           $first_occurence = $entry->{LINENUM} unless $first_occurence;
           $first_occurence = $entry->{LINENUM} if $first_occurence > $entry->{LINENUM};
@@ -4631,6 +4629,7 @@ sub manage_single_valued_slots {
         }
       }
     }
+    $self->{LOGGER}->NIST_die("value of \$level not defined while processing $parent_fqnodeid") if not defined $level;
     # Discard dependents
     my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
                             grep {not exists $_->{DISCARD}}
