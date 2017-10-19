@@ -1,6 +1,6 @@
 # 1 Introduction
 
-June 29, 2017
+October 19, 2017
 
 This document describes:
 
@@ -115,6 +115,9 @@ Micro-averages are computed as:
 	Total_Recall = Total_Right / Total_GT
 	Total_F1 = 2 * Total_Precision * Total_Recall / (Total_Precision + Total_Recall)
 	
+Note that `Total_GT` is the total number of true answers. This is the total number of equivalence classes found for the query. For single valued slots Total_GT value of 1 is used even if there are more than one equivalence classes in the assessment file.
+
+
 ### 4.1.2 Computation of Macro-Average 
 	
 Macro-averages are computed as the mean Precision, mean Recall, mean F1 and mean AP.
@@ -134,8 +137,8 @@ The scorer may produce the following score variants for P/R/F1 depending on the 
 
 In order to have the scorer produce LDC-MAX and LDC-MEAN score variants, the scorer must use: 
 
-	a. LDC queries file (for example, `tac_kbp_2016_cold_start_evaluation_queries.xml`), and 
-	b. -expand switch with correct expansion string (for example, `-expand CSSF16`).
+	a. LDC queries file (for example, `tac_kbp_2017_cold_start_evaluation_queries.xml`), and
+	b. -expand switch with correct expansion string (for example, `-expand CSSF17`).
 
 Summary of scores is presented towards the end of the scorer output.
 
@@ -317,3 +320,18 @@ For each query-and-hop, we provide the following:
 
 *1: The number of equivalence classes as assigned by LDC might differ from NUM_GROUND_TRUTH (for e.g. in case of singluar valued slots when LDC found two ages of a person, in which case, NUM_GROUND_TRUTH would be set to 1)
 *2: The ranked list provides a list of NODES with (1) its confidence, (2) the equivalence class which the node is aligned to (MAPPED_EC), and (3) the value V
+
+## 4.7 A note of evaluation in the presence of multiple justifications
+
+In 2017, KB teams were asked to include multiple justifications for a relation whereas the format for SF teams remained the same as that of last year. Therefore, in order to support an apple-to-apple comparison, between a KB submission and an SF submission, a switch `-justifications` was added to the scorer. The default value of this switch is `1:3` which means that one justification is allowed per document, and that there could be a total of three justifications. The scorer can be made to use `-justifications 1:1` over KB runs to make the scores comparable to SF runs. For the purpose of this README, we will refer to `-justifications 1:3` as `K=3` and `-justifications 1:1` as `K=1`.
+
+Briefly,
+
+1. F1 score does not give credit for retrieving extra correct justifications, and
+2. AP score pernalizes if a system fails to retrieve min(K,N) justifications where K is as defined above and N is the number of known correct justifications.
+
+### 4.7.1 Value of K and computation of F1 score
+
+Computation of F1 generally does not depend on the value of K however in some cases the scores may differ. This section explains the case when we get different F1 scores, for differnet K values, using an example.
+
+Lets assume that a KB system retrieves two justification (for a KB node) in response to a non-single-valued-slot query such that the most confident justification is WRONG while the other one is RIGHT. When scoring this submission using K=3, one WRONG and one RIGHT response would be used for computing F1 whereas when using K=1 the only response considered would be the most confident one which is WRONG causing the difference.
