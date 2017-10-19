@@ -23,7 +23,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.1";
+my $version = "2017.2.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -147,5 +147,6 @@ exit 0;
 # 2.0 - Version upped to reflect changes in the library
 # 2017.1.0 - First release of 2017
 # 2017.1.1 - EvaluationQueryOutput->new() takes a hash named options as one of the args
+# 2017.2.0 - Code state at the release of scores
 
 1;

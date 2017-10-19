@@ -1,0 +1,37 @@
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_K1	SIMPSONS_011:63-82	Springfield High School	ORG	SIMPSONS_011:62-86	0.8502	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_K1/SCORER_TS_K1.valid.ldc.tab.txt line 10)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_8c63760f6ed4	per:schools_attended	SCORER_TS_K1	SIMPSONS_020:68-103	Springfield Elementary School	ORG	SIMPSONS_020:14-44	0.9842	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_K1/SCORER_TS_K1.valid.ldc.tab.txt line 9)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_K1	SIMPSONS_016:47-49	Lisa Simpson	PER	SIMPSONS_016:126-139	0.6879	:Entity103
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_K1/SCORER_TS_K1.valid.ldc.tab.txt line 4)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_K1	SIMPSONS_017:136-190	Bart	PER	SIMPSONS_017:129-134	0.8357	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_K1/SCORER_TS_K1.valid.ldc.tab.txt line 3)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_K1	SIMPSONS_018:109-167	Bart	PER	SIMPSONS_018:24-29	0.3505	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_K1/SCORER_TS_K1.valid.ldc.tab.txt line 6)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_K1	SIMPSONS_018:55-75	Lisa	PER	SIMPSONS_018:6-11	0.6183	:Entity103
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_K1/SCORER_TS_K1.valid.ldc.tab.txt line 5)
+WARNING: Unable to infer language from DOCID SIMPSONS_011. Using ENGLISH by default. (CS-TestSuite/SF-TestSuite/SCORER_TS_K1/ldc-query.xml line In query CS17_4567 and 1 other place)
+WARNING: Unable to infer language from DOCID SIMPSONS_012. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_013. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_014. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_015. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_016. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_017. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_018. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_019. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_020. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_105. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_115. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_126. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_129. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_132. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_158. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_161. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_183. Using ENGLISH by default.
+WARNING: Unable to infer language from DOCID SIMPSONS_199. Using ENGLISH by default.

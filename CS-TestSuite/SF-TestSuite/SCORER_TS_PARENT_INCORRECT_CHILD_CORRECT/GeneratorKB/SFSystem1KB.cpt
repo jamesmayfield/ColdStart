@@ -1,0 +1,19 @@
+SCORER_TS_PERFECT_SCORE
+
+# Homer
+:Entity101	type	PER
+:Entity101	mentions	"Homer"	SIMPSONS_011:55-59
+:Entity101	per:children	:Entity102
+
+# Bart
+:Entity102	type	PER
+:Entity102	mentions	"Bart", "Bart Simpson"
+:Entity102	per:schools_attended	:Entity110, :Entity111
+
+# Springfield Elementary School
+:Entity110	type	ORG
+:Entity110	mentions	"Springfield Elementary School"
+
+# Springfield High School
+:Entity111	type	ORG
+:Entity111	mentions	"Springfield High School"

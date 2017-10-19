@@ -17,6 +17,7 @@ score-sf:
     fi
 	perl CS-Score$(MASTER).pl \
 	  -expand $(QB) \
+	  -justifications $(JUSTIFICATIONS) \
 	  -error_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score.errlog \
 	  -output_file $(DIR)/SF-TestSuite/$(SF)/$(SF)_score \
 	  $(DIR)/SF-TestSuite/$(SF)/ldc-query.xml \

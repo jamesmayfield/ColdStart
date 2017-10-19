@@ -20,7 +20,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2.3";
+my $version = "2017.2.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -327,4 +327,5 @@ exit 0;
 # 2.1 - NODEID is removed from the CS-ValidateQueries output to make the SF queries file look the same as 2015.
 # 2.2 - Added support for printing queries with entrypoint from selected languages
 # 2.3 - Fixing the queries.index file to print queries with entrypoint from selected languages only
+# 2017.2.0 - Code state at the release of scores
 1;

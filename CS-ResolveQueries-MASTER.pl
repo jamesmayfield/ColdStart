@@ -9,7 +9,7 @@ use ColdStartLib;
 
 # ResolveQueries.pl
 # Author: James Mayfield (jamesmayfield "at" gmail "dot" com)
-my $version = "2017.1.0";
+my $version = "2017.2.0";
 
 binmode(STDOUT, ":utf8");
 
@@ -83,10 +83,12 @@ my $logger;
 # Library inclusions
 ##################################################################################### 
 ### DO INCLUDE
+### DO INCLUDE Header                 ColdStartLib.pm
 ### DO INCLUDE Utils                  ColdStartLib.pm
 ### DO INCLUDE Patterns               ColdStartLib.pm
 ### DO INCLUDE Logger                 ColdStartLib.pm
 ### DO INCLUDE Provenance             ColdStartLib.pm
+### DO INCLUDE ProvenanceList         ColdStartLib.pm
 ### DO INCLUDE Predicates             ColdStartLib.pm
 ### DO INCLUDE Query                  ColdStartLib.pm
 ### DO INCLUDE QuerySet               ColdStartLib.pm
@@ -634,6 +636,7 @@ my %predicate2labels = (
 # FIXME: Make sure these are still accurate
 ### DO INCLUDE
   type =>              [qw(entity predicate object confidence)],
+  link =>              [qw(entity predicate object confidence)],
   default =>           [qw(entity predicate object offsets confidence)],
 );
 
@@ -874,3 +877,5 @@ close $outfile if $outfile_opened;
 # 2016.1.0: Add FULL_QUERY_ID and another minor change to make the code work
 #			with new library
 # 2017.1.0: First release of 2017
+# 2017.1.1: Support added for link predicates to be read from KB; required libraries included for standalone executable creation.
+# 2017.2.0: Code state at the release of scores

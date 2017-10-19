@@ -1,0 +1,116 @@
+================================================================================
+CSSF17_ENG_afddc4ed21
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_101:130-239	Bart	PER	SIMPSONS_101:232-237	0.7792	:Entity102
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_729d7f6f2d47
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_2	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_101:130-239	Bart	SIMPSONS_101:232-237	W	0	W	0	0
+
+	PREPOLICY ASSESSMENT:	INCORRECT
+	POSTPOLICY ASSESSMENT:	WRONG
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_190:145-297	Bart Simpson	PER	SIMPSONS_190:211-224	0.4751	:Entity102
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_48f327d3b6eb
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_6	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_190:145-297	Bart Simpson	SIMPSONS_190:211-224	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	RIGHT
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102
+	SUBMISSION:	CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_158:205-327	Bart	PER	SIMPSONS_158:246-251	0.4200	:Entity102
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_0_4	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_158:205-327	Bart	SIMPSONS_158:246-251	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	IGNORE,REDUNDANT
+................................................................................
+================================================================================
+CSSF17_ENG_afddc4ed21:1
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_123:163-296	Springfield Elementary School	ORG	SIMPSONS_123:138-168	0.9718	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_48d0552653b4
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_6	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_123:163-296	Springfield Elementary School	SIMPSONS_123:138-168	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	INCORRECT_PARENT,WRONG
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_166:244-383	Springfield High School	ORG	SIMPSONS_166:151-175	0.9343	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_262f2710db0e
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_46	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_166:244-383	Springfield High School	SIMPSONS_166:151-175	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	INCORRECT_PARENT,WRONG
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_104:190-302	Springfield High School	ORG	SIMPSONS_104:114-138	0.8444	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_0f294fb829fb
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_31	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_104:190-302	Springfield High School	SIMPSONS_104:114-138	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	INCORRECT_PARENT,WRONG
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_137:225-382	Springfield Elementary School	ORG	SIMPSONS_137:111-141	0.6805	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_6d5b7920f265
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_11	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_137:225-382	Springfield Elementary School	SIMPSONS_137:111-141	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	INCORRECT_PARENT,WRONG
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity111
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_153:231-387	Springfield High School	ORG	SIMPSONS_153:148-172	0.5387	:Entity111
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_a9677c4c0c07
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_41	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_153:231-387	Springfield High School	SIMPSONS_153:148-172	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	INCORRECT_PARENT,WRONG
+................................................................................
+	FQNODEID:	CSSF17_ENG_afddc4ed21:Entity102:Entity110
+	SUBMISSION:	CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_160:169-286	Springfield Elementary School	ORG	SIMPSONS_160:185-215	0.5343	:Entity110
+	TARGET_QID:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_a1de7ba184d5
+	ASSESSMENT:	CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_26	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_160:169-286	Springfield Elementary School	SIMPSONS_160:185-215	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+
+	PREPOLICY ASSESSMENT:	CORRECT
+	POSTPOLICY ASSESSMENT:	INCORRECT_PARENT,WRONG
+................................................................................
+
+AP COMPUTATION DEBUG INFO BEGINS:
+================================================================================
+QUERY_ID:         CSSF17_ENG_afddc4ed21
+LEVEL:            0
+AP:               0.6667
+NUM_GROUND_TRUTH: 1
+GROUND TRUTH:
+  CSSF17_ENG_afddc4ed21:1
+RANKING:
+........
+RANK NODEID CONFIDENCE MAPPED_EC V
+1 CSSF17_ENG_afddc4ed21:Entity102 0.6310 CSSF17_ENG_afddc4ed21:1 0.6667
+================================================================================
+QUERY_ID:         CSSF17_ENG_afddc4ed21
+LEVEL:            1
+AP:               0.0000
+NUM_GROUND_TRUTH: 1
+GROUND TRUTH:
+  CSSF17_ENG_afddc4ed21:1:1
+RANKING:
+........
+RANK NODEID CONFIDENCE MAPPED_EC V
+1 CSSF17_ENG_afddc4ed21:Entity102:Entity111 0.5286 - 0.0000
+2 CSSF17_ENG_afddc4ed21:Entity102:Entity110 0.5128 - 0.0000
+================================================================================
+QUERY_ID:         CSSF17_ENG_afddc4ed21
+LEVEL:            ALL
+AP:               0.3333
+NUM_GROUND_TRUTH: 2
+GROUND TRUTH:
+  CSSF17_ENG_afddc4ed21:1
+  CSSF17_ENG_afddc4ed21:1:1
+RANKING:
+........
+RANK NODEID CONFIDENCE MAPPED_EC V
+1 CSSF17_ENG_afddc4ed21:Entity102 0.6310 CSSF17_ENG_afddc4ed21:1 0.6667
+2 CSSF17_ENG_afddc4ed21:Entity102:Entity111 0.5286 - 0.0000
+3 CSSF17_ENG_afddc4ed21:Entity102:Entity110 0.5128 - 0.0000
+AP COMPUTATION DEBUG INFO ENDS

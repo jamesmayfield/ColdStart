@@ -1,0 +1,17 @@
+cd /home/skr1/cold-start-collaborative/ColdStart
+
+# The following would be useful only if a new test case is being developed using a GeneratorKB in compact format.
+# This command would expand the compact KB into a validatable KB.
+# Note that the compact KB is a format for facilitating test case development and so it is not validatable.
+
+make expand-sfkb SF=SCORER_TS_MERGE_AND_SPLIT
+
+# The following runs resolve queries using the query file provided and later validates the SF file
+
+make setup-sf SF=SCORER_TS_MERGE_AND_SPLIT DOCS=
+
+# Score the validated SF file using a qrel.txt file
+# Note that the qrel.txt should be placed in the test case directory before scoring (obviously).
+
+make score-sf SF=SCORER_TS_MERGE_AND_SPLIT DOCS=
+

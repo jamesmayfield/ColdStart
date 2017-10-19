@@ -1,0 +1,16 @@
+SCORER_TS_SINGULAR_VALUED_SLOT_01
+
+# Homer
+:Entity101	type	PER
+:Entity101	mentions	"Homer"	SIMPSONS_011:55-59
+:Entity101	per:date_of_birth	:Entity102	SIMPSONS_011:60-69	1.0
+:Entity101	per:date_of_birth	:Entity103	SIMPSONS_011:80-89	1.0
+
+
+# dob - 1
+:Entity102	type	PER
+:Entity102	mentions	"01/01/1900"	SIMPSONS_011:60-69
+
+# dob - 2
+:Entity103	type	PER
+:Entity103	mentions	"01/01/1901"	SIMPSONS_011:80-89

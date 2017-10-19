@@ -1,0 +1,12 @@
+QID/EC                  RunID        Hop   GT Submitted Correct Incorrect Inexact PIncorrect Unassessed  Dup Right Wrong Ignored Prec   Recall F1    
+CS17_4567               SCORER_TS_K1 0      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+CS17_4567:1             SCORER_TS_K1 1      2         2       2         0       0          0          0    0     2     0       0 1.0000 1.0000 1.0000
+CS17_4567:2             SCORER_TS_K1 1      2         2       2         0       0          0          0    0     2     0       0 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_K1 0      2         6       6         0       0          0          0    4     2     0       4 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_K1 1      4         4       4         0       0          0          0    0     4     0       0 1.0000 1.0000 1.0000
+ALL-Micro               SCORER_TS_K1 ALL    6        10      10         0       0          0          0    4     6     0       4 1.0000 1.0000 1.0000
+ALL-Macro               SCORER_TS_K1 0                                                                                           1.0000 1.0000 1.0000
+ALL-Macro               SCORER_TS_K1 1                                                                                           1.0000 1.0000 1.0000
+ALL-Macro               SCORER_TS_K1 ALL                                                                                         1.0000 1.0000 1.0000
+
+*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.

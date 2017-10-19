@@ -1,0 +1,9 @@
+#At: Thu Oct  5 09:42:35 2017
+
+#Invoked as:
+/home/skr1/local-cold-start-collaborative$ perl CS-Score-MASTER.pl -expand CSSF17 -justifications 1:3 -error_file CS-TestSuite/SF-TestSuite/SCORER_TS_NOMINALS_02/SCORER_TS_NOMINALS_02_score.errlog -output_file CS-TestSuite/SF-TestSuite/SCORER_TS_NOMINALS_02/SCORER_TS_NOMINALS_02_score CS-TestSuite/SF-TestSuite/SCORER_TS_NOMINALS_02/ldc-query.xml CS-TestSuite/SF-TestSuite/SCORER_TS_NOMINALS_02/qrel.txt CS-TestSuite/SF-TestSuite/SCORER_TS_NOMINALS_02/SCORER_TS_NOMINALS_02.valid.ldc.tab.txt
+
+#Policy Selected:
+  IGNORE => UNASSESSED:DUPLICATE
+  RIGHT => CORRECT
+  WRONG => INCORRECT:INCORRECT_PARENT:INEXACT

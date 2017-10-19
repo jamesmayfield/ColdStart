@@ -1,0 +1,57 @@
+CSSF17_ENG_afddc4ed21_0_1	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_101:130-238	Bart	SIMPSONS_101:232-237	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+CSSF17_ENG_afddc4ed21_0_2	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_101:130-239	Bart	SIMPSONS_101:232-237	W	0	W	0	0
+CSSF17_ENG_afddc4ed21_0_3	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_131:113-239	Bart Simpson	SIMPSONS_131:183-196	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+CSSF17_ENG_afddc4ed21_0_4	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_158:205-327	Bart	SIMPSONS_158:246-251	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+CSSF17_ENG_afddc4ed21_0_5	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_166:249-367	Bart	SIMPSONS_166:138-143	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+CSSF17_ENG_afddc4ed21_0_6	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_190:145-297	Bart Simpson	SIMPSONS_190:211-224	C	NAM	C	CSSF17_ENG_afddc4ed21:1	NAM
+CSSF17_ENG_afddc4ed21_0_7	CSSF17_ENG_afddc4ed21:per:children	SIMPSONS_190:145-298	Bart Simpson	SIMPSONS_190:211-224	W	0	W	0	0
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_6	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_123:163-296	Springfield Elementary School	SIMPSONS_123:138-168	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_7	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_123:163-296	Springfield Elementary School	SIMPSONS_123:138-168	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_8	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_123:163-296	Springfield Elementary School	SIMPSONS_123:138-168	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_9	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_123:163-296	Springfield Elementary School	SIMPSONS_123:138-168	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_10	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_123:163-296	Springfield Elementary School	SIMPSONS_123:138-168	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_11	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_137:225-382	Springfield Elementary School	SIMPSONS_137:111-141	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_12	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_137:225-382	Springfield Elementary School	SIMPSONS_137:111-141	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_13	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_137:225-382	Springfield Elementary School	SIMPSONS_137:111-141	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_14	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_137:225-382	Springfield Elementary School	SIMPSONS_137:111-141	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_15	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_137:225-382	Springfield Elementary School	SIMPSONS_137:111-141	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_16	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_157:166-275	Springfield Elementary School	SIMPSONS_157:170-200	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_17	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_157:166-275	Springfield Elementary School	SIMPSONS_157:170-200	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_18	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_157:166-275	Springfield Elementary School	SIMPSONS_157:170-200	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_19	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_157:166-275	Springfield Elementary School	SIMPSONS_157:170-200	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_20	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_157:166-275	Springfield Elementary School	SIMPSONS_157:170-200	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_21	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_158:120-272	Springfield Elementary School	SIMPSONS_158:229-259	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_22	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_158:120-272	Springfield Elementary School	SIMPSONS_158:229-259	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_23	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_158:120-272	Springfield Elementary School	SIMPSONS_158:229-259	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_24	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_158:120-272	Springfield Elementary School	SIMPSONS_158:229-259	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_25	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_158:120-272	Springfield Elementary School	SIMPSONS_158:229-259	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_26	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_160:169-286	Springfield Elementary School	SIMPSONS_160:185-215	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_27	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_160:169-286	Springfield Elementary School	SIMPSONS_160:185-215	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_28	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_160:169-286	Springfield Elementary School	SIMPSONS_160:185-215	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_29	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_160:169-286	Springfield Elementary School	SIMPSONS_160:185-215	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_30	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_160:169-286	Springfield Elementary School	SIMPSONS_160:185-215	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_31	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_104:190-302	Springfield High School	SIMPSONS_104:114-138	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_32	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_104:190-302	Springfield High School	SIMPSONS_104:114-138	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_33	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_104:190-302	Springfield High School	SIMPSONS_104:114-138	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_34	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_104:190-302	Springfield High School	SIMPSONS_104:114-138	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_35	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_104:190-302	Springfield High School	SIMPSONS_104:114-138	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_36	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_151:174-292	Springfield High School	SIMPSONS_151:150-174	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_37	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_151:174-292	Springfield High School	SIMPSONS_151:150-174	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_38	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_151:174-292	Springfield High School	SIMPSONS_151:150-174	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_39	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_151:174-292	Springfield High School	SIMPSONS_151:150-174	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_40	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_151:174-292	Springfield High School	SIMPSONS_151:150-174	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_41	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_153:231-387	Springfield High School	SIMPSONS_153:148-172	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_42	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_153:231-387	Springfield High School	SIMPSONS_153:148-172	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_43	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_153:231-387	Springfield High School	SIMPSONS_153:148-172	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_44	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_153:231-387	Springfield High School	SIMPSONS_153:148-172	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_45	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_153:231-387	Springfield High School	SIMPSONS_153:148-172	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_46	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_166:244-383	Springfield High School	SIMPSONS_166:151-175	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_47	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_166:244-383	Springfield High School	SIMPSONS_166:151-175	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_48	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_166:244-383	Springfield High School	SIMPSONS_166:151-175	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_49	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_166:244-383	Springfield High School	SIMPSONS_166:151-175	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_50	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_166:244-383	Springfield High School	SIMPSONS_166:151-175	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_729d7f6f2d47_1_51	CSSF17_ENG_afddc4ed21_729d7f6f2d47:per:schools_attended	SIMPSONS_177:169-317	Springfield High School	SIMPSONS_177:105-129	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_af230dac70ef_1_52	CSSF17_ENG_afddc4ed21_af230dac70ef:per:schools_attended	SIMPSONS_177:169-317	Springfield High School	SIMPSONS_177:105-129	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff_1_53	CSSF17_ENG_afddc4ed21_0d2feb6ef2ff:per:schools_attended	SIMPSONS_177:169-317	Springfield High School	SIMPSONS_177:105-129	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_3df89ca5aceb_1_54	CSSF17_ENG_afddc4ed21_3df89ca5aceb:per:schools_attended	SIMPSONS_177:169-317	Springfield High School	SIMPSONS_177:105-129	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM
+CSSF17_ENG_afddc4ed21_48f327d3b6eb_1_55	CSSF17_ENG_afddc4ed21_48f327d3b6eb:per:schools_attended	SIMPSONS_177:169-317	Springfield High School	SIMPSONS_177:105-129	C	NAM	C	CSSF17_ENG_afddc4ed21:1:1	NAM

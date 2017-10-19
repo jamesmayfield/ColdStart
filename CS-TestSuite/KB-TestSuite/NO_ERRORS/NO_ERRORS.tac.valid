@@ -11,7 +11,7 @@ NO_ERRORS
 :Entity_0007	mention	"Dzhokhar Tsarnaev"	NYT_ENG_20131113.0264:434-450	1.0
 :Entity_0007	per:cities_of_residence	:Entity_0001	NYT_ENG_20131113.0264:402-450	0.5493061443340549
 :Entity_0007	per:conflict.attack_attacker.actual	:Event_0001	NYT_ENG_20131113.0264:492-681;NYT_ENG_20131113.0264:546-547;NIL	1.0
-:Entity_0007	per:pronominal_mention	"he"	NYT_ENG_20131113.0264:546-547	1.0
+:Entity_0007	pronominal_mention	"he"	NYT_ENG_20131113.0264:546-547	1.0
 :Entity_0007	per:siblings	:Entity_0010	NYT_ENG_20131113.0264:561-577	0.73588133800021
 :Entity_0010	type	PER	
 :Entity_0010	canonical_mention	"Tamerlan Tsarnaev"	NYT_ENG_20131113.0264:684-700	1.0

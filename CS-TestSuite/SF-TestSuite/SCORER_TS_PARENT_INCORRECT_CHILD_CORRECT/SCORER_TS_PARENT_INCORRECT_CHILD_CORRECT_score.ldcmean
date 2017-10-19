@@ -1,0 +1,8 @@
+QID/EC                  RunID                                    Hop Prec   Recall F1    
+CS17_4567               SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT 0   0.5000 1.0000 0.6667
+CS17_4567:1             SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT 1   0.0000 0.0000 0.0000
+ALL-Macro               SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT 0   0.5000 1.0000 0.6667
+ALL-Macro               SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT 1   0.0000 0.0000 0.0000
+ALL-Macro               SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT ALL 0.2500 0.5000 0.3333
+
+*ALL-Macro Prec, Recall and F1 refer to mean-precision, mean-recall and mean-F1.

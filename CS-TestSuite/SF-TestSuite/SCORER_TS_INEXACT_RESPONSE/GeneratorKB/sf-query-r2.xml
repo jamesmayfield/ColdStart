@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query_set>
+  <query id="CSSF17_ENG_afddc4ed21_09ef50c1a3bf">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_178</docid>
+    <beg>109</beg>
+    <end>122</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_48fe71607ee8">
+    <name>Bart</name>
+    <docid>SIMPSONS_183</docid>
+    <beg>196</beg>
+    <end>201</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_72fda4daa127">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_130</docid>
+    <beg>195</beg>
+    <end>208</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_3851d3b3a1_78ea11b45261">
+    <name>Boston</name>
+    <docid>SIMPSONS_150</docid>
+    <beg>135</beg>
+    <end>142</end>
+    <enttype>gpe</enttype>
+    <slot>gpe:residents_of_city</slot>
+    <slot0>gpe:residents_of_city</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_899fb7b77527">
+    <name>Bart</name>
+    <docid>SIMPSONS_108</docid>
+    <beg>212</beg>
+    <end>217</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_8a9f952d62da">
+    <name>Bart Simpson</name>
+    <docid>SIMPSONS_193</docid>
+    <beg>155</beg>
+    <end>168</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_98c8da05aca8">
+    <name>Bart</name>
+    <docid>SIMPSONS_125</docid>
+    <beg>104</beg>
+    <end>109</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_a036e7682fe6">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_196</docid>
+    <beg>166</beg>
+    <end>179</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_be476e3f0554">
+    <name>Bart Simpson</name>
+    <docid>SIMPSONS_132</docid>
+    <beg>115</beg>
+    <end>128</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+  <query id="CSSF17_ENG_3851d3b3a1_da39e3b14d19">
+    <name>Boston</name>
+    <docid>SIMPSONS_128</docid>
+    <beg>192</beg>
+    <end>199</end>
+    <enttype>gpe</enttype>
+    <slot>gpe:residents_of_city</slot>
+    <slot0>gpe:residents_of_city</slot0>
+  </query>
+  <query id="CSSF17_ENG_3851d3b3a1_e3213b4d4ed5">
+    <name>Boston</name>
+    <docid>SIMPSONS_146</docid>
+    <beg>107</beg>
+    <end>114</end>
+    <enttype>gpe</enttype>
+    <slot>gpe:residents_of_city</slot>
+    <slot0>gpe:residents_of_city</slot0>
+  </query>
+  <query id="CSSF17_ENG_afddc4ed21_facbc244ea47">
+    <name>Lisa Simpson</name>
+    <docid>SIMPSONS_119</docid>
+    <beg>158</beg>
+    <end>171</end>
+    <enttype>per</enttype>
+    <slot>per:schools_attended</slot>
+    <slot0>per:schools_attended</slot0>
+  </query>
+</query_set>

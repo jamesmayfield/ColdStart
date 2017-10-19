@@ -25,9 +25,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.9";   # (1) - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
-                            # (2) - Support added in SF validator to compare filler string with
-                            #       the text in source document at the filler provenance
+my $version = "2017.2.0";   # (1) Code state at the release of scores
 
 ### BEGIN INCLUDE Switches
 
@@ -55,7 +53,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 # ----------                   ----     -------------
 
 ########## Provenance Errors
-  FAILED_LANG_INFERENCE         WARNING  Unable to infer language from DOCID %s. Using default language %s.
+  FAILED_LANG_INFERENCE         WARNING  Unable to infer language from DOCID %s. Using %s by default.
   ILLEGAL_DOCID                 FATAL_ERROR    DOCID %s is not a valid DOCID for this task
   ILLEGAL_OFFSET                ERROR    %s is not a valid offset
   ILLEGAL_OFFSET_IN_DOC         ERROR    %s is not a valid offset for DOCID %s
@@ -129,7 +127,9 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 ########## Submission File/Assessment File Errors
   BAD_QUERY                     WARNING  Response for illegal query %s skipped
   DISCARDED_DEPENDENT           WARNING  Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: %s
+  DISCARDED_DEPENDENT_DEPTH     WARNING  Following line has been discarded because all of its parents were discarded due to depth constraints: %s
   DISCARDED_ENTRY               WARNING  Following line has been discarded due to constraints on multiple justifications: %s
+  DISCARDED_ENTRY_DEPTH         WARNING  Following line has been discarded due to depth constraints: %s
   DUPLICATE_LINE                WARNING  Following line appears more than once in the submission therefore all copies but one will be removed: %s
   EMPTY_FIELD                   WARNING  Empty value for column %s
   EMPTY_FILE                    WARNING  Empty response or assessment file: %s
@@ -142,6 +142,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   OFF_TASK_SLOT                 WARNING  %s slot is not valid for task %s
   SEMICOLON_IN_PROVENANCE_E     ERROR    A semicolon is used in the provenance %s
   SEMICOLON_AS_SEPARATOR        WARNING  A semicolon is used as a triple separator in the provenance %s. The semicolon will be replaced with a comma. 
+  UNEXPECTED_ASSESSMENT_ENTRY   ERROR    Child with no correct parent found in assessment file. %s %s
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
   UNKNOWN_QUERY_ID_WARNING      WARNING  Unknown query: %s
   UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
@@ -282,7 +283,7 @@ sub report_all_problems {
 	print $error_output "s" if $num_instances > 2;
 	print $error_output ")";
       }
-      print $error_output "\n";
+      print $error_output "\n\n";
     }
   }
   # Return the number of errors and the number of warnings encountered
@@ -486,7 +487,7 @@ package Provenance;
 
 # Bounds from "Task Description for English Slot Filling at TAC-KBP 2014"
 my $max_chars_per_triple = 200;
-my $max_total_chars = 600;
+my $max_total_chars = 800;
 my $max_triples = 3;
 
 {
@@ -2096,6 +2097,7 @@ sub get_node_for_assessment {
   # down to this zero. First, find the parent assessment
   
   my $parent_assessment = $assessments->get_parent_assessment($assessment->{QUERY_ID});
+  return unless $parent_assessment;
   # Recursively identify the node corresponding to the parent assessment
   my $parent_node = $self->get_node_for_assessment($parent_assessment, $assessments);
   # and glom a :0 onto the end
@@ -2136,7 +2138,12 @@ sub add_assessments {
 ### DO INCLUDE
     # Lookup (or create) the correct node
     my $node = $self->get_node_for_assessment($assessment, $assessments);
-    
+    unless($node) {
+      my @parents = map {$_->{LINE}} grep {$_->{TARGET_QUERY_ID} eq $assessment->{QUERY_ID}} @{$assessments->{ENTRIES_BY_TYPE}{ASSESSMENT}};
+      my $parents = join("\n", @parents);
+      $self->{LOGGER}->record_problem('UNEXPECTED_ASSESSMENT_ENTRY', "\nUnexpected child: \n$assessment->{LINE}\n", "\nAll parents:\n$parents\n", {FILENAME => $assessment->{FILENAME}, LINENUM => $assessment->{LINENUM}});
+      next;
+    }
 ## DO NOT INCLUDE
 # Removing COMBO
 #
@@ -2267,6 +2274,7 @@ sub get {
 # Calculate all scores for a portion of the ground truth tree
 sub score_subtree {
   my ($self, $query_id, $name, $subtree, $runid, $policy_options, $policy_selected) = @_;
+  my ($k) = $self->{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
   # This is a bit of a cheesy hack to get the level
   my @colons = $name =~ /(:)/g;
   my $level = @colons;
@@ -2325,28 +2333,64 @@ sub score_subtree {
   push(@{$categorized_submissions{$selected_duplicate_category}}, @new_redundants);
   }
   
+  # Identify WRONGS; these are not going to change; more might be added
+  my @labels = qw(WRONG);
+  foreach my $post_policy_label( @labels ) {
+    foreach my $categorized_submission(@{$categorized_submissions{$post_policy_label} || []}) {
+      $categorized_submission->{CATEGORIZED_AS}{$post_policy_label} = 1;
+    }
+  }
   
   # Ignore the correct entry if the mention was a nominal but a named mention exists somewhere
-  # This rule came in 2016
+  # This rule came in 2016, modifying further in 2017 as per specifications
   # Begin
   
-  my @right;
-  my $altered = 0;
-  foreach my $submission( @{$categorized_submissions{'RIGHT'} || []} ) {
-  	next if not exists $submission->{ASSESSMENT}{VALUE_MENTION_TYPE}
-  		or not exists $submission->{ASSESSMENT}{EC_MENTION_TYPE};
-  	$altered = 1;
-  	my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
-  	my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
-  	$ec_mention_type = "NAM" if $ec_mention_type ne "NOM";
-  	if($value_mention_type eq "NOM" && $ec_mention_type eq "NAM") {
-  		push(@{$categorized_submissions{'IGNORE'}}, $submission);
-  	}
-  	else{
-  		push(@right, $submission);
-  	}
+  # Determine if you need to ignore responses corresponding to a fqnodeid
+  my %ignore;
+  my %submissions_by_fqnodeid;
+  foreach my $submission(@{$categorized_submissions{'SUBMITTED'} || []}) {
+    push(@{$submissions_by_fqnodeid{$submission->{FQNODEID}}}, $submission);
   }
-  @{$categorized_submissions{'RIGHT'}} = @right if $altered;
+
+  foreach my $fqnodeid(keys %submissions_by_fqnodeid) {
+    $ignore{$fqnodeid} = 1;
+    my $i = 0;
+    foreach my $submission(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} ||
+                          $a->{LINENUM} <=> $b->{LINENUM}}
+                          @{$submissions_by_fqnodeid{$fqnodeid}}) {
+      next unless(keys %{$submission->{ASSESSMENT}});
+      $i++;
+      unless($submission->{CATEGORIZED_AS}{'WRONG'}){
+        my $value_mention_type = $submission->{ASSESSMENT}{VALUE_MENTION_TYPE};
+        my $ec_mention_type = $submission->{ASSESSMENT}{EC_MENTION_TYPE};
+
+        $ignore{$fqnodeid} = 0 if ($value_mention_type eq "NAM" || $ec_mention_type eq "NOM");
+      }
+      last if $i==$k;
+    }
+  }
+
+  my @labels_of_interest = qw(RIGHT REDUNDANT);
+  my @ignore;
+
+  foreach my $label(@labels_of_interest) {
+    my @altered;
+    foreach my $submission(@{$categorized_submissions{$label} || []}) {
+      if($ignore{$submission->{FQNODEID}}) {
+        push(@ignore, $submission);
+      }
+      else {
+        push(@altered, $submission);
+      }
+    }
+    @{$categorized_submissions{$label}} = @altered;
+  }
+
+  # Retain only one copy
+  foreach my $submission(@ignore) {
+    my @found = grep {$_->{LINENUM} eq $submission->{LINENUM}} @{$categorized_submissions{'IGNORE'}};
+    push(@{$categorized_submissions{'IGNORE'}}, $submission) unless @found;
+  }
   
   # End
 
@@ -2360,6 +2404,13 @@ sub score_subtree {
   $num_submitted = @{$categorized_submissions{'SUBMITTED'} || []};
   $num_unassessed = @{$categorized_submissions{'UNASSESSED'} || []};
   $num_wrong = @{$categorized_submissions{'WRONG'} || []};
+
+  @labels = qw(CORRECT IGNORE INCORRECT INCORRECT_PARENT INEXACT REDUNDANT RIGHT SUBMITTED UNASSESSED WRONG);
+  foreach my $post_policy_label( @labels ) {
+    foreach my $categorized_submission(@{$categorized_submissions{$post_policy_label} || []}) {
+      $categorized_submission->{CATEGORIZED_AS}{$post_policy_label} = 1;
+    }
+  }
 
   # Add the counts to the Score, and store it in the tree
   $score->put('CATEGORIZED_SUBMISSIONS', \%categorized_submissions);
@@ -2600,20 +2651,26 @@ sub associate_ground_truth {
     push(@{$self->{RANKINGS}{$level}{ECS}}, $ec);
     push(@{$self->{RANKINGS}{ALL}{ECS}}, $ec);
   }
+  $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 0 if($self->{SLOT0_QUANTITY});
+  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 0 if($self->{SLOT1_QUANTITY});
   foreach my $hop(sort keys %{$self->{RANKINGS}}) {
-    $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS}};
+    $self->{RANKINGS}{$hop}{NUM_GROUND_TRUTH} = @{$self->{RANKINGS}{$hop}{ECS} || []};
   }
-  $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT0_QUANTITY} eq 'single');
-  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT1_QUANTITY} eq 'single');
-  $self->{RANKINGS}{ALL}{NUM_GROUND_TRUTH} = $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} + $self->{RANKINGS}{1}{NUM_GROUND_TRUTH}
-    if($self->{SLOT0_QUANTITY} eq 'single' || $self->{SLOT1_QUANTITY} eq 'single');
+  $self->{RANKINGS}{0}{NUM_GROUND_TRUTH} = 1 if($self->{SLOT0_QUANTITY} eq 'single' && $self->{RANKINGS}{0}{NUM_GROUND_TRUTH});
+  # If hop-1 is a single-valued slot, the number of ground truth is one-per-parent
+  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} = 1 * $self->{RANKINGS}{0}{NUM_GROUND_TRUTH}
+                                             if($self->{SLOT1_QUANTITY} &&
+                                                  $self->{SLOT1_QUANTITY} eq 'single' &&
+                                                  $self->{RANKINGS}{1}{NUM_GROUND_TRUTH});
+  $self->{RANKINGS}{ALL}{NUM_GROUND_TRUTH} = $self->{RANKINGS}{0}{NUM_GROUND_TRUTH};
+  $self->{RANKINGS}{ALL}{NUM_GROUND_TRUTH} += $self->{RANKINGS}{1}{NUM_GROUND_TRUTH} if($self->{SLOT1_QUANTITY});
 }
 
 sub prepare_rankings {
   my ($self, $subtree) = @_;
   $subtree = $self->{NODE_TREE}{QUERIES}{$self->{QUERY_ID}} unless $subtree;
   foreach my $child_nodeid(keys %{$subtree->{NODES}}) {
-  	$self->insert_node_into_rankings($subtree, $child_nodeid);
+    $self->insert_node_into_rankings($subtree, $child_nodeid);
     $self->prepare_rankings($subtree->{NODES}{$child_nodeid});
   }
 }
@@ -2675,13 +2732,19 @@ sub map_all_nodes {
 sub get_candidate_ecs {
   my ($self, $node, $nodeid) = @_;
   my ($k) = $self->{SUBMISSIONS_AND_ASSESSMENTS}{JUSTIFICATIONS_ALLOWED} =~ /^.*?:(.*?)$/;
-  # FIXME: This needs to depend upon post-policy decisions to allow INEXACTs as correct for example
-  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT'} $self->get_flattened_entries($node);
+  # Find the submissions that are CORRECT or INEXACT
+  my @submissions = grep {$_->{ASSESSMENT}{ASSESSMENT} eq 'CORRECT' || $_->{ASSESSMENT}{ASSESSMENT} eq 'INEXACT'}
+                      grep {$_->{ASSESSMENT}{ASSESSMENT}}
+                        $self->get_flattened_entries($node);
+  # Remove all the WRONG ones; this is needed to remove INEXACT if those were WRONG as per the policy
+  @submissions = grep {!$_->{CATEGORIZED_AS}{'WRONG'}} @submissions;
+  @submissions = grep {!$_->{CATEGORIZED_AS}{'IGNORE'} || $_->{CATEGORIZED_AS}{'REDUNDANT'}} @submissions;
   my $candidate_ecs = {map {$_->{ASSESSMENT}{VALUE_EC}=>1}
                          grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC}}
                            @submissions};
   foreach my $candidate_ec(keys %{$candidate_ecs}) {
     my @node_submissions = grep {$_->{FQNODEID} eq $nodeid && $_->{ASSESSMENT}{VALUE_EC} eq $candidate_ec} @submissions;
+    @node_submissions = $self->get_topk_submissions($k, @node_submissions);
     my $numerator = scalar @node_submissions;
     my $denomerator = $self->get_num_justifying_docs($candidate_ec);
     my %queryids = map {$_->{QUERY_ID}=>1} @node_submissions;
@@ -2699,6 +2762,20 @@ sub get_candidate_ecs {
             $candidate_ecs->{$ec}{LINENUM} > $entry->{LINENUM}));
   }
   $candidate_ecs;
+}
+
+sub get_topk_submissions {
+  my ($self, $k, @submissions) = @_;
+
+  my @retVal;
+  my $i=1;
+  foreach my $submission(sort {$b->{CONFIDENCE} <=> $a->{CONFIDENCE} ||
+                        $a->{LINENUM} <=> $b->{LINENUM}} @submissions) {
+    push(@retVal, $submission);
+    last if($i==$k);
+    $i++;
+  }
+  @retVal;
 }
 
 sub get_num_justifying_docs {
@@ -4512,8 +4589,9 @@ sub manage_single_valued_slots {
     foreach my $child_fqnodeid(keys %{$fqnodeids{$parent_fqnodeid}{CHILD_FQNODEIDS}}) {
       my ($confidence, $first_occurence, @confidences);
       foreach my $docid (keys %{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}}) {
-        foreach my $entry(grep {!$_->{DISCARD}} @{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
-          $level = $entry->{QUERY}->{LEVEL} unless $level;
+        foreach my $entry(@{$self->{ENTRIES_BY_NODEID}{$child_fqnodeid}{$docid}}) {
+          $level = $entry->{QUERY}->{LEVEL} if not defined $level;
+          next if $entry->{DISCARD};
           push(@confidences, $entry->{CONFIDENCE});
           $first_occurence = $entry->{LINENUM} unless $first_occurence;
           $first_occurence = $entry->{LINENUM} if $first_occurence > $entry->{LINENUM};
@@ -4551,6 +4629,7 @@ sub manage_single_valued_slots {
         }
       }
     }
+    $self->{LOGGER}->NIST_die("value of \$level not defined while processing $parent_fqnodeid") if not defined $level;
     # Discard dependents
     my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
                             grep {not exists $_->{DISCARD}}
@@ -4680,7 +4759,7 @@ sub manage_pooling_scheme_A {
   }
 
   # Discard dependents
-  foreach my $level(qw(0 1)) {
+  foreach my $level(sort {$a<=>$b} qw(0 1)) {
       my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
                             grep {not exists $_->{DISCARD}}
                               grep {$_->{QUERY}->{LEVEL} == $level}
@@ -4756,11 +4835,11 @@ sub manage_pooling_scheme_B {
   }
 
   # Select top d nodes per query at hop-0
-   my $i = 1;
    my $level = 0;
    foreach my $root_query_id(keys %fqnodeids) {
+     my $i = 1;
      foreach my $fqnodeid(sort {$fqnodeids{$root_query_id}{$level}{$b}{CONFIDENCE}<=>$fqnodeids{$root_query_id}{$level}{$a}{CONFIDENCE} ||
-                                 $fqnodeids{$root_query_id}{$level}{$b}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$a}{LINENUM}}
+                                 $fqnodeids{$root_query_id}{$level}{$a}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$b}{LINENUM}}
                             keys %{$fqnodeids{$root_query_id}{$level}}) {
        last if $i > $depth;
        $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED} = 1;
@@ -4770,11 +4849,11 @@ sub manage_pooling_scheme_B {
 
   # Select top dxd nodes per query at hop-1
   # Also, select low confident parents of high performing children
-  $i = 1;
   $level = 1;
   foreach my $root_query_id(keys %fqnodeids) {
+    my $i = 1;
     foreach my $fqnodeid(sort {$fqnodeids{$root_query_id}{$level}{$b}{CONFIDENCE}<=>$fqnodeids{$root_query_id}{$level}{$a}{CONFIDENCE} ||
-                                $fqnodeids{$root_query_id}{$level}{$b}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$a}{LINENUM}}
+                                $fqnodeids{$root_query_id}{$level}{$a}{LINENUM}<=>$fqnodeids{$root_query_id}{$level}{$b}{LINENUM}}
                            keys %{$fqnodeids{$root_query_id}{$level}}) {
       last if $i > $depth * $depth;
       $fqnodeids{$root_query_id}{$level}{$fqnodeid}{INCLUDED} = 1;
@@ -4793,6 +4872,8 @@ sub manage_pooling_scheme_B {
               # Discard this node
               foreach my $entry(grep {not exists $_->{DISCARD}} @{$fqnodeids{$root_query_id}{$level}{$fqnodeid}{ENTRIES}}) {
                   $entry->{DISCARD} = 1;
+                  $self->{LOGGER}->record_problem('DISCARDED_ENTRY_DEPTH', "\n" . $entry->{LINE} . "\n",
+                     {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}});
               }
           }
       }
@@ -4800,7 +4881,7 @@ sub manage_pooling_scheme_B {
   }
 
   # Discard dependents
-  foreach my $level(qw(0 1)) {
+  foreach my $level(sort {$a<=>$b} qw(0 1)) {
       my %good_dependents = map {$_->{TARGET_QUERY}->get("FULL_QUERY_ID") => 1}
                             grep {not exists $_->{DISCARD}}
                               grep {$_->{QUERY}->{LEVEL} == $level}
@@ -4808,7 +4889,7 @@ sub manage_pooling_scheme_B {
     foreach my $entry(grep {!$_->{DISCARD}} grep {$_->{QUERY}->{LEVEL} == $level + 1} @{$self->{ENTRIES_BY_TYPE}{SUBMISSION}}) {
       unless(exists $good_dependents{$entry->{QUERY}->get("FULL_QUERY_ID")}) {
         $entry->{DISCARD} = 1;
-        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT', "\n" . $entry->{LINE} . "\n",
+        $self->{LOGGER}->record_problem('DISCARDED_DEPENDENT_DEPTH', "\n" . $entry->{LINE} . "\n",
             {FILENAME => $entry->{FILENAME}, LINENUM => $entry->{LINENUM}})
       }
     }

@@ -1,0 +1,6 @@
+WARNING: Empty response or assessment file: CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/GeneratorKB/SCORER_TS_SINGULAR_VALUED_SLOT_01.rq-r2
+WARNING: Unable to infer language from DOCID SIMPSONS_011. Using default language ENGLISH. (CS-TestSuite/SF-TestSuite/SCORER_TS_SINGULAR_VALUED_SLOT_01/sf-query.xml line In query CSSF17_ENG_d8f8f60598)
+WARNING: Unable to infer language from DOCID SIMPSONS_161. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_168. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_172. Using default language ENGLISH.
+5 warnings encountered

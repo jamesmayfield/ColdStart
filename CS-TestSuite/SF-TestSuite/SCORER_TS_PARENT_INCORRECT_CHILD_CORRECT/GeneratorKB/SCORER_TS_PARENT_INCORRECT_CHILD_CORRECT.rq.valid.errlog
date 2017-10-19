@@ -1,0 +1,153 @@
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_104:190-302	Springfield High School	ORG	SIMPSONS_104:114-138	0.8444	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 34)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_123:163-296	Springfield Elementary School	ORG	SIMPSONS_123:138-168	0.9718	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 9)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_137:225-382	Springfield Elementary School	ORG	SIMPSONS_137:111-141	0.6805	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 14)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_151:174-292	Springfield High School	ORG	SIMPSONS_151:150-174	0.4724	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 39)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_153:231-387	Springfield High School	ORG	SIMPSONS_153:148-172	0.5387	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 44)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_157:166-275	Springfield Elementary School	ORG	SIMPSONS_157:170-200	0.2959	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 19)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_158:120-272	Springfield Elementary School	ORG	SIMPSONS_158:229-259	0.4837	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 24)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_160:169-286	Springfield Elementary School	ORG	SIMPSONS_160:185-215	0.5343	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 29)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_166:244-383	Springfield High School	ORG	SIMPSONS_166:151-175	0.9343	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 49)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_3df89ca5aceb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_177:169-317	Springfield High School	ORG	SIMPSONS_177:105-129	0.0370	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 54)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_104:190-302	Springfield High School	ORG	SIMPSONS_104:114-138	0.8444	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 32)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_123:163-296	Springfield Elementary School	ORG	SIMPSONS_123:138-168	0.9718	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 7)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_137:225-382	Springfield Elementary School	ORG	SIMPSONS_137:111-141	0.6805	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 12)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_151:174-292	Springfield High School	ORG	SIMPSONS_151:150-174	0.4724	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 37)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_153:231-387	Springfield High School	ORG	SIMPSONS_153:148-172	0.5387	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 42)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_157:166-275	Springfield Elementary School	ORG	SIMPSONS_157:170-200	0.2959	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 17)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_158:120-272	Springfield Elementary School	ORG	SIMPSONS_158:229-259	0.4837	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 22)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_160:169-286	Springfield Elementary School	ORG	SIMPSONS_160:185-215	0.5343	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 27)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_166:244-383	Springfield High School	ORG	SIMPSONS_166:151-175	0.9343	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 47)
+WARNING: Following line has been discarded because all of its parents were discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_af230dac70ef	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_177:169-317	Springfield High School	ORG	SIMPSONS_177:105-129	0.0370	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 52)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_131:113-239	Bart Simpson	PER	SIMPSONS_131:183-196	0.2588	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 2)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21	per:children	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_166:249-367	Bart	PER	SIMPSONS_166:138-143	0.1948	:Entity102
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 4)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_104:190-302	Springfield High School	ORG	SIMPSONS_104:114-138	0.8444	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 33)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_123:163-296	Springfield Elementary School	ORG	SIMPSONS_123:138-168	0.9718	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 8)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_137:225-382	Springfield Elementary School	ORG	SIMPSONS_137:111-141	0.6805	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 13)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_151:174-292	Springfield High School	ORG	SIMPSONS_151:150-174	0.4724	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 38)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_153:231-387	Springfield High School	ORG	SIMPSONS_153:148-172	0.5387	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 43)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_157:166-275	Springfield Elementary School	ORG	SIMPSONS_157:170-200	0.2959	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 18)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_158:120-272	Springfield Elementary School	ORG	SIMPSONS_158:229-259	0.4837	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 23)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_160:169-286	Springfield Elementary School	ORG	SIMPSONS_160:185-215	0.5343	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 28)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_166:244-383	Springfield High School	ORG	SIMPSONS_166:151-175	0.9343	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 48)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_0d2feb6ef2ff	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_177:169-317	Springfield High School	ORG	SIMPSONS_177:105-129	0.0370	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 53)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_104:190-302	Springfield High School	ORG	SIMPSONS_104:114-138	0.8444	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 35)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_123:163-296	Springfield Elementary School	ORG	SIMPSONS_123:138-168	0.9718	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 10)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_137:225-382	Springfield Elementary School	ORG	SIMPSONS_137:111-141	0.6805	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 15)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_151:174-292	Springfield High School	ORG	SIMPSONS_151:150-174	0.4724	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 40)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_153:231-387	Springfield High School	ORG	SIMPSONS_153:148-172	0.5387	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 45)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_157:166-275	Springfield Elementary School	ORG	SIMPSONS_157:170-200	0.2959	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 20)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_158:120-272	Springfield Elementary School	ORG	SIMPSONS_158:229-259	0.4837	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 25)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_160:169-286	Springfield Elementary School	ORG	SIMPSONS_160:185-215	0.5343	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 30)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_166:244-383	Springfield High School	ORG	SIMPSONS_166:151-175	0.9343	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 50)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_48f327d3b6eb	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_177:169-317	Springfield High School	ORG	SIMPSONS_177:105-129	0.0370	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 55)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_151:174-292	Springfield High School	ORG	SIMPSONS_151:150-174	0.4724	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 36)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_157:166-275	Springfield Elementary School	ORG	SIMPSONS_157:170-200	0.2959	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 16)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_158:120-272	Springfield Elementary School	ORG	SIMPSONS_158:229-259	0.4837	:Entity110
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 21)
+WARNING: Following line has been discarded due to constraints on multiple justifications: 
+CSSF17_ENG_afddc4ed21_729d7f6f2d47	per:schools_attended	SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT	SIMPSONS_177:169-317	Springfield High School	ORG	SIMPSONS_177:105-129	0.0370	:Entity111
+ (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/GeneratorKB/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT.rq line 51)
+WARNING: Unable to infer language from DOCID SIMPSONS_011. Using default language ENGLISH. (CS-TestSuite/SF-TestSuite/SCORER_TS_PARENT_INCORRECT_CHILD_CORRECT/sf-query.xml line In query CSSF17_ENG_afddc4ed21)
+WARNING: Unable to infer language from DOCID SIMPSONS_101. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_104. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_123. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_131. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_137. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_151. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_153. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_157. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_158. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_160. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_166. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_177. Using default language ENGLISH.
+WARNING: Unable to infer language from DOCID SIMPSONS_190. Using default language ENGLISH.
+102 warnings encountered

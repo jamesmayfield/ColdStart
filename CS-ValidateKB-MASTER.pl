@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "2017.1.6";
+my $version = "2017.2.0";
 
 my $statsfile;
 
@@ -1285,7 +1285,9 @@ sub export_sen {
           my $source_length = $source_provenance->{PREDICATE_JUSTIFICATION}->get_end()-$source_offset+1;
           my $polarity = "pos";
           $polarity = "neg" if $sentiment->{VERB} eq "dislikes";
-          print $output "          <sentiment polarity=\"$polarity\" sarcasm=\"no\">\n";
+          my $confidence = $sentiment->{CONFIDENCE};
+          $confidence = 1.0 unless $confidence;
+          print $output "          <sentiment polarity=\"$polarity\" sarcasm=\"no\" confidence=\"$confidence\">\n";
           print $output "            <source ere_id=\"$source_mentionid\" offset=\"$source_offset\" length=\"$source_length\">$source_mention_text<\/source>\n";
           print $output "          <\/sentiment>\n";
         }
@@ -1316,7 +1318,9 @@ sub export_nug {
     my $subject = $assertion->{SUBJECT};
     my $start = $provenance->{PREDICATE_JUSTIFICATION}->get_start();
     my $end = $provenance->{PREDICATE_JUSTIFICATION}->get_end();
-    my $span = "$start,$end";
+    my $length = $start-$end+1;
+    my ($start_span, $end_span) = ($start, $start+$length);
+    my $span = "$start_span,$end_span";
     my $mention_string = &main::remove_quotes($assertion->{OBJECT});
     $mentionids{$docid} = 1 unless exists $mentionids{$docid};
     my $mentionid = "E$mentionids{$docid}";
@@ -1415,8 +1419,10 @@ sub export_eal {
           $confidence);
       my %output_line = map {$fields[$_]=>$output[$_]} (0..$#fields);
       push(@{$arguments{$document_id}}, \%output_line);
-      push(@{$linking{$document_id}{$node_id}}, "$subject_string");
-      push(@{$corpuslinking{$node_id}}, "$document_id-$run_id$node_id.$document_id");
+      if($realis ne "Generic"){
+        push(@{$linking{$document_id}{$node_id}}, "$subject_string");
+        $corpuslinking{$node_id}{"$document_id-$run_id$node_id.$document_id"} = 1;
+      }
     }
   }
 
@@ -1441,7 +1447,7 @@ sub export_eal {
   # Generate the corpus linking file
   foreach my $node_id(sort keys %corpuslinking) {
     open(CORPUS_LINKING, ">>$event_argument_dir/corpusLinking/corpusLinking");
-    print CORPUS_LINKING "$run_id$node_id\t", join(" ", sort @{$corpuslinking{$node_id}}), "\n";
+    print CORPUS_LINKING "$run_id$node_id\t", join(" ", sort keys %{$corpuslinking{$node_id}}), "\n";
     close(CORPUS_LINKING);
   }
 }
@@ -1540,7 +1546,7 @@ sub export_edl {
     my $mention_string = &main::remove_quotes($assertion->{OBJECT});
     my $provenance_string = $provenance->tooriginalstring();
     my $kbid = $entity2link{$assertion->{SUBJECT}};
-    my $entity_type = $entity2type{$assertion->{SUBJECT}};
+    my $entity_type = uc $entity2type{$assertion->{SUBJECT}};
     my $mention_type = $predicate_string eq 'mention' ? "NAM": "NOM";
     my $confidence = $assertion->{CONFIDENCE};
     print $program_output join("\t", $runid, $mention_id, $mention_string,
@@ -1798,4 +1804,5 @@ exit 0;
 # 2017.1.4 - Removing domain name from pronominal_mention
 # 2017.1.5 - INCLUDEs etc updated to allow Include.pl to successfully create standalone executables
 # 2017.1.6 - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
+# 2017.2.0 - Code state at the release of scores
 1;

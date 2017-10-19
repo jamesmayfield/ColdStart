@@ -30,7 +30,7 @@ use ColdStartLib;
 # Shahzad: I have not upped any version numbers. We should up them all just prior to
 # the release of the new code
 ### DO INCLUDE
-my $version = "2017.1.6";
+my $version = "2017.2.0";
 
 # Filehandles for program and error output
 my @output_postfix = qw(DEBUG AP SF LDCMAX LDCMEAN SUMMARY SAMPLE SAMPLESCORES CONFIDENCE PARAMS);
@@ -341,9 +341,11 @@ sub aggregate_score {
 }
 
 sub add_scores {
-	my ($self, @scores) = @_;
-	
-	push(@{$self->{SCORES}}, @scores);
+  my ($self, @scores) = @_;
+  foreach my $score(@scores) {
+    next if ($score->{LEVEL} ne "ALL" && $self->{QUERIES_TO_SCORE}{$score->{QUERY_ID_BASE}} < $score->{LEVEL});
+    push(@{$self->{SCORES}}, $score);
+  }
 }
 
 sub compare_ec_names {
@@ -390,7 +392,6 @@ sub add_macro_average {
   my $aggregates = {};
   foreach my $score(sort compare_ec_names @scores ) {
   	&aggregate_score($aggregates, $score->{RUNID}, $score->{LEVEL}, $score);
-  	&aggregate_score($aggregates, $score->{RUNID}, 'ALL', $score);
   }
   foreach my $level (sort keys %{$aggregates->{$self->{RUNID}}}) {
   	# Print the macro-averaged scores
@@ -456,6 +457,8 @@ sub projectLDCMEAN {
 	      else{
 	      	$combined_scores->put('AP', $combined_scores->get('AP') + $scores->get('AP'));
 	      }
+	      $combined_scores->put('NUM_GROUND_TRUTH', $scores->get('NUM_GROUND_TRUTH'))
+	        if($scores->get('NUM_GROUND_TRUTH') > $combined_scores->get('NUM_GROUND_TRUTH'));
 	      $i++;
 	    }
 	    $combined_scores->put('AP', $combined_scores->get('AP')/$i);
@@ -530,7 +533,7 @@ sub print_details {
     print {$program_output{DEBUG}} "AP:               $ap\n";
     print {$program_output{DEBUG}} "NUM_GROUND_TRUTH: $num_ground_truth\n";
     print {$program_output{DEBUG}} "GROUND TRUTH:\n";
-    print {$program_output{DEBUG}} join("\n", map {"  $_"} sort @{$score->{DEBUG}{ECS}}), "\n";
+    print {$program_output{DEBUG}} join("\n", map {"  $_"} sort @{$score->{DEBUG}{ECS} || []}), "\n";
     print {$program_output{DEBUG}} "RANKING:\n........\nRANK NODEID CONFIDENCE MAPPED_EC V\n";
     my $rank = 1;
     foreach my $nodeid(sort {$score->{DEBUG}{NODES}{$b}{CONFIDENCE} <=> $score->{DEBUG}{NODES}{$a}{CONFIDENCE} ||
@@ -1167,7 +1170,7 @@ sub get_projected_scores {
 sub prepare_lines {
   my ($self, $metric) = @_;
   @{$self->{SUMMARY}{$metric}} = ();
-  my @scores = @{$self->{SCORES}};
+  my @scores = @{$self->{SCORES} || []};
   if($metric eq "LDCMAX" || $metric eq "LDCMEAN") {
   	@scores = $self->get_projected_scores($metric);
   }
@@ -1228,8 +1231,8 @@ sub print_details {
     my %summary;
     foreach my $label(grep {$_ ne "SUBMITTED" && $_ ne "ASSESSMENTS"} keys %{$self->{CATEGORIZED_SUBMISSIONS}{$ec}}) {
       foreach my $submission(@{$self->{CATEGORIZED_SUBMISSIONS}{$ec}{$label}}) {
-        my $assessment = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{ASSESSMENT} : "UNASSESSED";
-        my $assessment_line = ($submission->{ASSESSMENT}) ? $submission->{ASSESSMENT}{LINE} : "-";
+        my $assessment = ($submission->{ASSESSMENT} && keys %{$submission->{ASSESSMENT}}) ? $submission->{ASSESSMENT}{ASSESSMENT} : "UNASSESSED";
+        my $assessment_line = ($submission->{ASSESSMENT} && keys %{$submission->{ASSESSMENT}}) ? $submission->{ASSESSMENT}{LINE} : "-";
         if($assessment ne $label) {
           my $postpolicy_assessment = $label;
           unless ($summary{$submission->{LINENUM}}) {
@@ -1490,13 +1493,6 @@ my $submissions_and_assessments = EvaluationQueryOutput->new($logger, $disciplin
                     {JUSTIFICATIONS_ALLOWED=>$justifications_allowed},
                     @runfilenames);
 
-$logger->report_all_problems();
-
-# The NIST submission system wants an exit code of 255 if errors are encountered
-my $num_errors = $logger->get_num_errors();
-$logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encountered")
-  if $num_errors;
-
 package main;
 
 use Cwd;
@@ -1578,6 +1574,17 @@ foreach my $output_postfix(@output_postfix) {
   close $program_output{$output_postfix};
 }
 
+$logger->report_all_problems();
+
+# The NIST submission system wants an exit code of 255 if errors are encountered
+my ($num_errors, $num_warnings) = $logger->report_all_problems();
+if ($num_errors) {
+  $logger->NIST_die("$num_errors error" . ($num_errors == 1 ? '' : 's') . " encountered");
+}
+else {
+  print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
+}
+
 # Close error output
 $logger->close_error_output();
 
@@ -1585,6 +1592,7 @@ $logger->close_error_output();
 # Revision History
 ################################################################################
 
+# 2017.2.0 - Code state at the release of scores
 # 2017.1.6 - EvaluationQueryOutput->new() takes a hash named options as one of the args
 # 2017.1.5 - Node mapping function changed to traverse the nodetree in breadth 
 #            first order rather than depth first.

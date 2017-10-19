@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.0";
+my $version = "2017.2.0";
 
 # Filehandles for program and error output
 my %program_output;
@@ -179,7 +179,7 @@ $logger->NIST_die("File $filename does not exist") unless -e $filename;
 my $queries = QuerySet->new($logger, $queryfile);
 
 # FIXME: parameterize discipline
-my $assessments = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, 'MANY', $filename);
+my $assessments = EvaluationQueryOutput->new($logger, 'ASSESSED', $queries, {JUSTIFICATIONS_ALLOWED=>"M:M"}, $filename);
 
 # Problems were identified while the KB was loaded; now report them
 my ($num_errors, $num_warnings) = $logger->report_all_problems();
@@ -257,5 +257,5 @@ exit 0;
 #       in another language but not in the language of the split.
 # 1.2 - Removed a bug where filtering based on language identifiers were missing "_".
 # 2017.1.0 - First release of 2017
-
+# 2017.2.0 - Code state at the release of scores
 1;
