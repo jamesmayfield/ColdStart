@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.0";
+my $version = "2017.2.0";
 
 # Filehandles for program and error output
 my %program_output;
@@ -257,5 +257,5 @@ exit 0;
 #       in another language but not in the language of the split.
 # 1.2 - Removed a bug where filtering based on language identifiers were missing "_".
 # 2017.1.0 - First release of 2017
-
+# 2017.2.0 - Code state at the release of scores
 1;

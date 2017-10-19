@@ -9,7 +9,7 @@ use ColdStartLib;
 
 # ResolveQueries.pl
 # Author: James Mayfield (jamesmayfield "at" gmail "dot" com)
-my $version = "2017.1.1";
+my $version = "2017.2.0";
 
 binmode(STDOUT, ":utf8");
 
@@ -878,3 +878,4 @@ close $outfile if $outfile_opened;
 #			with new library
 # 2017.1.0: First release of 2017
 # 2017.1.1: Support added for link predicates to be read from KB; required libraries included for standalone executable creation.
+# 2017.2.0: Code state at the release of scores

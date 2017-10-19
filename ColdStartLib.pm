@@ -25,7 +25,7 @@ binmode(STDOUT, ":utf8");
 ### DO INCLUDE
 #####################################################################################
 
-my $version = "2017.1.10";   # (1) - Code for pooling schemes updated to match requirements
+my $version = "2017.2.0";   # (1) Code state at the release of scores
 
 ### BEGIN INCLUDE Switches
 

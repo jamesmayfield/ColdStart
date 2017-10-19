@@ -24,7 +24,7 @@ binmode(STDOUT, ":utf8");
 ### DO NOT INCLUDE
 # FIXME: This doesn't really do much good without tracking the ColdStartLib version as well
 ### DO INCLUDE
-my $version = "2017.1.6";
+my $version = "2017.2.0";
 
 my $statsfile;
 
@@ -1804,4 +1804,5 @@ exit 0;
 # 2017.1.4 - Removing domain name from pronominal_mention
 # 2017.1.5 - INCLUDEs etc updated to allow Include.pl to successfully create standalone executables
 # 2017.1.6 - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
+# 2017.2.0 - Code state at the release of scores
 1;

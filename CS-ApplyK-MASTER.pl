@@ -18,7 +18,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.0";
+my $version = "2017.2.0";
 
 ### DO NOT INCLUDE
 ##################################################################################### 
@@ -140,4 +140,5 @@ close($program_output);
 # Revision History
 ################################################################################
 
+# 2017.2.0 - Code state at the release of scores
 # 2017.1.0 - Initial version 

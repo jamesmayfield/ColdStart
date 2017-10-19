@@ -21,7 +21,7 @@ use ColdStartLib;
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "2017.1.4";
+my $version = "2017.2.0";
 
 # Filehandles for program and error output
 my $program_output = *STDOUT{IO};
@@ -181,4 +181,5 @@ exit 0;
 # 2017.1.4 - INACCURACTE_MENTION_STRING made a WARNING instead of an ERROR
 #          - Support added in SF validator to compare filler string with the text in source
 #            document at the filler provenance
+# 2017.2.0 - Code state at the release of scores
 1;

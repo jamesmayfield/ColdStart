@@ -10,7 +10,7 @@ binmode(STDERR, ":utf8");
 ### DO NOT INCLUDE
 use ColdStartLib;
 
-my $version = "2017.0.1";
+my $version = "2017.2.0";
 
 # Filehandles for program and error output
 my $program_output;
@@ -502,3 +502,6 @@ $logger->report_all_problems();
 my $num_errors = $logger->get_num_errors();
 $logger->NIST_die("$num_errors error" . $num_errors == 1 ? "" : "s" . "encountered")
   if $num_errors;
+
+# 2017.2.0 - Code state at the release of scores
+# 2017.0.1 - Initial version
